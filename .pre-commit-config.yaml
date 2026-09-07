@@ -1,0 +1,33 @@
+# The denylist hook is the one that matters. CI catches a leak after the push,
+# and a public git history cannot be un-pushed — so the check has to run before
+# the commit exists, not after it is on a server.
+#
+#   pip install pre-commit && pre-commit install
+repos:
+  - repo: local
+    hooks:
+      - id: denylist
+        name: No real infrastructure values
+        entry: tools/check-denylist.sh
+        language: script
+        pass_filenames: false
+        always_run: true
+
+      - id: docs
+        name: Documentation structure and links
+        entry: python3 tools/check-docs.py docs/
+        language: system
+        pass_filenames: false
+        files: ^docs/.*\.md$
+
+      - id: generated-agent-files
+        name: Generated agent files match AGENTS.md
+        entry: node tools/build-agent-files.js --check
+        language: system
+        pass_filenames: false
+        files: ^(AGENTS\.md|CLAUDE\.md|\.github/copilot-instructions\.md)$
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks

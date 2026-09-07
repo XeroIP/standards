@@ -1,0 +1,57 @@
+# XeroIP engineering standards
+
+> Shared standards for documentation, prose, code, design, and diagrams across
+> every XeroIP repository. Markdown throughout, so the source is the same text a
+> model reads. Each area's README is the entry point; the pages under it are the
+> rules and name what enforces them.
+
+This file is generated from front matter by tools/build-llms-txt.js.
+
+## Documentation
+
+- [Documentation standard](https://xeroip.github.io/standards/docs/documentation/): How documentation is structured, named, written, and enforced across every repo.
+- [Architecture decision records](https://xeroip.github.io/standards/docs/documentation/adr): MADR-format decision records, superseding the ad-hoc decision documents already in use.
+- [Documentation consistency tests](https://xeroip.github.io/standards/docs/documentation/consistency): Tests that fail when a documented value stops matching the code it describes, generalised from a Flutter project where it already works.
+- [Front matter](https://xeroip.github.io/standards/docs/documentation/front-matter): The required YAML schema on every page, and the opt-in that scopes severity colour.
+- [Post-incident reviews](https://xeroip.github.io/standards/docs/documentation/incident-reviews): One required structure for incident reviews, replacing three divergent templates and the hand-written HTML they were rendered in.
+- [File naming and links](https://xeroip.github.io/standards/docs/documentation/naming): Filenames, why ordinal prefixes are banned, and how links and redirects are kept honest.
+- [Page anatomy](https://xeroip.github.io/standards/docs/documentation/page-anatomy): Headings, tables, code blocks, the four admonitions, and accessibility requirements.
+- [Documentation structure](https://xeroip.github.io/standards/docs/documentation/structure): Diátaxis plus ADRs, incidents, and an ops log, and which gates each repo profile runs.
+
+## Prose
+
+- [Prose standard](https://xeroip.github.io/standards/docs/prose/): House writing style, derived from multi-vendor research and enforced by generated Vale rules.
+- [Master language rule](https://xeroip.github.io/standards/docs/prose/master-language-rule): The full rule pack with tiers, evidence, and provenance.
+- [Validation checklist](https://xeroip.github.io/standards/docs/prose/validation-checklist): The per-draft review pass, tiered critical / important / optional.
+
+## Coding
+
+- [Coding standard](https://xeroip.github.io/standards/docs/coding/): Global engineering rules plus per-stack tooling, harvested from the Copilot instructions where they already worked.
+- [Bash](https://xeroip.github.io/standards/docs/coding/bash): Strict mode, shellcheck, and where a shell script stops being the right tool.
+- [Dart and Flutter](https://xeroip.github.io/standards/docs/coding/dart-flutter): Formatting, analysis, SDK pinning, and the release-agreement rule from rolling-text.
+- [Docker and Compose](https://xeroip.github.io/standards/docs/coding/docker): hadolint, image pinning, and keeping secrets out of images and compose files.
+- [Global engineering rules](https://xeroip.github.io/standards/docs/coding/global): Priorities, change discipline, git conventions, and safety rules that apply in every repo regardless of language.
+- [JavaScript and TypeScript](https://xeroip.github.io/standards/docs/coding/javascript-typescript): ESLint and Prettier, the tsconfig baseline, and dependency discipline.
+- [Kotlin](https://xeroip.github.io/standards/docs/coding/kotlin): ktlint, Compose naming, and the architecture conventions already in use.
+- [PowerShell](https://xeroip.github.io/standards/docs/coding/powershell): Approved verbs, splatting, strict error handling, and dry-run modes for destructive scripts.
+- [Python](https://xeroip.github.io/standards/docs/coding/python): ruff and black, typing expectations, and packaging layout.
+- [YAML and GitHub Actions](https://xeroip.github.io/standards/docs/coding/yaml-actions): yamllint, actionlint, and the SHA-pinning policy promoted from rolling-text.
+
+## Design
+
+- [Console Editorial](https://xeroip.github.io/standards/docs/design/): The design system — editorial structure and typography carrying an operations-console palette, dark canonical.
+
+## Diagrams
+
+- [Diagram generation](https://xeroip.github.io/standards/docs/diagrams/): Which tool draws which diagram, and how to check the result before trusting it.
+- [Diagram QA tools](https://xeroip.github.io/standards/docs/diagrams/tools/): Two dependency-free checkers for defects that eyeballing a rendered SVG reliably misses.
+
+## Observability
+
+- [Observability standard](https://xeroip.github.io/standards/docs/observability/) *(draft)*: Not yet written. This page states the scope and the questions it has to answer.
+
+## Optional
+
+- [AGENTS.md](https://xeroip.github.io/standards/AGENTS.md): instructions for agents working in the standards repo itself.
+- [rules.yml](https://xeroip.github.io/standards/docs/prose/rules.yml): the prose markers in machine-readable form, with tier and marker id.
+- [tokens.json](https://xeroip.github.io/standards/docs/design/tokens.json): design tokens, the source every adapter is generated from.

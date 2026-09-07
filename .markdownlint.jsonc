@@ -1,0 +1,33 @@
+{
+  // Rules that overlap the documentation standard are enforced here so a
+  // violation fails the build rather than waiting for review.
+  "default": true,
+
+  // Line length is set by the content, not a column. Prose wraps at ~95 by
+  // habit; tables and links routinely exceed any limit worth setting.
+  "MD013": false,
+
+  // The H1 comes from front matter `title`, so the first line of the body is
+  // usually a heading and sometimes is not.
+  "MD041": false,
+
+  // Duplicate headings are legitimate under different parents ("Tooling" in
+  // every stack page, "Enforcement" in every standard).
+  "MD024": { "siblings_only": true },
+
+  // Bare URLs are banned by the naming standard; link text has to describe the
+  // destination.
+  "MD034": true,
+
+  // Fenced blocks declare a language, per page-anatomy.md.
+  "MD040": true,
+
+  // Consistent list and emphasis markers.
+  "MD004": { "style": "dash" },
+  "MD049": { "style": "underscore" },
+  "MD050": { "style": "asterisk" },
+
+  // Imported files keep their upstream formatting; they are re-imported, not
+  // edited, so reformatting them here would be lost.
+  "globs": ["!docs/prose/master-language-rule.md", "!docs/prose/validation-checklist.md", "!docs/prose/vendor/**"]
+}

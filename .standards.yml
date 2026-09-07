@@ -1,0 +1,26 @@
+# Every repo that consumes these standards carries one of these files. The
+# reusable workflows read it to decide which gates run. Opting out is a visible
+# declaration in the repo, never a quietly disabled workflow.
+#
+# See docs/documentation/structure.md for what each profile means.
+
+version: 1
+
+# docs-only  — prose and Markdown gates only, no language tooling
+# mixed      — docs gates plus the language gates matching `stacks`
+# code       — all gates; docs gates apply to docs/ only
+profile: docs-only
+
+# Languages present in this repo. Ignored when profile is docs-only.
+stacks: []
+
+# Repos differ deliberately. claude-memory records that q7-2019-prestige commits
+# straight to main while car-maintenance-log requires an issue per change, so
+# these are per-repo facts rather than a house rule with exceptions.
+workflow:
+  require_issue: false
+  allow_direct_to_main: false
+
+# Paths the sync bot must not overwrite when it vendors .standards/ in.
+sync:
+  protect: []

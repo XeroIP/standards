@@ -1,0 +1,18 @@
+# External links only. Internal link integrity is checked at build time by
+# tools/check-docs.py, which resolves every relative path in under a second and
+# needs no network — so it gates every push while this does not.
+scheme = ["https", "http"]
+
+# Codes meaning "the link is real but the bot is being turned away".
+accept = [200, 206, 301, 302, 403, 429]
+
+exclude = [
+  # Placeholders used throughout the standards. They are meant not to resolve.
+  "^https?://example\\.internal",
+  "^https?://service-[a-z]",
+]
+
+timeout = 30
+retry_wait_time = 15
+max_retries = 3
+user_agent = "lychee/link-checker"

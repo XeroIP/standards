@@ -1,0 +1,69 @@
+# Reusable documentation gate. Consuming repos call it:
+#
+#   jobs:
+#     docs:
+#       uses: XeroIP/standards/.github/workflows/docs-ci.yml@v1
+#
+# Every third-party action is pinned to a full commit SHA. A tag is mutable, and
+# whoever controls the action's repo can move it to any commit, which then runs
+# with this workflow's token. See docs/coding/yaml-actions.md.
+name: Documentation
+
+on:
+  workflow_call:
+    inputs:
+      docs-path:
+        description: Directory holding the documentation tree.
+        type: string
+        default: docs
+      standards-ref:
+        description: Tag or SHA of XeroIP/standards to validate against.
+        type: string
+        default: v1
+
+permissions:
+  contents: read
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Check out the standards
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: XeroIP/standards
+          ref: ${{ inputs.standards-ref }}
+          path: .standards-src
+
+      - name: Read the repo profile
+        id: profile
+        run: |
+          if [ -f .standards.yml ]; then
+            profile=$(grep -E '^profile:' .standards.yml | head -1 | cut -d: -f2 | tr -d ' "'"'"'')
+          else
+            profile=mixed
+          fi
+          echo "profile=${profile:-mixed}" >> "$GITHUB_OUTPUT"
+          echo "Profile: ${profile:-mixed}"
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+
+      - name: Structure, naming, front matter, and internal links
+        run: python3 .standards-src/tools/check-docs.py "${{ inputs.docs-path }}"
+
+      - name: Prose
+        uses: errata-ai/vale-action@d89dee975228ae261d22c15adcd03578634d429c # v2.1.1
+        with:
+          files: ${{ inputs.docs-path }}
+          vale_flags: --config=.standards-src/.vale.ini --minAlertLevel=warning
+          fail_on_error: true
+
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20.0.0
+        with:
+          globs: ${{ inputs.docs-path }}/**/*.md
+          config: .standards-src/.markdownlint.jsonc
