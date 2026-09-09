@@ -14,7 +14,10 @@ applied to the repo that publishes it.
 
 | ADR | Decision | Status |
 | --- | --- | --- |
-| [ADR-0001](0001-mkdocs-material-as-the-documentation-toolchain.md) | MkDocs + Material as the documentation toolchain | accepted |
+| [ADR-0001](0001-mkdocs-material-as-the-documentation-toolchain.md) | MkDocs + Material as the documentation toolchain | proposed |
+
+A `proposed` ADR is a written case awaiting a decision, and it is editable until that
+decision is made. Nothing should depend on one.
 
 Decisions already made and not yet recorded are tracked as issues. A standard that mandates
 decision records and has none of its own is a standard nobody has tested.

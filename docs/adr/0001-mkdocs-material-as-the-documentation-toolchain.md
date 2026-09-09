@@ -2,7 +2,7 @@
 title: MkDocs + Material as the documentation toolchain
 type: adr
 id: ADR-0001
-status: accepted
+status: proposed
 date: 2026-09-09
 deciders: [peter]
 updated: 2026-09-09
@@ -119,13 +119,16 @@ reference, where a link checker reports the same dead link out of band. Sphinx a
 credible path to PDF — `-b latex` emitted a `.tex` with no TeX toolchain installed. Neither
 outweighs the adoption and maintenance profile of the chosen option.
 
-**MkDocs + Material.** Chosen. See below.
+**MkDocs + Material.** Proposed. See below.
 
 ## Decision outcome
 
-Chose **MkDocs + Material**, because it satisfied every driver without modification to a
-single source file, and because the two drivers with no workaround — Markdown as source, and
-adoption cost paid thirty times — are the two it satisfies outright.
+**Proposed, not decided.** This ADR is `status: proposed` and stays editable until the
+decider accepts or rejects it. Nothing in the repository depends on the outcome yet.
+
+The proposal is **MkDocs + Material**, because it satisfied every driver without modification
+to a single source file, and because the two drivers with no workaround — Markdown as source,
+and adoption cost paid thirty times — are the two it satisfies outright.
 
 It rendered all three pages in 568 milliseconds from 62 lines of configuration and 9 lines of
 custom CSS. Five of the six page behaviours the incident standard requires are configuration
