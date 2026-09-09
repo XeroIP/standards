@@ -16,7 +16,7 @@ the thing that always drifts.
 
 | Key | Type | Notes |
 |---|---|---|
-| `title` | string | Sentence case. Not repeated as an H1 — the generator emits the H1 from this. |
+| `title` | string | Sentence case. Repeated as the body H1; see [page anatomy](page-anatomy.md). |
 | `type` | enum | `tutorial`, `how-to`, `reference`, `explanation`, `adr`, `incident`, `ops-log` |
 | `status` | enum | `draft`, `active`, `superseded`, `archived` |
 | `updated` | date | `YYYY-MM-DD`. The last substantive change, not a typo fix. |

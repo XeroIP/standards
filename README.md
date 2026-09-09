@@ -46,10 +46,14 @@ and re-run the generator; never edit a generated file.
 
 ## Nothing real goes in here
 
-Standards use placeholders — `example.internal`, `10.0.0.0/8`, `service-a`. This repo is
-public, and the nearest source of examples is a private homelab, so `secret-scan.yml` fails
-the build on any real domain, CIDR, hostname, or credential. It runs pre-commit as well as in
-CI, because a public git history cannot be un-pushed.
+Standards use placeholders — `example.internal`, `192.0.2.10`, `service-a`. This repo is
+public and the nearest source of examples is a private homelab, so `tools/check-leakage.py`
+reports anything infrastructure-shaped that is not on `tools/allowlist.txt`.
+
+The allowlist, not a denylist: a denylist would have to name the values it protects, and
+publishing it would defeat it. It also only catches what someone thought to add, where an
+allowlist catches unfamiliar values by default. The check runs pre-commit as well as in CI,
+because a public git history cannot be un-pushed.
 
 ## Verifying
 

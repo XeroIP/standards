@@ -65,6 +65,9 @@ jobs:
           vale_flags: --minAlertLevel=warning
           fail_on_error: true
 
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20.0.0
+
   links:
     # External links break for reasons unrelated to the change under review, so
     # this runs on a schedule and on docs changes — never as a gate on an

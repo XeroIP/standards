@@ -1,0 +1,170 @@
+# Values that may appear in this public repository.
+#
+# This file is an ALLOWLIST, not a denylist. It replaced a denylist that named
+# the real domain, the real subnet, and two real host names — publishing, in a
+# public repository, exactly the values it existed to keep out of one.
+#
+# Enumerating badness fails twice over. It leaks whatever it enumerates, and it
+# only ever catches values someone thought to add: a host stood up next year, a
+# second domain, a service nickname all pass silently. Enumerating goodness
+# leaks nothing, because everything here is reserved for documentation or
+# already public, and it catches unfamiliar values by default.
+#
+# See docs/adr/ for the decision record, and Marcus Ranum, "The Six Dumbest
+# Ideas in Computer Security" (2005), where enumerating badness is idea #2.
+#
+# Format: [section] headers, one value per line, # comments ignored.
+# tools/check-leakage.py reads this file.
+
+# ---------------------------------------------------------------------------
+# Network blocks that may be written as a CIDR.
+#
+# A CIDR names a range, not a host, so writing 192.168.0.0/16 to mean "an
+# RFC1918 network" reveals nothing. Writing 192.168.1.21 names a machine.
+# Host addresses are governed by [ip-host] below and are far stricter.
+# ---------------------------------------------------------------------------
+[ip-cidr]
+10.0.0.0/8
+172.16.0.0/12
+192.168.0.0/16
+192.0.2.0/24
+198.51.100.0/24
+203.0.113.0/24
+100.64.0.0/10
+169.254.0.0/16
+0.0.0.0/0
+
+# ---------------------------------------------------------------------------
+# Individual addresses that may be written.
+#
+# RFC 5737 reserves three ranges specifically so that documentation can use
+# concrete addresses without naming anything real. Use those for examples that
+# need a host. Everything else — including any address inside a real RFC1918
+# range — is a finding.
+# ---------------------------------------------------------------------------
+[ip-host]
+192.0.2.0/24          # TEST-NET-1, RFC 5737
+198.51.100.0/24       # TEST-NET-2, RFC 5737
+203.0.113.0/24        # TEST-NET-3, RFC 5737
+127.0.0.0/8           # loopback
+0.0.0.0/32            # unspecified
+255.255.255.255/32    # broadcast
+
+# ---------------------------------------------------------------------------
+# Suffixes that make a dotted token a hostname rather than an identifier.
+#
+# Without this, `fs.readFileSync`, `os.path` and `h1.page` all read as domains
+# and the scanner reports several hundred findings per run — which is how a
+# check gets switched off. A token is only tested against [domain] when its
+# final label appears here.
+#
+# Deliberately a short list of suffixes plausible in this estate, not the full
+# IANA set. A leaked hostname under an exotic TLD would be missed; that is the
+# accepted cost of a check people will actually leave enabled. Add suffixes as
+# they become relevant.
+# ---------------------------------------------------------------------------
+[tld]
+com
+org
+net
+edu
+gov
+io
+fr
+uk
+ca
+de
+# Private and reserved namespaces — RFC 6762, RFC 8375, RFC 2606.
+# These are the leak-relevant ones: an internal hostname is far more likely to
+# end in .internal, .local or .lan than in .com, so they are always checked.
+internal
+local
+lan
+arpa
+localhost
+invalid
+
+# ---------------------------------------------------------------------------
+# Suffixes that are simultaneously real TLDs and common file extensions or
+# identifiers: verify-stack.sh, .env.example, Path.home, main.dev.
+#
+# Treating these as hostnames unconditionally produced five false positives on
+# the first run of this scanner and would produce more in any repository with
+# code in it. They are still checked — but only in URL context, where a `://`
+# or `@` makes the intent unambiguous. A bare `something.sh` in prose is read
+# as a filename.
+#
+# The cost: a leaked hostname under one of these suffixes, written without a
+# scheme, is missed. Accepted, because the alternative is a check that reports
+# noise and therefore gets ignored.
+# ---------------------------------------------------------------------------
+[tld-url-context-only]
+sh
+app
+dev
+me
+co
+ai
+tv
+info
+biz
+tech
+cloud
+xyz
+home
+test
+example
+
+# ---------------------------------------------------------------------------
+# Domains that may be written.
+#
+# Two kinds: placeholders reserved for documentation, and public third parties
+# this repository legitimately links to. Neither reveals anything about the
+# private estate. A domain absent from this list is a finding — including a new
+# domain of your own, which is the case a denylist would have missed entirely.
+# ---------------------------------------------------------------------------
+[domain]
+# Reserved for documentation and examples — RFC 2606 and RFC 6761
+example.com
+example.org
+example.net
+example.edu
+example.internal
+invalid
+localhost
+test
+
+# Public, already-published references
+github.com
+xeroip.github.io
+adr.github.io
+diataxis.fr
+fonts.googleapis.com
+fonts.gstatic.com
+cdnjs.cloudflare.com
+registry.npmjs.org
+pypi.org
+w3.org
+www.w3.org
+creativecommons.org
+opensource.org
+keepachangelog.com
+semver.org
+conventionalcommits.org
+contributor-covenant.org
+vale.sh
+squidfunk.github.io
+llmstxt.org
+agents.md
+
+# ---------------------------------------------------------------------------
+# Credential shapes. These describe a format rather than naming a value, so
+# listing them leaks nothing. gitleaks covers the same ground more thoroughly;
+# these are a cheap second pass that runs without network or configuration.
+# ---------------------------------------------------------------------------
+[credential-pattern]
+-----BEGIN [A-Z ]*PRIVATE KEY-----
+\bgh[pousr]_[A-Za-z0-9]{20,}
+\bAKIA[0-9A-Z]{16}\b
+\bxox[baprs]-[A-Za-z0-9-]{10,}
+\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}

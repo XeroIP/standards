@@ -27,7 +27,7 @@ readable at all. When a page wants to do both, split it and link.
 
 ## Layout
 
-```
+```text
 docs/
   tutorials/        # learning-oriented, ordered, each one completable
   how-to/           # task-oriented, one goal per page

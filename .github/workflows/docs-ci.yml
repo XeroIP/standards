@@ -62,8 +62,10 @@ jobs:
           vale_flags: --config=.standards-src/.vale.ini --minAlertLevel=warning
           fail_on_error: true
 
+      # No `globs:` here. The config owns which files are linted and which are
+      # ignored; passing globs on the command line overrides it, which is how
+      # the ignore list came to be silently bypassed.
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20.0.0
         with:
-          globs: ${{ inputs.docs-path }}/**/*.md
-          config: .standards-src/.markdownlint.jsonc
+          config: .standards-src/.markdownlint-cli2.jsonc

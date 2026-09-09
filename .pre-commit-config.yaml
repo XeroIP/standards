@@ -1,15 +1,19 @@
-# The denylist hook is the one that matters. CI catches a leak after the push,
+# The leakage hook is the one that matters. CI catches a leak after the push,
 # and a public git history cannot be un-pushed — so the check has to run before
 # the commit exists, not after it is on a server.
+#
+# It works from an allowlist: anything infrastructure-shaped that is not
+# explicitly permitted is a finding. That catches values nobody thought to
+# enumerate, and it means the guard itself contains nothing sensitive.
 #
 #   pip install pre-commit && pre-commit install
 repos:
   - repo: local
     hooks:
-      - id: denylist
+      - id: leakage
         name: No real infrastructure values
-        entry: tools/check-denylist.sh
-        language: script
+        entry: python3 tools/check-leakage.py
+        language: system
         pass_filenames: false
         always_run: true
 

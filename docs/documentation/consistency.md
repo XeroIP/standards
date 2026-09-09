@@ -9,7 +9,7 @@ summary: Tests that fail when a documented value stops matching the code it desc
 # Documentation consistency tests
 
 A linter checks that documentation is well-formed. It cannot check that documentation is
-*true*. This standard covers the gap.
+_true_. This standard covers the gap.
 
 ## The problem, from a real case
 
@@ -59,7 +59,7 @@ source.
 The test lives in the repo's normal suite so it runs with everything else. It reads the doc
 file as text, extracts claims by pattern, and asserts against the imported constant.
 
-```
+```text
 test: documentation states the current character ceiling
   read docs/user-guide.md
   find the claimed maximum

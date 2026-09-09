@@ -16,10 +16,18 @@ change a standard here, you are changing it for thirty repositories.
 **This repo is public. The nearest source of examples is a private homelab.**
 
 Never write a real domain, hostname, IP, CIDR, container name, file path from a live host, or
-anything resembling a credential. Use `example.internal`, `10.0.0.0/8`, `service-a`,
-`/srv/appdata/<service>`. `secret-scan.yml` fails the build on violations and also runs as a
-pre-commit hook, because a public git history cannot be un-pushed — by the time CI catches it,
-the value has been cloneable for as long as the push took.
+anything resembling a credential. Use `example.internal`, `192.0.2.10` (RFC 5737 TEST-NET-1),
+`10.0.0.0/8` when a range is meant, `service-a`, `/srv/appdata/<service>`.
+
+`tools/check-leakage.py` enforces this from an **allowlist**: anything with the shape of
+infrastructure that is not explicitly permitted in `tools/allowlist.txt` is a finding. That
+catches values nobody thought to enumerate — a domain registered next year, a host stood up
+next month — and it means the guard itself contains nothing sensitive. A denylist would have
+to name the values it protects, which in a public repository publishes them.
+
+It runs as a pre-commit hook as well as in CI. The hook is the one that counts: a public git
+history cannot be un-pushed, so by the time CI reports a leak the value has been cloneable for
+as long as the push took.
 
 If a rule genuinely cannot be explained without a real value, the rule belongs in the private
 repo it describes, not here.

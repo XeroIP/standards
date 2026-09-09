@@ -1,0 +1,71 @@
+{
+  // Rules that overlap the documentation standard are enforced here so a
+  // violation fails the build rather than waiting for review.
+  //
+  // markdownlint-cli2 keeps RULE settings under "config" and RUNNER settings
+  // (globs, ignores) at the top level. Putting rules at the top level here — as
+  // they were in the .markdownlint.jsonc this replaced — silently disables all
+  // of them, which is how MD013 started firing after the rename.
+  "config": {
+    "default": true,
+
+    // Line length is set by the content, not a column. Prose wraps at ~95 by
+    // habit; tables and links routinely exceed any limit worth setting.
+    "MD013": false,
+
+    // The H1 comes from front matter `title`, so the first line of the body is
+    // usually a heading and sometimes is not.
+    "MD041": false,
+
+    // Front matter `title` is metadata for navigation, indexes and llms.txt. The
+    // body H1 is the document's own title. Counting both as top-level headings
+    // reported 21 findings — every page in docs/.
+    //
+    // Resolved in favour of keeping the body H1. The raw Markdown has to stay
+    // readable on its own: it is what an agent reads, what GitHub renders, and
+    // what an editor shows. A headless file satisfies a linter and costs the
+    // reader the title. `front_matter_title: ""` stops front matter counting.
+    //
+    // docs/documentation/page-anatomy.md and front-matter.md were corrected to
+    // match — they previously said the opposite, and no page followed them.
+    "MD025": { "front_matter_title": "" },
+
+    // Duplicate headings are legitimate under different parents ("Tooling" in
+    // every stack page, "Enforcement" in every standard).
+    "MD024": { "siblings_only": true },
+
+    // Bare URLs are banned by the naming standard; link text has to describe the
+    // destination.
+    "MD034": true,
+
+    // Fenced blocks declare a language, per page-anatomy.md.
+    "MD040": true,
+
+    // Consistent list and emphasis markers.
+    "MD004": { "style": "dash" },
+    "MD049": { "style": "underscore" },
+    "MD050": { "style": "asterisk" }
+  },
+
+  // `globs` and `ignores` are markdownlint-cli2 RUNNER options, not markdownlint
+  // rule options, so they are only honoured when the config file carries a cli2
+  // name. In the `.markdownlint.jsonc` this file used to be, they parsed cleanly
+  // and did nothing — the gate ran against every file including imports, which
+  // is why 308 findings were suppressed by the command-line globs in CI instead.
+  "globs": ["**/*.md"],
+  "ignores": [
+    "node_modules",
+    // Imported verbatim from XeroIP/english-ai-rule and XeroIP/documentation.
+    // Re-imported rather than edited, so reformatting here is lost next import.
+    "docs/prose/master-language-rule.md",
+    "docs/prose/validation-checklist.md",
+    "docs/prose/vendor/**",
+    "docs/diagrams/README.md",
+    "docs/diagrams/tools/README.md",
+    // Generated from AGENTS.md; the source is linted, the copies are not.
+    "CLAUDE.md",
+    ".github/copilot-instructions.md",
+    // Deliberately malformed, and asserted against directly by the tests.
+    "tests/fixtures/**"
+  ]
+}

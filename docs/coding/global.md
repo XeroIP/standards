@@ -82,7 +82,8 @@ Never speculate from a single observation. One run is not a trend.
 ## Enforcement
 
 Pre-commit hooks run formatters and linters for the declared stacks. `docs-ci.yml` runs the
-documentation and prose gates. `secret-scan.yml` runs gitleaks plus a denylist. The rules on
+documentation and prose gates. `secret-scan.yml` runs gitleaks plus an allowlist-based
+leakage scan. The rules on
 this page that concern judgement — priorities, change scope, disagreement — are review items,
 because no tool checks them and pretending otherwise would make the enforceable rules look
 optional by association.
