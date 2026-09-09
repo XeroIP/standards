@@ -15,7 +15,7 @@ the thing that always drifts.
 ## Required on every page
 
 | Key | Type | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `title` | string | Sentence case. Repeated as the body H1; see [page anatomy](page-anatomy.md). |
 | `type` | enum | `tutorial`, `how-to`, `reference`, `explanation`, `adr`, `incident`, `ops-log` |
 | `status` | enum | `draft`, `active`, `superseded`, `archived` |
@@ -24,7 +24,7 @@ the thing that always drifts.
 ## Optional
 
 | Key | Type | Notes |
-|---|---|---|
+| --- | --- | --- |
 | `summary` | string | One sentence. Used in index cards and in `llms.txt`. |
 | `tags` | list | Lowercase, hyphenated. |
 | `services` | list | Systems this page concerns. Required on `ops-log` and `incident`. |

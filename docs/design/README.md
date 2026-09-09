@@ -12,7 +12,7 @@ Editorial structure and typography carrying an operations-console palette. Dark 
 light is derived from it.
 
 | File | What it is |
-|---|---|
+| --- | --- |
 | `tokens.json` | **Source of truth.** Colour, type, and shape values, plus the contrast pairs to verify. |
 | `tokens.css` | The same values as CSS custom properties, for anything that loads CSS directly. |
 | `build-adapters.js` | Generates one adapter stylesheet per site generator from `tokens.json`. |
@@ -31,7 +31,7 @@ absorbs it. This is the only non-colour token that changes between themes.
 ## Colour
 
 | Token | Dark (canonical) | Light (derived) |
-|---|---|---|
+| --- | --- | --- |
 | `--dx-bg` | `#0C0F13` | `#F5F7F9` |
 | `--dx-surface` | `#141920` | `#FFFFFF` |
 | `--dx-raised` | `#1C232C` | `#EEF2F5` |

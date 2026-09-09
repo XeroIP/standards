@@ -15,7 +15,7 @@ Diátaxis does not model — decisions, incidents, and a running operations log.
 ## The four types
 
 | Type | Answers | Reader is | Fails when |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Tutorial** | "Teach me by doing" | Learning | It assumes knowledge, or branches |
 | **How-to** | "Help me do this task" | Working, knows the goal | It explains theory instead of steps |
 | **Reference** | "Tell me the facts" | Looking something up | It narrates, or omits a value |
@@ -84,7 +84,7 @@ observed, and survives after the commit that caused it has scrolled out of memor
 `.standards.yml` declares which gates a repo runs.
 
 | Profile | Runs | For |
-|---|---|---|
+| --- | --- | --- |
 | `docs-only` | Markdown lint, prose lint, link check, build | Documentation repos with no application code |
 | `mixed` | The above plus language gates for `stacks` | Docs plus scripts or config |
 | `code` | All gates; docs gates scoped to `docs/` | Applications |

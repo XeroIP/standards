@@ -66,7 +66,7 @@ and what makes it recoverable.
 Four, and no more:
 
 | Admonition | For |
-|---|---|
+| --- | --- |
 | **Note** | Context a reader might otherwise miss |
 | **Warning** | An action with consequences that are hard to undo |
 | **Evidence** | On incident pages: an observed fact, distinct from narrative |

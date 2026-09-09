@@ -11,7 +11,7 @@ summary: Formatting, analysis, SDK pinning, and the release-agreement rule from 
 ## Tooling
 
 | Concern | Tool |
-|---|---|
+| --- | --- |
 | Format | `dart format` |
 | Analyse | `flutter analyze`, configured in `analysis_options.yaml` |
 | Test | `flutter test` |

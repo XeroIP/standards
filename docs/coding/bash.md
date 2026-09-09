@@ -11,7 +11,7 @@ summary: Strict mode, shellcheck, and where a shell script stops being the right
 ## Tooling
 
 | Concern | Tool |
-|---|---|
+| --- | --- |
 | Lint | shellcheck |
 | Format | shfmt, two-space indent |
 

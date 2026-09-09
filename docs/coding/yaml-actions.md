@@ -11,7 +11,7 @@ summary: yamllint, actionlint, and the SHA-pinning policy promoted from rolling-
 ## Tooling
 
 | Concern | Tool |
-|---|---|
+| --- | --- |
 | YAML lint | yamllint |
 | Workflow lint | actionlint |
 | Action pinning | `policy-pinned-actions.yml` |

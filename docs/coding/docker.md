@@ -11,7 +11,7 @@ summary: hadolint, image pinning, and keeping secrets out of images and compose 
 ## Tooling
 
 | Concern | Tool |
-|---|---|
+| --- | --- |
 | Dockerfile lint | hadolint |
 | Compose validation | `docker compose config` |
 

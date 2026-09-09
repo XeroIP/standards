@@ -10,13 +10,19 @@ None of them could reach the other twenty-nine repos. This repo is where they li
 ## What's here
 
 | Area | State | Source |
-|---|---|---|
+| --- | --- | --- |
 | [Documentation](docs/documentation/) | **v1, complete** | Written here, plus `ideavault` conventions and the incident standard from `my-unraid-notes` |
 | [Prose](docs/prose/) | Imported, Vale generated from it | `english-ai-rule` — five multi-vendor research runs |
 | [Coding](docs/coding/) | Imported, split per stack | `claude-memory/copilot-instructions.md` |
 | [Design](docs/design/) | **v1, complete** | Console Editorial, built and contrast-verified |
 | [Diagrams](docs/diagrams/) | Imported | `documentation/diagram-generation-patterns.md` and `diagram-qa` |
 | [Observability](docs/observability/) | Stub | Not yet written |
+| [Decision records](docs/adr/) | ADR-0001 accepted | Written here |
+
+The documentation toolchain is **MkDocs + Material**, chosen on measured evidence from a
+five-way build of the same pages and recorded in
+[ADR-0001](docs/adr/0001-mkdocs-material-as-the-documentation-toolchain.md). Eleventy is the
+recorded fallback, and the ADR names the condition that would promote it.
 
 ## Using these in a repo
 

@@ -59,6 +59,7 @@ const AREAS = [
   ["docs/design", "Design"],
   ["docs/diagrams", "Diagrams"],
   ["docs/observability", "Observability"],
+  ["docs/adr", "Decision records"],
 ];
 
 const pages = walk(DOCS);

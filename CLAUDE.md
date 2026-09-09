@@ -43,7 +43,7 @@ repo it describes, not here.
 Never edit these by hand. Change the source, run the generator:
 
 | Generated | Source | Generator |
-|---|---|---|
+| --- | --- | --- |
 | `CLAUDE.md` | `AGENTS.md` | `tools/build-agent-files.js` |
 | `.github/copilot-instructions.md` | `AGENTS.md` | `tools/build-agent-files.js` |
 | `.vale.ini`, `styles/XeroIP/*.yml` | `docs/prose/rules.yml` | `tools/build-vale.js` |

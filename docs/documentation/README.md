@@ -9,7 +9,7 @@ summary: How documentation is structured, named, written, and enforced across ev
 # Documentation standard
 
 | Page | Covers |
-|---|---|
+| --- | --- |
 | [Structure](structure.md) | Diátaxis, plus ADRs, incidents, and the ops log. Profiles. |
 | [Front matter](front-matter.md) | The required schema, and the severity opt-in. |
 | [Naming and links](naming.md) | Filenames, why ordinal prefixes are banned, redirects. |

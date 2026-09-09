@@ -11,7 +11,7 @@ summary: ruff and black, typing expectations, and packaging layout.
 ## Tooling
 
 | Concern | Tool | Config |
-|---|---|---|
+| --- | --- | --- |
 | Lint | ruff | `pyproject.toml` |
 | Format | black | `pyproject.toml`, line length 100 |
 | Types | mypy, where the package ships types | `pyproject.toml` |

@@ -50,6 +50,11 @@ This file is generated from front matter by tools/build-llms-txt.js.
 
 - [Observability standard](https://xeroip.github.io/standards/docs/observability/) *(draft)*: Not yet written. This page states the scope and the questions it has to answer.
 
+## Decision records
+
+- [Decision records](https://xeroip.github.io/standards/docs/adr/): The decisions this repository has made about itself, in MADR format.
+- [MkDocs + Material as the documentation toolchain](https://xeroip.github.io/standards/docs/adr/0001-mkdocs-material-as-the-documentation-toolchain)
+
 ## Optional
 
 - [AGENTS.md](https://xeroip.github.io/standards/AGENTS.md): instructions for agents working in the standards repo itself.

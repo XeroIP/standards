@@ -13,7 +13,7 @@ PowerShell 7+ for scripts and automation. 5.1 only when a target genuinely has n
 ## Tooling
 
 | Concern | Tool |
-|---|---|
+| --- | --- |
 | Lint | PSScriptAnalyzer |
 | Format | PSScriptAnalyzer formatting rules via `Invoke-Formatter` |
 | Test | Pester |

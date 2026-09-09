@@ -11,7 +11,7 @@ summary: ESLint and Prettier, the tsconfig baseline, and dependency discipline.
 ## Tooling
 
 | Concern | Tool | Config |
-|---|---|---|
+| --- | --- | --- |
 | Lint | ESLint (flat config) | `eslint.config.js` |
 | Format | Prettier | `.prettierrc` |
 | Types | TypeScript | `tsconfig.json` |

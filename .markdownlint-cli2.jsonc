@@ -30,6 +30,17 @@
     // match — they previously said the opposite, and no page followed them.
     "MD025": { "front_matter_title": "" },
 
+    // One space inside each pipe. The rule's default ("any") infers a style per
+    // file from that file's first table, so two files can each be internally
+    // consistent and disagree with each other — and a table added to a file
+    // whose first table happened to be written differently then fails for a
+    // reason no standard states. Naming the style makes it one rule.
+    //
+    // "aligned" was the alternative and is rejected: padding every cell to its
+    // column width means re-padding the whole table whenever any cell's text
+    // changes, which puts formatting churn into every diff that touches one.
+    "MD060": { "style": "compact" },
+
     // Duplicate headings are legitimate under different parents ("Tooling" in
     // every stack page, "Enforcement" in every standard).
     "MD024": { "siblings_only": true },

@@ -9,7 +9,7 @@ summary: Global engineering rules plus per-stack tooling, harvested from the Cop
 # Coding standard
 
 | Page | Covers |
-|---|---|
+| --- | --- |
 | [Global](global.md) | Priorities, how to change code, git and GitHub, safety. Applies everywhere. |
 | [PowerShell](powershell.md) | PSScriptAnalyzer, approved verbs, error handling |
 | [Python](python.md) | ruff, black, packaging |

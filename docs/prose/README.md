@@ -9,7 +9,7 @@ summary: House writing style, derived from multi-vendor research and enforced by
 # Prose standard
 
 | File | What it is |
-|---|---|
+| --- | --- |
 | [`master-language-rule.md`](master-language-rule.md) | The full rule pack: markers, evidence type, confidence, allowed contexts, replacements. Imported. |
 | [`rules.yml`](rules.yml) | The subset a linter can act on. Every entry names its marker id. |
 | [`validation-checklist.md`](validation-checklist.md) | The human pass, tiered critical / important / optional. Imported. |
@@ -29,7 +29,7 @@ imported files directly loses the provenance that makes the pack worth trusting.
 ## Tiers
 
 | Tier | Meaning | Vale severity |
-|---|---|---|
+| --- | --- | --- |
 | **Ban** | Confidence ≥80, low false-positive risk, two or more vendor-independent runs agreeing. Remove on first pass. | `error` — fails CI |
 | **Limit** | Confidence ≥60, or ≥80 with medium false-positive risk. Allowed under a cap or in a named context. | `warning` |
 | **Monitor** | Confidence <60, or any high false-positive risk. Logged, never enforced. | `suggestion` |

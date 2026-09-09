@@ -11,7 +11,7 @@ summary: ktlint, Compose naming, and the architecture conventions already in use
 ## Tooling
 
 | Concern | Tool |
-|---|---|
+| --- | --- |
 | Lint and format | ktlint |
 | Build | Gradle with the Kotlin DSL |
 | Test | JUnit 4 with AndroidX Test |

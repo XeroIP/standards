@@ -56,7 +56,7 @@ tags: [auth, media]
 ## Lifecycle
 
 | Status | Meaning |
-|---|---|
+| --- | --- |
 | `proposed` | Written, not yet decided. Editable. |
 | `accepted` | Decided. **Immutable** from this point. |
 | `rejected` | Considered and declined. Kept — the reasoning has value. |
