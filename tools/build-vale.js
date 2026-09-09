@@ -11,94 +11,54 @@
 
 const fs = require("fs");
 const path = require("path");
+const yaml = require("js-yaml");
 
 const ROOT = path.resolve(__dirname, "..");
 const RULES = path.join(ROOT, "docs", "prose", "rules.yml");
 const STYLE_DIR = path.join(ROOT, "styles", "XeroIP");
 
-// Minimal YAML reader for the shape rules.yml actually uses: two-space nesting,
-// scalars, inline [a, b] lists, block lists, and >- folded scalars. Avoids a
-// dependency for a file this repo fully controls, and fails loudly on anything
-// outside that shape rather than guessing.
+// js-yaml, not a hand-rolled reader.
+//
+// This function was 80 lines of line-oriented regex parsing, written to keep the
+// repo free of npm dependencies. That goal was not worth its cost: the repo
+// already requires Node, Python, Vale and gitleaks in CI, so "no dependencies"
+// only ever meant "no package.json", and the parser failed toward permissiveness
+// in two ways that both passed CI silently.
+//
+//   max_per: 500  # per prose window   ->  the string "500  # per prose window"
+//   an entry indented two spaces too far -> dropped, no error, exit 0
+//
+// The second is the dangerous one: a rule vanishes, the generator succeeds, and
+// the gate stops catching what it was written to catch. Load the file with a
+// real parser and both classes of bug disappear.
 function parseRules(text) {
-  const out = { ban: [], limit: [], monitor: [] };
-  const lines = text.split("\n");
-  let tier = null;
-  let entry = null;
-  let folding = null;
+  const doc = yaml.load(text, { filename: RULES });
 
-  const parseInline = (v) => {
-    if (!v.startsWith("[")) return null;
-    const inner = v.slice(1, v.lastIndexOf("]"));
-    if (!inner.trim()) return [];
-    return inner
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(unquote);
-  };
-  const unquote = (s) => s.replace(/^['"]|['"]$/g, "");
+  if (!doc || typeof doc !== "object") {
+    throw new Error(`${RULES}: expected a mapping at the top level`);
+  }
 
-  for (let i = 0; i < lines.length; i++) {
-    const raw = lines[i];
-    if (/^\s*#/.test(raw) || !raw.trim()) {
-      if (folding && !raw.trim()) continue;
-      if (!folding) continue;
+  const out = {};
+  for (const tier of ["ban", "limit", "monitor"]) {
+    const entries = doc[tier];
+    if (entries === undefined) {
+      throw new Error(`${RULES}: missing required tier '${tier}'`);
     }
-
-    // Continuation of a folded scalar: deeper indent than the key that opened it.
-    if (folding) {
-      const indent = raw.match(/^\s*/)[0].length;
-      if (raw.trim() && indent > folding.indent) {
-        folding.parts.push(raw.trim());
-        continue;
-      }
-      entry[folding.key] = folding.parts.join(" ");
-      folding = null;
+    if (!Array.isArray(entries)) {
+      throw new Error(`${RULES}: tier '${tier}' must be a list, got ${typeof entries}`);
     }
+    out[tier] = entries;
+  }
 
-    const tierMatch = /^(ban|limit|monitor):\s*$/.exec(raw);
-    if (tierMatch) {
-      if (entry && tier) out[tier].push(entry);
-      entry = null;
-      tier = tierMatch[1];
-      continue;
-    }
-    if (!tier) continue;
-
-    const itemMatch = /^\s{2}-\s+(\w+):\s*(.*)$/.exec(raw);
-    if (itemMatch) {
-      if (entry) out[tier].push(entry);
-      entry = {};
-      const [, key, value] = itemMatch;
-      entry[key] = unquote(value.trim());
-      continue;
-    }
-
-    const kvMatch = /^\s{4}([\w_]+):\s*(.*)$/.exec(raw);
-    if (kvMatch && entry) {
-      const [, key, valueRaw] = kvMatch;
-      const value = valueRaw.trim();
-      if (value === ">-" || value === ">") {
-        folding = { key, indent: raw.match(/^\s*/)[0].length, parts: [] };
-        continue;
-      }
-      const inline = parseInline(value);
-      if (inline) { entry[key] = inline; continue; }
-      if (value === "") {
-        // Block list on following lines.
-        const items = [];
-        while (/^\s{6}-\s+/.test(lines[i + 1] || "")) {
-          items.push(unquote(lines[++i].replace(/^\s{6}-\s+/, "").trim()));
-        }
-        entry[key] = items;
-        continue;
-      }
-      entry[key] = /^\d+$/.test(value) ? Number(value) : unquote(value);
+  // Anything outside the three tiers is either a typo'd tier name or a key that
+  // was meant to do something. Both are worth failing on rather than ignoring.
+  const KNOWN_TOP = new Set(["version", "source", "source_version", "ban", "limit", "monitor"]);
+  for (const key of Object.keys(doc)) {
+    if (!KNOWN_TOP.has(key)) {
+      throw new Error(`${RULES}: unknown top-level key '${key}'`);
     }
   }
-  if (folding) entry[folding.key] = folding.parts.join(" ");
-  if (entry && tier) out[tier].push(entry);
+
   return out;
 }
 

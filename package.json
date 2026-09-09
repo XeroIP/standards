@@ -1,0 +1,13 @@
+{
+  "name": "@xeroip/standards",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Engineering standards shared across XeroIP repositories",
+  "scripts": {
+    "build": "node tools/build-vale.js && node tools/build-agent-files.js && node tools/build-llms-txt.js && node docs/design/build-adapters.js",
+    "check": "node tools/build-agent-files.js --check && node tools/build-llms-txt.js --check && node docs/design/check-contrast.js"
+  },
+  "devDependencies": {
+    "js-yaml": "4.1.0"
+  }
+}

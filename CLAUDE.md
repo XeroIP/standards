@@ -45,6 +45,11 @@ Never edit these by hand. Change the source, run the generator:
 CI re-runs every generator and fails if the result differs from what is committed. That check
 is the only thing keeping a derived file honest.
 
+Dependencies are pinned to exact versions and installed with `npm ci`, never `npm install` —
+`npm ci` installs exactly the lockfile and fails when it disagrees with `package.json`, which
+is what makes a generator's output reproducible. There is currently one: `js-yaml`, which
+loads `docs/prose/rules.yml`.
+
 ## Writing standards
 
 A standard states a rule, says why it exists, and names how it is enforced. A standard with no

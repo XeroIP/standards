@@ -19,6 +19,13 @@ jobs:
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
+          cache: npm
+
+      # npm ci, not npm install: it installs exactly the lockfile and fails if
+      # package.json and the lockfile disagree, which is the property that makes
+      # a generator's output reproducible.
+      - name: Install pinned dependencies
+        run: npm ci
 
       - name: Agent files match AGENTS.md
         run: node tools/build-agent-files.js --check
