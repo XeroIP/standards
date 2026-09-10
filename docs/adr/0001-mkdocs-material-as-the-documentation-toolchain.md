@@ -37,6 +37,13 @@ restructure lands. Choosing it after the restructure means restructuring twice.
   before it renders anything imposes that cost again on each of thirty repositories.
 - **Broken internal links fail the build.** The restructure moves nearly every page; a
   link check that reports rather than fails is a link check that gets merged past.
+  This driver carries less weight than it first appears to, and the correction belongs here
+  rather than in a footnote. `tools/check-docs.py` already fails on a relative link whose
+  target does not exist, generator-agnostically, and it is already wired into `docs-ci.yml`.
+  What a generator adds on top is resolution against its own navigation tree — and
+  `docs-ci.yml` builds no site at all today, so nothing in the current gate exercises that.
+  Read this driver as separating a generator that _can_ fail a build from one that only
+  reports, not as a capability one candidate uniquely supplies.
 - **Navigation order independent of filename.** The `00-`…`19-` ordinal prefixes in the pilot
   repository exist because ordering had nowhere else to live.
 - **One token file reaches the rendered page.** The design system is generated from
@@ -136,9 +143,15 @@ flags: sidebar navigation, sticky header, section search, dark-mode toggle, resp
 layout. Print rules were the only custom CSS written. The 1,292-line hand-authored incident
 page reproduces from 410 lines of Markdown with no per-incident HTML at all.
 
-`mkdocs build --strict` fails on a broken internal link in half a second, which is the
-guardrail the restructure needs rather than a report nobody reads. `nav:` sets order
-independently of filename, so the ordinal prefixes become cleanup rather than a prerequisite.
+`mkdocs build --strict` fails on a broken internal link in half a second. That is narrower
+than it sounds and should not be counted twice: link existence is already gated by
+`check-docs.py` whichever generator renders the page, so `--strict` contributes resolution
+against the `nav:` tree rather than link checking as such. It is also not wired into anything
+— `docs-ci.yml` runs no build — so it is headroom the choice makes available, not a guarantee
+the choice delivers today.
+
+`nav:` sets order independently of filename, so the ordinal prefixes become cleanup rather
+than a prerequisite. That one is delivered outright.
 
 The styling ceiling was the open question, and the design pass closed it. Material carried
 the full token set — a serif face at a 64ch measure, an 18px body at weight 450, a 40px serif
@@ -192,8 +205,12 @@ rejected at the format rather than on its merits.
 
 The decision is working while all of the following hold:
 
-- `mkdocs build --strict` is green in every repository consuming the documentation workflow,
-  and no repository has disabled `--strict` to get it there.
+- A site build runs in the documentation gate at all. `docs-ci.yml` does not build one today,
+  so the `--strict` benefit claimed above is unrealised until it does. Wiring it in is the
+  step that welds the gate to this decision, and it should not happen before the decision is
+  accepted.
+- Once it is wired in, `mkdocs build --strict` is green in every repository consuming the
+  workflow, and no repository has disabled `--strict` to get it there.
 - The token adapter remains generated from `../design/tokens.json`, with no hex value written
   into a repository's own stylesheet.
 - No documentation requirement has been met by a Material Insiders feature.
