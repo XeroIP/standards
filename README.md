@@ -17,12 +17,13 @@ None of them could reach the other twenty-nine repos. This repo is where they li
 | [Design](docs/design/) | **v1, complete** | Console Editorial, built and contrast-verified |
 | [Diagrams](docs/diagrams/) | Imported | `documentation/diagram-generation-patterns.md` and `diagram-qa` |
 | [Observability](docs/observability/) | Stub | Not yet written |
-| [Decision records](docs/adr/) | ADR-0001 proposed | Written here |
+| [Decision records](docs/adr/) | ADR-0001 accepted | Written here |
 
-The documentation toolchain is **not yet decided**.
-[ADR-0001](docs/adr/0001-mkdocs-material-as-the-documentation-toolchain.md) proposes MkDocs +
-Material on measured evidence from a five-way build of the same pages, with Eleventy as the
-recorded fallback. It is `proposed` and editable until it is accepted or rejected.
+The documentation toolchain is **MkDocs + Material**, accepted as
+[ADR-0001](docs/adr/0001-mkdocs-material-as-the-documentation-toolchain.md) on measured
+evidence from a seven-way build of the same pages. Hugo tied it on score and the ADR records
+what would have to change for that to be the right answer instead. Eleventy is the recorded
+fallback if the design work ever exceeds what Material can express.
 
 ## Using these in a repo
 
