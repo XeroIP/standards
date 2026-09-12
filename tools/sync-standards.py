@@ -44,6 +44,24 @@ BANNER = (
 TAIL_FILE = ".standards-tail.md"
 VENDOR_DIR = ".standards"
 
+# What gets vendored. The rules and the tools that enforce them travel together,
+# deliberately.
+#
+# Vendoring `docs/` alone left a repo's rules pinned by its own commit while the
+# gate enforcing them was fetched live from a mutable tag. Any gap between a tag
+# moving and thirty sync PRs merging was a window where CI enforced one version
+# and `.standards/docs/` — the copy a person or an agent reads — described
+# another. Shipping both from the same commit removes the gap by construction.
+#
+# (dir_or_file, destination name) relative to the repo root.
+VENDORED = [
+    ("docs", "docs"),
+    ("tools", "tools"),
+    ("styles", "styles"),
+    (".vale.ini", ".vale.ini"),
+    (".markdownlint-cli2.jsonc", ".markdownlint-cli2.jsonc"),
+]
+
 
 def standards_version() -> str:
     """Describe the standards commit being vendored, so a target can say what it has."""
@@ -119,24 +137,49 @@ def vendor_docs(target: Path, dry_run: bool) -> list[str]:
     changed = []
 
     if dry_run:
-        src_docs = ROOT / "docs"
-        for src in sorted(src_docs.rglob("*")):
-            if src.is_dir():
+        for src_name, dest_name in VENDORED:
+            src = ROOT / src_name
+            if src.is_file():
+                mirror = dest / dest_name
+                if not mirror.exists() or not filecmp.cmp(src, mirror, shallow=False):
+                    changed.append(str(Path(VENDOR_DIR) / dest_name))
                 continue
-            rel = src.relative_to(src_docs)
-            mirror = dest / "docs" / rel
-            if not mirror.exists() or not filecmp.cmp(src, mirror, shallow=False):
-                changed.append(str(Path(VENDOR_DIR) / "docs" / rel))
+            for f in sorted(src.rglob("*")):
+                if f.is_dir():
+                    continue
+                rel = f.relative_to(src)
+                mirror = dest / dest_name / rel
+                if not mirror.exists() or not filecmp.cmp(f, mirror, shallow=False):
+                    changed.append(str(Path(VENDOR_DIR) / dest_name / rel))
         return changed
 
     if dest.exists():
         shutil.rmtree(dest)
-    shutil.copytree(ROOT / "docs", dest / "docs")
+    dest.mkdir(parents=True)
+    for src_name, dest_name in VENDORED:
+        src = ROOT / src_name
+        if not src.exists():
+            raise SystemExit(f"sync: {src_name} is missing from the standards repo")
+        if src.is_file():
+            shutil.copy2(src, dest / dest_name)
+        else:
+            shutil.copytree(src, dest / dest_name)
+
     (dest / "VERSION").write_text(standards_version() + "\n", encoding="utf-8")
     (dest / "README.md").write_text(
         "# Vendored standards\n\n"
         "Copied from XeroIP/standards by its sync workflow. Every file here is derived:\n"
         "edits are lost on the next sync. Change the standard upstream instead.\n\n"
+        "`docs/` are the rules. `tools/`, `styles/`, `.vale.ini` and\n"
+        "`.markdownlint-cli2.jsonc` are what enforces them, vendored from the same commit so\n"
+        "the gate and the documentation cannot disagree about what the rules are. The CI\n"
+        "workflow runs these copies rather than fetching the standards repo.\n\n"
+        "You can run the same checks locally:\n\n"
+        "```bash\n"
+        "python3 .standards/tools/check-docs.py docs\n"
+        "vale --config=.standards/.vale.ini docs\n"
+        "npx markdownlint-cli2 --config .standards/.markdownlint-cli2.jsonc\n"
+        "```\n\n"
         f"Version: `{standards_version()}`\n",
         encoding="utf-8",
     )

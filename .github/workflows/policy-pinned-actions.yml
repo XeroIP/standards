@@ -28,7 +28,15 @@ jobs:
           while IFS= read -r file; do
             while IFS= read -r line; do
               ref="${line#*uses:}"
+              # Drop the trailing version comment BEFORE stripping whitespace.
+              # Doing it the other way round turns `@<sha> # v4.2.2` into
+              # `@<sha>#v4.2.2`, which never matches the anchored SHA pattern —
+              # so every correctly pinned action was reported as unpinned,
+              # including the exact format this job's own error message
+              # recommends. The check was 100% false positive.
+              ref="${ref%%#*}"
               ref="$(echo "$ref" | tr -d ' ')"
+              [ -z "$ref" ] && continue
               # Local and reusable-workflow references inside this repo are paths.
               case "$ref" in ./*|.github/*) continue ;; esac
               if ! echo "$ref" | grep -qE '@[0-9a-f]{40}$'; then

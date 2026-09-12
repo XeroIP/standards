@@ -33,13 +33,31 @@ Add a `.standards.yml` declaring the repo's profile, then call the reusable work
 # .github/workflows/standards.yml in the consuming repo
 jobs:
   docs:
-    uses: XeroIP/standards/.github/workflows/docs-ci.yml@v1
+    uses: XeroIP/standards/.github/workflows/docs-ci.yml@<40-char-sha>  # v1.0.0
 ```
+
+Pinned to a SHA, not a tag. A tag is mutable, so moving it would change what the gate accepts
+in every repo that calls it with no pull request anywhere — the same argument this repo makes
+for third-party actions, applied to itself. `policy-pinned-actions.yml` enforces it, including
+on this line: a `@v1` here fails it.
 
 The sync bot then opens a PR in that repo on each release, refreshing a vendored
 `.standards/` directory and regenerating `AGENTS.md`, `CLAUDE.md`, and
 `.github/copilot-instructions.md`. Vendoring is deliberate: it puts the rules in the working
 tree an agent already has, with no network fetch and no submodule to go stale.
+
+**The gate runs that vendored copy.** `.standards/` carries the enforcers — `tools/`,
+`styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc` — from the same commit as the rules, and
+`docs-ci.yml` never fetches this repository. Vendoring the rules while fetching the enforcer
+from a mutable ref meant a repo could be failed by rules that differed from the ones in its own
+tree; shipping both together removes that by construction. It also means the gate runs
+locally:
+
+```bash
+python3 .standards/tools/check-docs.py docs
+vale --config=.standards/.vale.ini docs
+npx markdownlint-cli2 --config .standards/.markdownlint-cli2.jsonc
+```
 
 Profiles let repos differ on purpose. `docs-only` skips the language gates entirely, and
 `workflow.require_issue` / `workflow.allow_direct_to_main` are per-repo facts rather than a

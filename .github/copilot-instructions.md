@@ -100,9 +100,25 @@ structural markers a linter cannot see — cadence, paragraph architecture, adje
 
 ## Versioning
 
-Consuming repos pin reusable workflows by tag (`@v1`). A change that alters what a gate
-accepts or rejects is breaking for every repo on that tag — cut a new major tag rather than
-moving `v1`. Additive rules that only widen what passes can move the tag.
+Consuming repos pin reusable workflows to a **full commit SHA**, not a tag, with the version
+in a trailing comment. Tags are mutable: moving one changes what a gate accepts in every repo
+that calls it, with no pull request anywhere and nothing to review. This repo already refuses
+to trust third-party tags for that reason, and the reasoning does not stop at the boundary of
+who owns the repository. `policy-pinned-actions.yml` enforces it on first-party references
+too.
+
+A change can travel one of two paths, and both now require a commit in the consuming repo:
+
+| What changes | How it arrives | Review |
+| --- | --- | --- |
+| `docs/` and the enforcers | vendored into `.standards/` by the sync bot | a PR per repo |
+| the workflow file | the pinned SHA in that repo's caller | a PR per repo |
+
+Earlier the rules were vendored while the enforcer was fetched at a mutable ref. A tag move
+then changed thirty repos' behaviour with no commit anywhere, and could fail a repo against
+rules that differed from the ones in its own tree.
+
+Tags still exist, for humans to read and for release notes. They are not what CI resolves.
 
 ## When you are unsure
 

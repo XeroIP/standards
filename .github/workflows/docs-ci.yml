@@ -2,11 +2,20 @@
 #
 #   jobs:
 #     docs:
-#       uses: XeroIP/standards/.github/workflows/docs-ci.yml@v1
+#       uses: XeroIP/standards/.github/workflows/docs-ci.yml@<40-char-sha>  # v1.0.0
 #
-# Every third-party action is pinned to a full commit SHA. A tag is mutable, and
-# whoever controls the action's repo can move it to any commit, which then runs
-# with this workflow's token. See docs/coding/yaml-actions.md.
+# Pinned to a SHA, not a tag. A tag is mutable: moving it changes what this gate
+# accepts in every repo that calls it, with no pull request anywhere. That is the
+# argument this repo already makes for third-party actions, and it applies to
+# first-party workflows for the same reason. Dependabot's github-actions
+# ecosystem covers reusable workflow references, so upgrades arrive as reviewable
+# pull requests.
+#
+# This workflow does NOT fetch the standards repository. It runs the copy already
+# vendored in the calling repo at `.standards/`, written by the sync bot and
+# landed through a reviewed pull request. That is deliberate: vendoring the rules
+# while fetching the enforcer from a mutable ref meant a repo could be failed by
+# rules that differ from the ones sitting in its own tree.
 name: Documentation
 
 on:
@@ -16,10 +25,6 @@ on:
         description: Directory holding the documentation tree.
         type: string
         default: docs
-      standards-ref:
-        description: Tag or SHA of XeroIP/standards to validate against.
-        type: string
-        default: v1
 
 permissions:
   contents: read
@@ -30,12 +35,24 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - name: Check out the standards
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          repository: XeroIP/standards
-          ref: ${{ inputs.standards-ref }}
-          path: .standards-src
+      # A repo that has never synced has no rules to be judged by. Say so once,
+      # clearly, rather than letting three later steps fail on missing paths.
+      - name: Check the standards are vendored
+        run: |
+          if [ ! -d .standards ]; then
+            echo "::error::.standards/ is missing. This repo has not been synced."
+            echo "Run the standards-sync workflow, or from a clone of XeroIP/standards:"
+            echo "  python3 tools/sync-standards.py --target <path to this repo>"
+            exit 1
+          fi
+          for f in tools/check-docs.py .vale.ini .markdownlint-cli2.jsonc styles; do
+            if [ ! -e ".standards/$f" ]; then
+              echo "::error::.standards/$f is missing — the vendored copy predates the change"
+              echo "that ships the enforcers alongside the rules. Re-run the sync."
+              exit 1
+            fi
+          done
+          echo "Standards version: $(cat .standards/VERSION 2>/dev/null || echo unknown)"
 
       - name: Read the repo profile
         id: profile
@@ -53,13 +70,13 @@ jobs:
           python-version: '3.12'
 
       - name: Structure, naming, front matter, and internal links
-        run: python3 .standards-src/tools/check-docs.py "${{ inputs.docs-path }}"
+        run: python3 .standards/tools/check-docs.py "${{ inputs.docs-path }}"
 
       - name: Prose
         uses: errata-ai/vale-action@d89dee975228ae261d22c15adcd03578634d429c # v2.1.1
         with:
           files: ${{ inputs.docs-path }}
-          vale_flags: --config=.standards-src/.vale.ini --minAlertLevel=warning
+          vale_flags: --config=.standards/.vale.ini --minAlertLevel=warning
           fail_on_error: true
 
       # No `globs:` here. The config owns which files are linted and which are
@@ -68,4 +85,4 @@ jobs:
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@992badcdf24e3b8eb7e87ff9287fe931bcb00c6e # v20.0.0
         with:
-          config: .standards-src/.markdownlint-cli2.jsonc
+          config: .standards/.markdownlint-cli2.jsonc
