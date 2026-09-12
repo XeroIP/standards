@@ -91,3 +91,25 @@ observed, and survives after the commit that caused it has scrolled out of memor
 
 Opting out is a declaration in the repo, visible in review. A workflow that has been quietly
 deleted is not an opt-out; it is drift.
+
+## When these do not apply
+
+A one-off site, a scratch project, an experiment, something built in an afternoon to answer a
+question — these need no profile, no gate, and no justification. Build them however is fastest.
+ADR-0001 chose the toolchain for documentation that thirty repositories share; it did not make
+MkDocs mandatory for everything that renders HTML.
+
+The test is scale, not preference. A standard earns its cost when the same decision is made
+repeatedly, across repositories or over time, and drift between those instances would hurt.
+Below that line it is overhead charged against work that would otherwise be finished.
+
+Two consequences, because the failure mode runs in both directions:
+
+- **Adopting later is cheap by design.** The content is Markdown, the design system is one
+  token file, and the generator can be swapped without touching source. A one-off that turns
+  out to matter gets brought in when it turns out to matter, not pre-emptively.
+- **A standard nobody may decline gets ignored rather than declined**, and an ignored standard
+  is worse than an absent one, because it still looks enforced. Declining is a legitimate
+  outcome and needs no defence.
+
+This is a standard for documentation, not a policy for every file in the estate.
