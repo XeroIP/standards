@@ -1,0 +1,54 @@
+# Fails any workflow that references an action by tag instead of a full commit
+# SHA. Promoted from XeroIP/rolling-text, where it was already in force.
+#
+# A tag is mutable. Whoever controls the action's repository can point v4 at any
+# commit at any time, and that commit runs with this workflow's token and
+# secrets. Pinning to 40 hex characters removes that. First-party actions/* are
+# held to the same rule — that account has been compromised before.
+name: Pinned actions policy
+
+on:
+  workflow_call:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Every `uses:` must name a 40-character SHA
+        run: |
+          set -euo pipefail
+          bad=0
+          while IFS= read -r file; do
+            while IFS= read -r line; do
+              ref="${line#*uses:}"
+              # Drop the trailing version comment BEFORE stripping whitespace.
+              # Doing it the other way round turns `@<sha> # v4.2.2` into
+              # `@<sha>#v4.2.2`, which never matches the anchored SHA pattern —
+              # so every correctly pinned action was reported as unpinned,
+              # including the exact format this job's own error message
+              # recommends. The check was 100% false positive.
+              ref="${ref%%#*}"
+              ref="$(echo "$ref" | tr -d ' ')"
+              [ -z "$ref" ] && continue
+              # Local and reusable-workflow references inside this repo are paths.
+              case "$ref" in ./*|.github/*) continue ;; esac
+              if ! echo "$ref" | grep -qE '@[0-9a-f]{40}$'; then
+                echo "$file: not pinned to a SHA -> $ref"
+                bad=1
+              fi
+            done < <(grep -nE '^\s*-?\s*uses:' "$file" || true)
+          done < <(find .github/workflows -name '*.yml' -o -name '*.yaml')
+          if [ "$bad" -ne 0 ]; then
+            echo
+            echo "Pin with the version in a trailing comment:"
+            echo "  uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2"
+            exit 1
+          fi
+          echo "all action references pinned"
