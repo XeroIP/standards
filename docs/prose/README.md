@@ -26,6 +26,11 @@ across three vendors.
 That repo stays the upstream. Rules change there and are re-imported here; editing the
 imported files directly loses the provenance that makes the pack worth trusting.
 
+**Licensing.** `XeroIP/english-ai-rule` and this repository have the same owner, so the
+imported files are relicensed here under CC BY 4.0 along with the rest of `docs/`. Stated
+rather than assumed: an HTML comment naming a source is provenance, not a grant, and a reader
+has no way to tell that one owner stands behind both without being told.
+
 ## Tiers
 
 | Tier | Meaning | Vale severity |

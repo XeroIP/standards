@@ -8,6 +8,10 @@ summary: Which tool draws which diagram, and how to check the result before trus
 
 <!-- IMPORTED from XeroIP/documentation (diagram-generation-patterns.md). -->
 
+**Licensing.** Imported from `XeroIP/documentation`, which has the same owner as this
+repository, and relicensed here under CC BY 4.0 with the rest of `docs/`. The comment above
+records where the text came from; it is not itself a grant, so the grant is stated here.
+
 
 Distilled from building out `home-automation/sprinkler-controller`'s wiring
 diagrams — five real WireViz diagrams (a full J1/J3 pinout/harness, a

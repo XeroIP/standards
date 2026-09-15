@@ -92,3 +92,29 @@ node docs/design/check-contrast.js  # 30/30 WCAG AA pairs, both themes
 
 Every one of these is idempotent and checked in CI: if regenerating changes a tracked file,
 the build fails.
+
+## Licensing
+
+Two licences, split by what the thing is rather than where it sits.
+
+| What | Licence | Covers |
+| --- | --- | --- |
+| Code | [MIT](LICENSE) | `tools/`, `tests/`, `.github/`, and the build scripts under `docs/design/` and `docs/diagrams/tools/` |
+| Prose | [CC BY 4.0](LICENSE-docs) | `docs/`, plus `README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md` and `CHANGELOG.md` |
+
+The split is the convention public handbooks use, and it reflects how each part is reused:
+code gets copied into a build, prose gets adapted and republished. CC BY asks for attribution
+where MIT asks for the notice to travel; both permit commercial use and adaptation.
+
+GitHub reports the root `LICENSE`, so it will describe this repository as MIT. That is the
+detector working as designed on a repository that is mostly prose — this section is the
+authority on which licence applies where.
+
+`CODE_OF_CONDUCT.md` is the Contributor Covenant 2.1, which carries its own terms and is
+reproduced rather than licensed by us.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). To report a leaked value or a flaw in a gate, see
+[SECURITY.md](SECURITY.md) — privately, because a public issue quoting a leaked value
+republishes it.

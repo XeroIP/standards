@@ -152,6 +152,12 @@ BasedOnStyles =
 # Generated agent files mirror AGENTS.md; lint the source, not the copies.
 [{CLAUDE.md,.github/copilot-instructions.md}]
 BasedOnStyles =
+
+# Reproduced verbatim from the Contributor Covenant 2.1. Editing it to satisfy a
+# house style would make it a different document wearing the same name, so the
+# house style does not apply to it.
+[CODE_OF_CONDUCT.md]
+BasedOnStyles =
 `;
 fs.writeFileSync(path.join(ROOT, ".vale.ini"), ini);
 
