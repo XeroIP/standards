@@ -88,7 +88,44 @@ Two generators needed more than a mapping, and both are worth knowing before pic
   and `assets/css/custom.css` as the extension point, which Hextra concatenates last so the
   adapter wins on source order. Docsy would need its own adapter and does not have one.
 
-The Starlight case is why `probe.js` exists in the pilot repository and why a contrast
-validator is not sufficient on its own: every colour assertion passed while the body size was
-wrong, and a screenshot of that looks entirely plausible. Checking the palette is not the same
-as checking the palette reached the page.
+## Checking that the tokens reached the page
+
+`check-contrast.js` validates the palette — 30 pairs against WCAG AA. It says nothing about
+whether any of those values arrive at a browser, and that gap is where the real failures were:
+Starlight defined `--sl-text-body` and never applied it, so body copy rendered at the browser
+default while every colour assertion passed; Material silently dropped font-weight 450. Both
+look entirely plausible in a screenshot.
+
+`tools/check-rendered-design.js` reads computed style out of a real browser and compares it to
+the token that was supposed to produce it:
+
+```bash
+node tools/check-rendered-design.js --site site/ --pages / /how-to/deploy-stack/
+```
+
+It runs every page in both themes, and asserts one thing no per-theme check can: that the two
+themes actually differ. A page whose ground colour is identical in light and dark is rendering
+one theme twice — which is how a site shipped with light mode removed from the build while
+every dark assertion passed.
+
+A known-correct deviation is declared rather than tolerated:
+
+```json
+{ "/reference/api/": { "link colour": "Broken-link warnings are red here on purpose." } }
+```
+
+Pass it with `--exceptions`. An exception excuses the named property on the named page and
+nothing else.
+
+**Playwright is an optional dependency**, because most repositories never build a site:
+
+```bash
+npm install --no-save playwright && npx playwright install chromium
+```
+
+`CHROMIUM_PATH` overrides the browser when an image already has one, which avoids downloading
+several hundred megabytes to satisfy a version check.
+
+`tools/capture-screens.js` takes the same arguments and writes light and dark captures for
+review. It is an aid, not a gate — a full set of plausible-looking screenshots is exactly what
+a broken theme toggle produces.
