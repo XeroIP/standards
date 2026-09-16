@@ -33,13 +33,17 @@ Add a `.standards.yml` declaring the repo's profile, then call the reusable work
 # .github/workflows/standards.yml in the consuming repo
 jobs:
   docs:
-    uses: XeroIP/standards/.github/workflows/docs-ci.yml@<40-char-sha>  # v1.0.0
+    uses: XeroIP/standards/.github/workflows/docs-ci.yml@<40-char-sha>  # v0.1.0
 ```
 
 Pinned to a SHA, not a tag. A tag is mutable, so moving it would change what the gate accepts
 in every repo that calls it with no pull request anywhere — the same argument this repo makes
 for third-party actions, applied to itself. `policy-pinned-actions.yml` enforces it, including
 on this line: a `@v1` here fails it.
+
+Nothing bumps that pin automatically. Bump it by hand when the workflow file changes, which is
+rare — the rules it runs move independently of it. `AGENTS.md` records why per-repo Dependabot
+was rejected for this and what is intended instead.
 
 The sync bot then opens a PR in that repo on each release, refreshing a vendored
 `.standards/` directory and regenerating `AGENTS.md`, `CLAUDE.md`, and

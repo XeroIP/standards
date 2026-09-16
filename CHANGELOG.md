@@ -12,6 +12,14 @@ behaviour.
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.1.0] — 2026-09-16
+
+First tagged release. `0.x` deliberately: one consumer, an observability standard still a
+stub, and several decisions recorded as open. The version says so rather than implying a
+stability the repository has not earned.
+
 ### Added
 
 - `LICENSE` (MIT) for the code and `LICENSE-docs` (CC BY 4.0) for the prose, with the split
@@ -60,4 +68,5 @@ behaviour.
   and runs as a pre-commit hook as well as in CI. It cannot see text inside images; that limit
   is stated in `SECURITY.md` rather than left implied.
 
-[Unreleased]: https://github.com/XeroIP/standards/commits/main
+[Unreleased]: https://github.com/XeroIP/standards/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/XeroIP/standards/releases/tag/v0.1.0

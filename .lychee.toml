@@ -10,6 +10,16 @@ exclude = [
   # Placeholders used throughout the standards. They are meant not to resolve.
   "^https?://example\\.internal",
   "^https?://service-[a-z]",
+
+  # This repository's own release and compare links, as written in CHANGELOG.md.
+  # A changelog announces a release before its tag exists, so while the release
+  # is still a pull request these 404 by construction — and the alternative is
+  # cutting the tag before the change is reviewed, which points a permanent tag
+  # at unreviewed history.
+  #
+  # Narrow on purpose: only this repo, only the release and compare paths. A
+  # broken link to anything else here is still a finding.
+  "^https://github\\.com/XeroIP/standards/(releases/tag|compare)/",
 ]
 
 # Test fixtures carry deliberately fictional URLs so the leak scanner's failure

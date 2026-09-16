@@ -1,0 +1,34 @@
+# Dependabot for THIS repository only.
+#
+# It updates the third-party actions this repository's own workflows run, and
+# the one npm dependency the rule loader needs. It does not reach consuming
+# repositories, deliberately.
+#
+# Consuming repos pin the reusable workflow to a commit SHA. Bumping that pin
+# with Dependabot would mean a config and a standing pull request stream in each
+# of thirty repositories to keep one line current — work that scales with
+# repository count against a risk that stays rare. The intended mechanism is the
+# sync bot rewriting the pin inside the pull request it already opens on each
+# release. See the Versioning section of AGENTS.md.
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
+    groups:
+      # One pull request rather than eight. Action bumps are reviewed as a set
+      # because they are read the same way: check the SHA matches the tag in the
+      # comment, then check the gate still passes.
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: chore
