@@ -9,7 +9,7 @@ summary: The full rule pack with tiers, evidence, and provenance.
 <!-- IMPORTED from XeroIP/english-ai-rule (master-language-rule.md). Upstream is the research
      workflow that produces this; edit there and re-import rather than editing here. -->
 
-# Master Language Rule (High Strictness)
+# Master language rule
 
 Use this rule pack to identify and revise AI-associated writing patterns in any prose context.
 

@@ -16,7 +16,7 @@ This file is generated from front matter by tools/build-llms-txt.js.
 - [Post-incident reviews](https://xeroip.github.io/standards/docs/documentation/incident-reviews): One required structure for incident reviews, replacing three divergent templates and the hand-written HTML they were rendered in.
 - [File naming and links](https://xeroip.github.io/standards/docs/documentation/naming): Filenames, why ordinal prefixes are banned, and how links and redirects are kept honest.
 - [Page anatomy](https://xeroip.github.io/standards/docs/documentation/page-anatomy): Headings, tables, code blocks, the four admonitions, and accessibility requirements.
-- [Documentation structure](https://xeroip.github.io/standards/docs/documentation/structure): Diátaxis plus ADRs, incidents, and an ops log, and which gates each repo profile runs.
+- [Documentation structure](https://xeroip.github.io/standards/docs/documentation/structure): Diátaxis plus ADRs, incidents, an ops log, and project records, and which gates each repo profile runs.
 
 ## Prose
 

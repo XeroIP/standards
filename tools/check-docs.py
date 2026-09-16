@@ -11,6 +11,7 @@ Checks:
   naming         lowercase-hyphenated, no ordinal prefix outside adr/,
                  dated pages lead with an ISO date
   links          every relative Markdown link resolves to a file that exists
+  headings       the body H1 matches the front matter title
   incidents      required sections present, in order
   adr            id matches filename, no numbering gap
 
@@ -34,7 +35,8 @@ KNOWN = REQUIRED | {
     "severity_ui", "id", "date", "deciders", "severity", "window", "data_loss",
     "revision",
 }
-TYPES = {"tutorial", "how-to", "reference", "explanation", "adr", "incident", "ops-log"}
+TYPES = {"tutorial", "how-to", "reference", "explanation", "adr", "incident",
+         "ops-log", "project"}
 STATUSES = {"draft", "active", "superseded", "archived",
             "proposed", "accepted", "rejected", "deprecated"}
 SEVERITY_UI_ALLOWED = {"incident", "how-to", "reference"}
@@ -120,6 +122,8 @@ def check_front_matter(path: Path, fm: dict | None) -> None:
                 fail(path, f"incident page missing required key: {key}")
     if doc_type == "ops-log" and "services" not in fm:
         fail(path, "ops-log entry missing required key: services")
+    if doc_type == "project" and "services" not in fm:
+        fail(path, "project record missing required key: services")
 
 
 def check_name(path: Path, root: Path) -> None:
@@ -135,14 +139,22 @@ def check_name(path: Path, root: Path) -> None:
             fail(path, "ADR filename must be NNNN-short-slug.md")
         return
 
-    if ORDINAL_RE.match(name):
-        fail(path, "ordinal prefix in filename — ordering belongs in the navigation "
-                   "config, not the path (see docs/documentation/naming.md)")
+    # A leading ISO date is resolved before the ordinal rule, because `2026-...`
+    # matches both. Testing the ordinal rule first made every correctly named
+    # dated page fail as an ordinal, and left the rule below unreachable — the
+    # standard named an enforcement it did not have. The two are distinguishable:
+    # a date sorts chronologically and means something, a counter only encodes
+    # position, which is the thing the naming rule forbids putting in a path.
+    dated = bool(DATED_RE.match(name))
+
+    if parent in {"ops-log", "incidents", "projects"}:
+        if not dated:
+            fail(path, f"pages under {parent}/ must be named YYYY-MM-DD-slug.md")
         return
 
-    if parent in {"ops-log", "incidents"}:
-        if not DATED_RE.match(name):
-            fail(path, f"pages under {parent}/ must be named YYYY-MM-DD-slug.md")
+    if not dated and ORDINAL_RE.match(name):
+        fail(path, "ordinal prefix in filename — ordering belongs in the navigation "
+                   "config, not the path (see docs/documentation/naming.md)")
         return
 
     if not NAME_RE.match(name):
@@ -192,6 +204,30 @@ def check_incident(path: Path, text: str) -> None:
             fail(path, f"incident review missing required section: {required}")
 
 
+H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.M)
+
+
+def check_h1(path: Path, text: str, fm: dict | None) -> None:
+    """The body H1 and the front-matter title have to say the same thing.
+
+    page-anatomy.md requires this and explains why both exist: `title` drives
+    navigation and llms.txt, the H1 is what a reader of the raw Markdown sees.
+    A page that disagrees with itself shows one string in the nav and another on
+    the page, which is precisely the drift the generated-index rule exists to
+    prevent — so it is checked here rather than left to review.
+    """
+    if not fm or "title" not in fm:
+        return
+    body = text[text.find("\n---", 4) + 4:] if text.startswith("---\n") else text
+    m = H1_RE.search(body)
+    if not m:
+        fail(path, "no body H1 (see docs/documentation/page-anatomy.md)")
+        return
+    title = fm["title"].strip().strip("\"'")
+    if m.group(1) != title:
+        fail(path, f"body H1 '{m.group(1)}' does not match front matter title '{title}'")
+
+
 def check_adr_numbering(files: list[Path]) -> None:
     numbers = []
     for path in files:
@@ -236,6 +272,7 @@ def main() -> int:
         check_front_matter(path, fm)
         check_name(path, root)
         check_links(path, text)
+        check_h1(path, text, fm)
         if (fm or {}).get("type", "").strip("\"'") == "incident":
             check_incident(path, text)
 
