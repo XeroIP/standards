@@ -12,6 +12,7 @@ Checks:
                  dated pages lead with an ISO date
   links          every relative Markdown link resolves to a file that exists
   headings       the body H1 matches the front matter title
+  ops-log        services and a change_type from the allowed set
   incidents      required sections present, in order
   adr            id matches filename, no numbering gap
 
@@ -33,13 +34,18 @@ REQUIRED = {"title", "type", "status", "updated"}
 KNOWN = REQUIRED | {
     "summary", "tags", "services", "issue", "supersedes", "superseded_by",
     "severity_ui", "id", "date", "deciders", "severity", "window", "data_loss",
-    "revision",
+    "revision", "change_type",
 }
 TYPES = {"tutorial", "how-to", "reference", "explanation", "adr", "incident",
          "ops-log", "project"}
 STATUSES = {"draft", "active", "superseded", "archived",
             "proposed", "accepted", "rejected", "deprecated"}
 SEVERITY_UI_ALLOWED = {"incident", "how-to", "reference"}
+
+# What an ops-log entry was. Named change_type because `type` is already the
+# document type: the standard asked for both under one key, which no page could
+# satisfy, and nothing caught it because only `services` was ever enforced.
+CHANGE_TYPES = {"change", "investigation", "maintenance", "incident-followup"}
 
 INCIDENT_SECTIONS = [
     "overview", "impact and scope", "timeline", "technical findings",
@@ -120,8 +126,14 @@ def check_front_matter(path: Path, fm: dict | None) -> None:
         for key in ("services", "severity", "window", "data_loss"):
             if key not in fm:
                 fail(path, f"incident page missing required key: {key}")
-    if doc_type == "ops-log" and "services" not in fm:
-        fail(path, "ops-log entry missing required key: services")
+    if doc_type == "ops-log":
+        if "services" not in fm:
+            fail(path, "ops-log entry missing required key: services")
+        change_type = fm.get("change_type", "").strip("\"'")
+        if not change_type:
+            fail(path, "ops-log entry missing required key: change_type")
+        elif change_type not in CHANGE_TYPES:
+            fail(path, f"change_type '{change_type}' is not one of {sorted(CHANGE_TYPES)}")
     if doc_type == "project" and "services" not in fm:
         fail(path, "project record missing required key: services")
 

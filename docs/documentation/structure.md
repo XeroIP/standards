@@ -77,7 +77,8 @@ decided", that is an ADR.
 ## The ops log
 
 `ops-log/` holds one file per dated operational change: `YYYY-MM-DD-slug.md` with front matter
-naming date, services, type, and issue. One file per entry, not one growing file.
+naming the services touched, a `change_type`, and the issue where there is one. The date is in
+the filename rather than repeated in a key. One file per entry, not one growing file.
 
 This exists because the alternative was tried and failed. A single append-only log reached
 3,368 lines in one repo, which is unscannable for a person, unretrievable for an agent (the
