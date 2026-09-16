@@ -1,0 +1,27 @@
+# gitleaks configuration.
+#
+# Extends the bundled default ruleset rather than replacing it. Writing rules
+# from scratch here would mean maintaining a credential-shape catalogue as a
+# side project, and gitleaks' own is better than one kept up by hand.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Test fixtures that must contain leak-shaped values to be useful"
+
+# tests/fixtures/leakage/leaks.md exists so the failure path of
+# tools/check-leakage.py is exercised rather than assumed — a guard that has
+# only ever passed is not a verified guard. It therefore contains a token-shaped
+# string on purpose, and gitleaks correctly flagged it.
+#
+# The values inside are fictional and were written to be shaped rather than
+# real. Excluding a path from a secret scanner is exactly how a real secret
+# hides, so this exclusion is narrow, points at one directory, and that
+# directory is reviewed on the same terms as anything else in a public
+# repository.
+#
+# tools/check-leakage.py excludes the same directory, for the same reason, in
+# its SKIP_DIRS.
+paths = [
+  '''tests/fixtures/leakage/.*''',
+]
