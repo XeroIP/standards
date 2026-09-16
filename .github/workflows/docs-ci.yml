@@ -2,14 +2,17 @@
 #
 #   jobs:
 #     docs:
-#       uses: XeroIP/standards/.github/workflows/docs-ci.yml@<40-char-sha>  # v1.0.0
+#       uses: XeroIP/standards/.github/workflows/docs-ci.yml@<40-char-sha>  # v0.1.0
 #
 # Pinned to a SHA, not a tag. A tag is mutable: moving it changes what this gate
 # accepts in every repo that calls it, with no pull request anywhere. That is the
 # argument this repo already makes for third-party actions, and it applies to
-# first-party workflows for the same reason. Dependabot's github-actions
-# ecosystem covers reusable workflow references, so upgrades arrive as reviewable
-# pull requests.
+# first-party workflows for the same reason.
+#
+# Nothing bumps that pin automatically yet. Bump it by hand when this file
+# changes, which is rare — the rules it runs move independently of it. See the
+# Versioning section of AGENTS.md for why per-repo Dependabot was rejected and
+# what is intended instead.
 #
 # This workflow does NOT fetch the standards repository. It runs the copy already
 # vendored in the calling repo at `.standards/`, written by the sync bot and

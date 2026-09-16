@@ -26,7 +26,11 @@ A tag is mutable. Whoever controls the action's repository can move `v4` to any 
 time, and that commit runs with the workflow's secrets. Pinning to a 40-character SHA removes
 that.
 
-The version goes in a trailing comment so the pin stays readable and Dependabot can update it.
+The version goes in a trailing comment so the pin stays readable and a bumping tool has
+something to rewrite. Whether such a tool runs is a per-repo decision, and it is the half of
+pinning that gets skipped: pinning trades a silent-change risk for a maintenance cost, and an
+unbumped pin rots quietly. A repository that pins without a plan to bump has taken on the cost
+and given up the benefit.
 
 `policy-pinned-actions.yml` fails any workflow referencing a third-party action by tag. It
 came from `rolling-text`, where it was already in force, and is now the shared version.

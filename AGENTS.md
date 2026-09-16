@@ -112,7 +112,29 @@ Earlier the rules were vendored while the enforcer was fetched at a mutable ref.
 then changed thirty repos' behaviour with no commit anywhere, and could fail a repo against
 rules that differed from the ones in its own tree.
 
-Tags still exist, for humans to read and for release notes. They are not what CI resolves.
+**Nothing bumps the workflow pin yet, and that is the open cost of pinning.** A SHA that
+nobody updates is a pin that silently rots, which is worse than the mutable tag it replaced.
+Two mechanisms were considered:
+
+- **Dependabot in each consuming repo.** Rejected on arithmetic. The pin lives in the
+  consuming repo, so this means a config and a standing pull request stream in each of thirty
+  repos, to keep one line current. The work scales with repository count while the risk it
+  addresses stays rare.
+- **The sync bot rewrites the pin** in the pull request it already opens on each release.
+  Preferred, because that pull request exists either way, so the work is per-release rather
+  than per-repo-per-action. Not built yet, and it carries a real constraint: a token may only
+  modify files under `.github/workflows/` with explicit **workflow** scope, and granting that
+  widens what a leaked `STANDARDS_SYNC_TOKEN` could rewrite across every subscribed repo.
+
+Until one of those exists, the pin is bumped by hand when the workflow file changes — which is
+rarely, since the rules move independently of it now.
+
+Dependabot is configured in **this** repository only, for the third-party actions this
+repository uses. It does not reach consuming repos.
+
+Tags exist for humans to read, for release notes, and to give `git describe` something legible
+for `.standards/VERSION`. They are immutable once cut and are never moved. CI does not resolve
+them.
 
 ## When you are unsure
 
