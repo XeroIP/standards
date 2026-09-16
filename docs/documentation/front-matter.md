@@ -17,7 +17,7 @@ the thing that always drifts.
 | Key | Type | Notes |
 | --- | --- | --- |
 | `title` | string | Sentence case. Repeated as the body H1; see [page anatomy](page-anatomy.md). |
-| `type` | enum | `tutorial`, `how-to`, `reference`, `explanation`, `adr`, `incident`, `ops-log` |
+| `type` | enum | `tutorial`, `how-to`, `reference`, `explanation`, `adr`, `incident`, `ops-log`, `project` |
 | `status` | enum | `draft`, `active`, `superseded`, `archived` |
 | `updated` | date | `YYYY-MM-DD`. The last substantive change, not a typo fix. |
 
@@ -54,6 +54,10 @@ the ADR lifecycle in [`adr.md`](adr.md) rather than the general set above.
 
 **`ops-log`** additionally requires `services` and `type` from `change`, `investigation`,
 `maintenance`, `incident-followup`.
+
+**`project`** additionally requires `services`. `issue` is expected wherever the work was
+tracked in one. See [`structure.md`](structure.md) for when a page is a project record rather
+than a how-to.
 
 ## Example
 

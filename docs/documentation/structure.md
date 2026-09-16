@@ -3,14 +3,21 @@ title: Documentation structure
 type: reference
 status: active
 updated: 2026-09-07
-summary: Diátaxis plus ADRs, incidents, and an ops log, and which gates each repo profile runs.
+summary: Diátaxis plus ADRs, incidents, an ops log, and project records, and which gates each repo profile runs.
 ---
 
 # Documentation structure
 
 Every documentation tree uses [Diátaxis](https://diataxis.fr/): four types, separated because
-they answer different questions and fail differently when mixed. Three additions cover what
-Diátaxis does not model — decisions, incidents, and a running operations log.
+they answer different questions and fail differently when mixed. Four additions cover what
+Diátaxis does not model — decisions, incidents, a running operations log, and project records.
+
+The four Diátaxis types describe a system as it currently stands, and are rewritten whenever it
+changes. The four additions are the engineering record: dated accounts of decisions taken,
+events survived, changes applied, and work carried out, which are not rewritten because the
+past does not change. Diátaxis scopes itself to the documentation of a product rather than the
+history of the effort that produced it, so adding record types fills a gap it declines to
+cover rather than contradicting it.
 
 ## The four types
 
@@ -36,6 +43,7 @@ docs/
   adr/              # decisions, MADR format, immutable once accepted
   incidents/        # post-incident reviews, generated from the template
   ops-log/          # one file per dated operational change
+  projects/         # dated records of one bounded piece of work
 ```
 
 A repo uses the directories it needs. A tool with no operational surface has no `ops-log/`; a
@@ -78,6 +86,41 @@ concurrent edit. Per-entry files fix all three.
 
 An ops-log entry is not a commit message. It records what changed on a system and what was
 observed, and survives after the commit that caused it has scrolled out of memory.
+
+## Project records
+
+`projects/` holds one file per bounded piece of work: `YYYY-MM-DD-slug.md` dated to when the
+work started, with front matter naming the services touched and the issue it answers.
+
+A project record is the account of an effort — the question it opened with, what was measured,
+what was tried and abandoned, what was found along the way, and where it ended. It is written
+as the work proceeds and closed when the work closes.
+
+This type exists because such pages are the most common thing misfiled in a Diátaxis tree, and
+every available slot damages them:
+
+- **Filed as how-to**, the reader is handed a procedure that was never meant to be repeated.
+  A page whose steps were correct once, against one array on one date, reads as an instruction
+  to run them again. That is the how-to failure mode with the added hazard of acting on a
+  stale system state.
+- **Filed as reference**, the narrative — the wrong premise corrected in the second paragraph,
+  the approach that produced nothing — reads as fact about the current system. Reference pages
+  are consulted rather than read through, so a reader arrives mid-page and takes an abandoned
+  measurement for a live one.
+- **Filed as explanation**, the dated specifics and dead ends are noise against a page that is
+  supposed to describe how something works now, and the page stops being rewritable, because
+  rewriting it would destroy the record.
+- **Filed as ops-log**, granularity breaks. An ops-log entry is one change on one date; a
+  project spans weeks, and splitting it into entries scatters the reasoning that made it
+  coherent. The ops log may cite a project record; it cannot hold one.
+
+The distinguishing test is tense and repeatability. If a page describes work that happened,
+including what did not work, and nobody should perform its steps again, it is a project
+record. If the steps are meant to be run again, it is a how-to — extract it and link.
+
+The cost of the fifth directory is that a writer has one more choice to get wrong. The cost of
+not having it is that this content lands in how-to, where being wrong is operationally
+dangerous rather than merely untidy.
 
 ## Profiles
 
