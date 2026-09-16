@@ -60,7 +60,7 @@ colour-blind readers.
 
 ```bash
 node docs/design/check-contrast.js   # 30/30 pairs pass WCAG AA in both themes
-node docs/design/build-adapters.js   # regenerate all five adapters
+node docs/design/build-adapters.js   # regenerate all seven adapters
 ```
 
 The system was applied to five site generators and verified by reading computed styles from
@@ -79,3 +79,16 @@ Two generators needed more than a mapping, and both are worth knowing before pic
 - **Antora** exposes no theme variables at all, so its adapter overrides element rules
   directly, and one selector has to reach specificity (0,3,1) to beat
   `.doc>h1.page:first-child`.
+- **Starlight** publishes a clean `--sl-*` set that maps one-to-one, with one trap: it defines
+  `--sl-text-body` and never applies it. Its own `body` rule sets font-family, line-height,
+  colour and background and no font-size, so content inherits the browser default and the
+  measure is silently wrong. The adapter sets `font-size` on `.sl-markdown-content` explicitly.
+- **Hugo** has no single adapter, because the theme decides the surface rather than Hugo. The
+  one here targets **Hextra**: Tailwind's `.dark` class strategy rather than a data attribute,
+  and `assets/css/custom.css` as the extension point, which Hextra concatenates last so the
+  adapter wins on source order. Docsy would need its own adapter and does not have one.
+
+The Starlight case is why `probe.js` exists in the pilot repository and why a contrast
+validator is not sufficient on its own: every colour assertion passed while the body size was
+wrong, and a screenshot of that looks entirely plausible. Checking the palette is not the same
+as checking the palette reached the page.

@@ -117,6 +117,97 @@ const TARGETS = {
     extra: "",
   },
 
+  starlight: {
+    out: "docs/design/adapters/starlight.css",
+    // Starlight stamps data-theme on <html> and ships its own toggle, so the
+    // media query is only needed for the un-stamped first paint.
+    lightSelector: ":root",
+    darkSelector: ':root[data-theme="dark"]',
+    auto: ':root:not([data-theme="light"])',
+    map: `
+/* Map onto Starlight's own variables. It exposes a documented --sl-* set, so
+   this is a rename rather than a fight — the same shape Furo presented. */
+:root, :root[data-theme="dark"] {
+  --sl-color-bg: var(--dx-bg);
+  --sl-color-bg-nav: var(--dx-surface);
+  --sl-color-bg-sidebar: var(--dx-surface);
+  --sl-color-bg-inline-code: var(--dx-raised);
+  --sl-color-text: var(--dx-ink);
+  --sl-color-text-accent: var(--dx-accent);
+  --sl-color-white: var(--dx-ink);
+  --sl-color-gray-1: var(--dx-ink);
+  --sl-color-gray-2: var(--dx-muted);
+  --sl-color-gray-3: var(--dx-muted);
+  --sl-color-gray-5: var(--dx-border);
+  --sl-color-gray-6: var(--dx-surface);
+  --sl-color-hairline: var(--dx-border);
+  --sl-color-hairline-light: var(--dx-border);
+  --sl-color-accent: var(--dx-accent);
+  --sl-color-accent-high: var(--dx-accent);
+  --sl-font: var(--dx-font-body);
+  --sl-font-mono: var(--dx-font-mono);
+  --sl-text-body: var(--dx-size-body);
+  --sl-line-height: var(--dx-lh-body);
+  --sl-content-width: var(--dx-measure);
+}`,
+    extra: `
+/* Starlight defines --sl-text-body but never applies it: its own \`body\` rule
+   sets font-family, line-height, colour and background and no font-size, so the
+   content inherits the browser default 16px. Setting the variable alone leaves
+   the measure wrong and looks correct in a screenshot — the probe caught it. */
+.sl-markdown-content { font-size: var(--dx-size-body); font-weight: var(--dx-weight-body); }
+.content-panel h1, .sl-markdown-content h1 {
+  font-family: var(--dx-font-display); font-size: var(--dx-size-h1); line-height: var(--dx-lh-h1);
+  letter-spacing: var(--dx-track-h1); font-weight: var(--dx-weight-h1); color: var(--dx-ink);
+}
+.sl-markdown-content h2 { font-family: var(--dx-font-display); font-size: var(--dx-size-h2); font-weight: var(--dx-weight-h2); }
+.sl-markdown-content h3 { font-family: var(--dx-font-display); font-size: var(--dx-size-h3); font-weight: var(--dx-weight-h2); }
+.sl-markdown-content a { color: var(--dx-accent); }
+.sl-markdown-content th { background: var(--dx-raised); }
+.sl-markdown-content td, .sl-markdown-content th { border-color: var(--dx-border); }
+.sl-markdown-content blockquote {
+  border-inline-start: 3px solid var(--dx-accent); background: var(--dx-accent-soft);
+  border-radius: 0 var(--dx-radius) var(--dx-radius) 0; padding: 0.6rem 0.9rem;
+}`,
+  },
+  "hugo-hextra": {
+    out: "docs/design/adapters/hugo-hextra.css",
+    // Hextra stamps .dark on <html> via Tailwind's class strategy rather than a
+    // data attribute, which is the one selector shape no other candidate uses.
+    lightSelector: ":root",
+    darkSelector: ":root.dark, .dark",
+    auto: ":root:not(.light)",
+    map: `
+/* Hextra is Tailwind-based and exposes a small set of its own properties.
+   Most of the surface is utility classes, so the adapter maps what exists and
+   overrides the rest by element. */
+:root, :root.dark {
+  --primary-hue: 178;
+  --primary-saturation: 65%;
+  --body-font-family: var(--dx-font-body);
+  --mono-font-family: var(--dx-font-mono);
+}`,
+    extra: `
+html, body { background: var(--dx-bg); color: var(--dx-ink); }
+body { font-family: var(--dx-font-body); font-size: var(--dx-size-body); line-height: var(--dx-lh-body); font-weight: var(--dx-weight-body); }
+.content, article { max-width: var(--dx-measure); }
+article h1, .content h1 {
+  font-family: var(--dx-font-display); font-size: var(--dx-size-h1); line-height: var(--dx-lh-h1);
+  letter-spacing: var(--dx-track-h1); font-weight: var(--dx-weight-h1); color: var(--dx-ink);
+}
+article h2, .content h2 { font-family: var(--dx-font-display); font-size: var(--dx-size-h2); font-weight: var(--dx-weight-h2); color: var(--dx-ink); border-bottom: 0; }
+article h3, .content h3 { font-family: var(--dx-font-display); font-size: var(--dx-size-h3); font-weight: var(--dx-weight-h2); color: var(--dx-ink); }
+article a, .content a { color: var(--dx-accent); }
+article p, article li, article td, article th { color: var(--dx-ink); }
+article th { background: var(--dx-raised); }
+article td, article th { border-color: var(--dx-border); }
+article code, article pre { background: var(--dx-raised); color: var(--dx-ink); font-family: var(--dx-font-mono); }
+article blockquote {
+  border-inline-start: 3px solid var(--dx-accent); background: var(--dx-accent-soft);
+  border-radius: 0 var(--dx-radius) var(--dx-radius) 0; padding: 0.6rem 0.9rem;
+}
+.sidebar-container, .nav-container, nav { background: var(--dx-surface); border-color: var(--dx-border); }`,
+  },
   docusaurus: {
     out: "docs/design/adapters/docusaurus.css",
     lightSelector: ":root",
