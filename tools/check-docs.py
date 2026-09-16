@@ -11,6 +11,7 @@ Checks:
   naming         lowercase-hyphenated, no ordinal prefix outside adr/,
                  dated pages lead with an ISO date
   links          every relative Markdown link resolves to a file that exists
+  headings       the body H1 matches the front matter title
   incidents      required sections present, in order
   adr            id matches filename, no numbering gap
 
@@ -203,6 +204,30 @@ def check_incident(path: Path, text: str) -> None:
             fail(path, f"incident review missing required section: {required}")
 
 
+H1_RE = re.compile(r"^#\s+(.+?)\s*$", re.M)
+
+
+def check_h1(path: Path, text: str, fm: dict | None) -> None:
+    """The body H1 and the front-matter title have to say the same thing.
+
+    page-anatomy.md requires this and explains why both exist: `title` drives
+    navigation and llms.txt, the H1 is what a reader of the raw Markdown sees.
+    A page that disagrees with itself shows one string in the nav and another on
+    the page, which is precisely the drift the generated-index rule exists to
+    prevent — so it is checked here rather than left to review.
+    """
+    if not fm or "title" not in fm:
+        return
+    body = text[text.find("\n---", 4) + 4:] if text.startswith("---\n") else text
+    m = H1_RE.search(body)
+    if not m:
+        fail(path, "no body H1 (see docs/documentation/page-anatomy.md)")
+        return
+    title = fm["title"].strip().strip("\"'")
+    if m.group(1) != title:
+        fail(path, f"body H1 '{m.group(1)}' does not match front matter title '{title}'")
+
+
 def check_adr_numbering(files: list[Path]) -> None:
     numbers = []
     for path in files:
@@ -247,6 +272,7 @@ def main() -> int:
         check_front_matter(path, fm)
         check_name(path, root)
         check_links(path, text)
+        check_h1(path, text, fm)
         if (fm or {}).get("type", "").strip("\"'") == "incident":
             check_incident(path, text)
 

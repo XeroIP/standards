@@ -8,6 +8,8 @@ summary: Two dependency-free checkers for defects that eyeballing a rendered SVG
 
 <!-- IMPORTED from XeroIP/documentation (diagram-qa/README.md). -->
 
+# Diagram QA tools
+
 
 Two small, generic, dependency-free Python tools for catching defects in
 technical diagrams (SVG wiring diagrams, pinout charts, schematics, etc.)

@@ -9,7 +9,7 @@ summary: The per-draft review pass, tiered critical / important / optional.
 <!-- IMPORTED from XeroIP/english-ai-rule (validation-checklist.md). Upstream is the research
      workflow that produces this; edit there and re-import rather than editing here. -->
 
-# Validation Checklist
+# Validation checklist
 
 Run this checklist on each draft after applying the master language rule set. Items are drawn from all 5 v2.4 synthesis runs.
 
