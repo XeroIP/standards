@@ -1,0 +1,9 @@
+node_modules/
+.venv/
+_site/
+.DS_Store
+*.log
+
+# Python bytecode
+__pycache__/
+*.pyc

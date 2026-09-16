@@ -1,0 +1,202 @@
+# Machine-readable extraction of master-language-rule.md.
+#
+# The master rule is prose: evidence, confidence scores, allowed contexts, and
+# replacement guidance a person reads. This file is the subset a linter can act
+# on. Every entry carries the marker id it came from, so a Vale finding can be
+# traced back to the reasoning and the research behind it.
+#
+# tools/build-vale.js generates .vale.ini and styles/XeroIP/*.yml from this.
+# Never hand-edit the generated files.
+#
+# Tier maps onto Vale severity:
+#   ban     -> error       Remove on first pass. Fails CI.
+#   limit   -> warning     Allowed under a frequency cap or in a named context.
+#   monitor -> suggestion  Logged, never enforced. Tuned in future research runs.
+#
+# Some markers are deliberately absent. Cadence flattening (L8), paragraph
+# architecture (L9), triple-adjective stacking (L10), inline pseudo-lists (L13)
+# and contraction avoidance (L14) need structural analysis a regex cannot do
+# without firing constantly on correct prose. They stay on the human checklist
+# in validation-checklist.md, which is the honest place for them.
+
+version: 1
+source: master-language-rule.md
+source_version: "v2.4 synthesis, 2026-05-20"
+
+ban:
+  - id: P1
+    name: Latinate filler verbs
+    why: >-
+      Verbs that promise action or discovery without specifying it. Upweighted by
+      RLHF for engaging openings; they signal preamble rather than content.
+    terms: [delve, delves, delving, unlock, unlocking, embark, embarking, unveil, unveiling]
+    swap: [explore, examine, walk through, cover, use]
+  - id: P1c
+    name: Harness as a filler verb
+    why: >-
+      The noun is a real thing — a wiring harness, a test harness — and the diagram
+      standard is full of them. Only the verb sense is filler, so the rule matches
+      the verb's usual objects rather than the bare word.
+    pattern: '\bharness(es|ing)?\s+(the\s+)?(power|potential|capabilit|strength|force|full)'
+    swap: [use, apply]
+  - id: P1b
+    name: Metaphorical navigate
+    why: Fine when it means navigate. Banned as a metaphor for dealing with something.
+    pattern: '\bnavigat(e|ing) the (complexit|challeng|landscape|world|nuance)\w*'
+    swap: [work through, handle]
+  - id: P2
+    name: Prestige metaphors and abstract placeholders
+    why: >-
+      High-confidence tokens that contextualise any topic without domain knowledge.
+      Readers register them as machine-generated stalls.
+    terms: [tapestry, mosaic, "double-edged sword", "at the intersection of", "in the realm of"]
+    swap: [field, market, codebase, system, discipline]
+  - id: P2b
+    name: Metaphorical realm and landscape
+    why: Literal use is fine. Banned as an abstract container.
+    pattern: '\b(the|this|a) (realm|landscape) of\b'
+    swap: [field, area, market]
+  - id: P3
+    name: Grand-opening clichés
+    why: An opening that establishes importance rather than starting the content.
+    terms:
+      - "In today's fast-paced world"
+      - "In today's world"
+      - "In the ever-evolving landscape"
+      - "As technology continues to evolve"
+      - "In an era where"
+    swap: []
+  - id: P4
+    name: Meta-announcement sentences
+    why: >-
+      Announcing what a section will do instead of doing it. The reader arrived from
+      navigation that already told them.
+    terms:
+      - "This article will explore"
+      - "This guide will explore"
+      - "This post will cover"
+      - "In this guide, we will"
+      - "In this article, we will"
+      - "In this section, we will"
+      - "Let's dive into"
+      - "Let's take a look at"
+    swap: []
+  - id: P5
+    name: Throat-clearing padding
+    why: Words that delay the point without adding to it.
+    terms:
+      - "It's worth noting that"
+      - "It is worth noting that"
+      - "It is important to note that"
+      - "It's important to note that"
+      - "It is worth mentioning that"
+      - "It should be noted that"
+    swap: []
+  - id: P6
+    name: Generic benefit-wrap closers
+    why: A closing sentence that claims value without naming any.
+    terms:
+      - "By doing so, you can"
+      - "This approach allows you to"
+      - "This enables you to focus on what matters"
+      - "the possibilities are endless"
+    swap: []
+  - id: P7
+    name: Quantitative inflation metaphors
+    why: Quantity dressed up as abundance.
+    terms: ["treasure trove", plethora, "a wealth of", "game-changer", "game changer", "paradigm shift"]
+    swap: [many, several, a range of]
+  - id: P8
+    name: Anthropomorphism in technical contexts
+    why: >-
+      Code has no beliefs or intentions. The habit obscures the actual mechanism,
+      which is what the reader needs.
+    pattern: '\b(the (code|model|framework|compiler|parser|system|algorithm)) (thinks|believes|wants|knows|decides to|tries to|understands)\b'
+    swap: []
+  - id: HOUSE1
+    name: House-banned terms
+    why: >-
+      Carried over from claude-memory/copilot-instructions.md. Banned as filler or
+      figurative usage. If one is the literally correct technical name for the thing
+      being discussed, use it and say why it was unavoidable.
+    terms: ["load-bearing", "load bearing"]
+    swap: []
+
+limit:
+  - id: L1
+    name: Adjective inflation
+    why: High-praise adjectives used as default intensifiers without earning the claim.
+    terms: [robust, seamless, seamlessly, comprehensive, pivotal, crucial, vital, cornerstone]
+    max_per: 500
+    allowed: >-
+      Safety or security writing where the word names a genuine failure risk;
+      engineering specs where robust means fault-tolerant.
+    swap: []
+  - id: L2
+    name: Formulaic conclusion openers
+    why: Announcing a conclusion rather than making a final point.
+    terms: ["In conclusion", "In summary", "To summarize", "To sum up", "All in all"]
+    max_per_document: 1
+    allowed: Long documents with several major sections.
+    swap: []
+  - id: L3
+    name: Formal transition stack
+    why: Conjunctive adverbs used as paragraph openers to simulate logical flow.
+    terms: [Furthermore, Moreover, Additionally, Consequently, Nevertheless, Notably, Importantly, Interestingly]
+    max_per: 500
+    max_occurrences: 2
+    allowed: Academic or legal prose where the connective is conventional.
+    swap: [also, but, so, because, "as a result"]
+  - id: L4
+    name: Vague benefit verbs
+    why: Verbs that promise improvement without naming the mechanism.
+    terms: [enhance, streamline, facilitate, leverage, empower]
+    max_per: 500
+    max_occurrences: 2
+    allowed: >-
+      Performance work where optimize means profile-and-tune; roadmaps where the
+      mechanism is deliberately deferred.
+    swap: [reduce, remove, automate, combine, cache, cut]
+  - id: L5
+    name: Caveat prefaces
+    why: Sentence-initial hedging that manages tone rather than adding content.
+    terms: ["That said", "With that in mind", "Bear in mind that", "It's important to"]
+    max_per: 300
+    allowed: Compliance text where scope qualifications must be signposted.
+    swap: [but, however, "note:"]
+  - id: L7
+    name: Not only / but also
+    why: Correlative construction adding rhetorical emphasis the sentence has not earned.
+    pattern: '\bnot only\b[^.]{0,80}\bbut also\b'
+    max_per_document: 1
+    allowed: Persuasive rhetoric where parallel structure is the genre.
+    swap: []
+  - id: L11
+    name: Essence claims
+    why: Announcing a reductive definition without earning it.
+    terms: ["At its core", Fundamentally, Essentially, "At the end of the day"]
+    max_per_document: 1
+    allowed: Pedagogical writing introducing a model from scratch.
+    swap: []
+  - id: L12
+    name: Instructional ceremony
+    why: Softening a direct instruction that does not need softening.
+    terms: ["You should always", "Make sure to", "Remember to", "Don't forget to"]
+    max_per: 500
+    allowed: Beginner tutorials; compliance documentation.
+    swap: []
+
+monitor:
+  - id: L6
+    name: Bilateral hedging
+    why: >-
+      Presenting every position as equally valid to avoid taking one. Flagged rather
+      than enforced because genuine pros-and-cons comparisons look identical to a regex.
+    terms: ["has its strengths", "Both options have merit", "depends on your needs", "there is no one-size-fits-all"]
+  - id: PC1
+    name: Em dash density
+    why: >-
+      Cap is one per 300 words of prose. Vale counts occurrences but cannot measure
+      the prose window, so this reports rather than enforces.
+    pattern: '—'
+    max_per: 300
