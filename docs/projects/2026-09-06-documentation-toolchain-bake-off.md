@@ -32,7 +32,7 @@ Every figure here was measured in one session on one machine with cold caches.
 ## Measured
 
 | Measure | MkDocs Material | Hugo + Hextra | Starlight | Eleventy | Sphinx + MyST | Docusaurus | Antora |
-|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- |
 | Dependency install | 11s | one binary | 47s | 6s | 8s | 19s | 7s + 2s gem |
 | Dependency weight | 4 packages | 76 MB binary + 1.2 MB theme | 238 MB | 4 packages | 6 packages | 289 MB | 30 MB + gem |
 | Cold build | **568ms** | **637ms** | 4,980ms | 660ms | 1,056ms | 22,392ms | 1,517ms |
@@ -54,7 +54,7 @@ are print rules predating the token system.
 ## Rubric, scored 1–5
 
 | Criterion | MkDocs | Hugo | Starlight | Eleventy | Sphinx | Docusaurus | Antora |
-|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- |
 | LLM-readable source | 5 | 5 | 3 | 4 | 5 | 4 | 1 |
 | Low maintenance burden | 5 | 5 | 3 | 3 | 4 | 2 | 2 |
 | Styling ceiling | 3 | 3 | 5 | 5 | 3 | 5 | 2 |
@@ -155,7 +155,7 @@ system but four months quiet, while Docsy is current and Bootstrap-based.
 
 **Starlight placed fifth and is not close.** It builds in 4,980ms, carries 238 MB of
 `node_modules`, and needs the largest source change of any Markdown-native candidate: front
-matter added *and* the body H1 removed, because it renders the front-matter title as the page
+matter added _and_ the body H1 removed, because it renders the front-matter title as the page
 H1 unconditionally. That directly contradicts the documentation standard's resolution of the
 same question, where a body H1 is kept so the raw Markdown stays readable to an agent, to
 GitHub, and in an editor.
@@ -213,7 +213,7 @@ Per-candidate detail is in each directory's `NOTES.md`.
 `poc/screenshots/`, named `<candidate>__<page>__<scheme>.png`.
 
 | | |
-|---|---|
+| --- | --- |
 | Candidates | `mkdocs-material`, `hugo`, `starlight`, `eleventy`, `sphinx-myst`, `docusaurus`, `antora` |
 | Pages | `incident`, `overview`, `runbook` |
 | Schemes | `light`, `dark` |
@@ -239,7 +239,7 @@ entry below.
 
 ---
 
-# Applying the design system
+## Applying the design system
 
 Console Editorial — Editorial's structure and type carrying the Operations console
 palette — was applied to **all seven** candidates, so the toolchain choice stays open and
@@ -256,17 +256,17 @@ five candidates that then existed, dark theme only. All five rendered Console Ed
 faithfully: `#0C0F13` ground, Newsreader at 18px weight 450, 40px serif H1, `#3FD0C9` links.
 The current figure, seven candidates in both themes, is above.
 
-## How hard each resisted
+### How hard each resisted
 
 | | Variable mapping | Overrides needed | What fought back |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | **Eleventy** | 0 lines | 0 lines | Nothing. Its stylesheet was already token-driven; the change was a variable rename. |
 | **Sphinx + Furo** | 19 lines | 12 lines | Nothing. Furo's `--color-*` set maps one-to-one and no rule outranked it. |
 | **Docusaurus** | 20 lines | 11 lines | Infima paints the ground on `html`, leaving `body` transparent — one extra rule. |
 | **MkDocs Material** | 16 lines | 21 lines | Palette specificity, see below. |
 | **Antora** | 1 line | 19 lines | No variable system at all; every rule targets element classes, and one needed (0,3,1). |
 
-## The two real fights
+### The two real fights
 
 **Material's palette outranks variable mapping.** Links stayed indigo after the adapter set
 `--md-typeset-a-color`, because `[data-md-color-scheme=slate][data-md-color-primary=indigo]`
@@ -283,14 +283,14 @@ variable font is pulled in with `@import` at the top of the adapter instead.
 while accepting the theme's font, which is exactly the kind of half-applied result a
 screenshot hides and the probe catches.
 
-## Correction to Antora's earlier notes
+### Correction to Antora's earlier notes
 
 `poc/antora/NOTES.md` said theming Antora means building a UI bundle — a separate Gulp
 project producing a versioned zip. **That was wrong.** `ui.supplemental_files` merges a local
 directory over the bundle, so a `partials/head-styles.hbs` override plus a CSS file was
 enough. The format problem stands and is still disqualifying; the theming problem does not.
 
-## What this does not change
+### What this does not change
 
 Antora still cannot read Markdown, and Docusaurus still takes 22 seconds to build. The
 design work moved neither. What it did move is the styling-ceiling question that the MkDocs
@@ -298,7 +298,7 @@ recommendation hedged on: **Material carried the full design**, including a seri
 64ch measure, once its palette was set to `custom`. The ceiling is real but it is a config
 line, not a fork.
 
-## Reproducing
+### Reproducing
 
 ```bash
 node design/check-contrast.js   # 30/30 WCAG AA pairs, both themes

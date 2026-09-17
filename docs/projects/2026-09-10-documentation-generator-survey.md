@@ -43,7 +43,7 @@ are judged against the same requirements. A candidate failing any of these is ou
 of its other merits.
 
 | | Criterion | Why it is disqualifying |
-|---|---|---|
+| --- | --- | --- |
 | C1 | Markdown is the source, unmodified | The source is read by agents, rendered by GitHub, and edited without a preview. A format only a build can read breaks all three. |
 | C2 | Static HTML output, rendered at build time | Two deploy targets, one behind a forward-auth proxy. Client-side rendering also hides content from a printer and from anything that does not run JavaScript. |
 | C3 | A current stable release line | Thirty repositories and a multi-year commitment. A stable line that has not shipped in over a year, or a next line stuck in prolonged alpha, is a maintenance risk being taken on deliberately. |
@@ -59,7 +59,7 @@ building, not by reading.
 ### Already built
 
 | Candidate | Outcome |
-|---|---|
+| --- | --- |
 | MkDocs + Material | Recommended in ADR-0001, `proposed` |
 | Eleventy | Second, recorded fallback |
 | Sphinx + MyST | Third |
@@ -95,7 +95,7 @@ this survey.
 Two theme paths, and they are different products with different release rhythms:
 
 | Theme | Latest | Character |
-|---|---|---|
+| --- | --- | --- |
 | Docsy | published 2026-08-30 | What Kubernetes and much of CNCF publish with. Heavily Bootstrap-based. Actively maintained. |
 | Hextra | `v0.12.3`, 05 May | The modern alternative, Tailwind-flavoured. Four months since the last release, after `v0.12.1` in March and `v0.12.2` in April. |
 
@@ -110,7 +110,7 @@ customisation beyond a theme's variables means writing it.
 ### Screened out, with the criterion
 
 | Candidate | Out on | Detail |
-|---|---|---|
+| --- | --- | --- |
 | **VitePress** | C3 | Latest stable 1.6.4 published 2025-08-05 — thirteen months. The `next` line has been in alpha since at least 2026-03, reaching `2.0.0-alpha.20` on 2026-09-04. Adopting means choosing between a stale stable and a prolonged alpha. Otherwise a strong fit, and worth revisiting when 2.0 ships. |
 | **Nextra** | discriminator | 4.6.1, 2025-12-04. Next.js-based, so it occupies the same position as Docusaurus — React framework, heavy build, high styling ceiling — which the bake-off already tested and rejected on build weight. Building it would re-run a finished experiment. |
 | **Fumadocs** | discriminator | 16.15.8, 2026-09-07, very actively developed. Same reasoning as Nextra, and MDX-first rather than Markdown-first, which pushes against C1. |
