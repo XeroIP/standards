@@ -79,25 +79,68 @@ jobs:
         with:
           python-version: '3.12'
 
-      # --check exits 1 when something is out of date, which is information
-      # rather than a failure, so it is captured instead of failing the job.
-      # Exit 3 is a refusal to sync — no consent, or an agent file this tool did
-      # not write — and that must fail loudly.
+      # Three outcomes, and only one of them is a failure.
+      #
+      #   0  up to date
+      #   1  out of date — information, not a failure, so it is captured
+      #   3  refused — no consent, or an agent file this tool did not write
+      #
+      # A refusal is a hard failure when `apply` asked for a write: the run was
+      # told to do something and did not. On a scheduled preview it is a
+      # status — "this repo has not adopted yet" — and failing there would mark
+      # the job red every Monday until it does. A scheduled job that is
+      # permanently red is one people stop reading, which costs more than the
+      # missing signal it was meant to provide.
+      #
+      # The refusal is still printed either way, and surfaced in the step
+      # summary so it is visible without opening the log.
       - name: What would change
         id: preview
         run: |
           set +e
-          python3 standards/tools/sync-standards.py --target target --check
+          out=$(python3 standards/tools/sync-standards.py --target target --check 2>&1)
           rc=$?
           set -e
-          if [ "$rc" = "3" ]; then
-            exit 3
-          fi
-          if [ "$rc" = "1" ]; then
-            echo "changes=yes" >> "$GITHUB_OUTPUT"
-          else
-            echo "changes=no" >> "$GITHUB_OUTPUT"
-          fi
+          echo "$out"
+
+          case "$rc" in
+            3)
+              echo "changes=no" >> "$GITHUB_OUTPUT"
+              echo "refused=yes" >> "$GITHUB_OUTPUT"
+              {
+                echo "### ${{ matrix.repo }} — not adopted"
+                echo
+                echo '```'
+                echo "$out"
+                echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
+              if [ "${{ inputs.apply }}" = "true" ]; then
+                echo "::error::${{ matrix.repo }} refused the sync, and apply was requested."
+                exit 3
+              fi
+              echo "::notice::${{ matrix.repo }} has not adopted the standards yet. Nothing to do."
+              ;;
+            1)
+              echo "changes=yes" >> "$GITHUB_OUTPUT"
+              echo "refused=no" >> "$GITHUB_OUTPUT"
+              {
+                echo "### ${{ matrix.repo }} — out of date"
+                echo
+                echo '```'
+                echo "$out"
+                echo '```'
+              } >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            0)
+              echo "changes=no" >> "$GITHUB_OUTPUT"
+              echo "refused=no" >> "$GITHUB_OUTPUT"
+              echo "### ${{ matrix.repo }} — up to date" >> "$GITHUB_STEP_SUMMARY"
+              ;;
+            *)
+              echo "::error::sync-standards.py exited $rc"
+              exit "$rc"
+              ;;
+          esac
 
       - name: Sync
         if: inputs.apply && steps.preview.outputs.changes == 'yes'
