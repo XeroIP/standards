@@ -50,7 +50,7 @@ CHANGE_TYPES = {"change", "investigation", "maintenance", "incident-followup"}
 INCIDENT_SECTIONS = [
     "overview", "impact and scope", "timeline", "technical findings",
     "root cause analysis", "resolution and recovery",
-    "corrective and preventive actions", "monitoring and observability lessons",
+    "corrective and preventive actions", "lessons learned",
     "monitoring plan", "open questions", "appendix: evidence",
     "appendix: investigation walkthrough",
 ]
