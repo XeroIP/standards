@@ -59,7 +59,7 @@ page.
 5. Root cause analysis
 6. Resolution and recovery
 7. Corrective and preventive actions
-8. Monitoring and observability lessons
+8. Lessons learned
 9. Monitoring plan
 10. Open questions
 11. Appendix: evidence
@@ -106,7 +106,7 @@ the only carrier, so the timeline survives print and colour-blind readers.
 Timeline entries are observations, not narration. "First `EACCES`; crash loop begins" is an
 entry. "The team began investigating" is not, unless the time it happened is a finding.
 
-## Monitoring and observability lessons
+## Lessons learned
 
 Required, and not optional in the way the rest of a template is. It is the bridge from an
 incident to work that prevents the next one. At minimum:

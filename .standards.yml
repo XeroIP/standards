@@ -11,6 +11,16 @@ version: 1
 # code       — all gates; docs gates apply to docs/ only
 profile: docs-only
 
+# Whether this repository is public. A different axis from `profile`: that
+# says what kind of code a repo holds, this says who can read it. A private
+# repo documenting real infrastructure is supposed to contain real
+# hostnames, so the leakage scan applies to public repos only.
+#
+# GitHub's own view of the repository wins. This can only make the gate
+# stricter — a private repo declaring `public` opts in ahead of going
+# public; a public repo declaring `private` changes nothing.
+visibility: public
+
 # Languages present in this repo. Ignored when profile is docs-only.
 stacks: []
 
@@ -21,6 +31,18 @@ workflow:
   require_issue: false
   allow_direct_to_main: false
 
-# Paths the sync bot must not overwrite when it vendors .standards/ in.
+# The standards release this repo is synced against. The sync offers this tag
+# rather than whatever is on main, so a bad release does not reach every
+# consuming repo before anyone has looked at it.
+standards_version: v0.1.0
+
 sync:
+  # Explicit consent to be written to. The first sync replaces AGENTS.md,
+  # CLAUDE.md and .github/copilot-instructions.md, so carrying a .standards.yml
+  # is not on its own permission to overwrite them. The sync refuses until this
+  # is true, and refuses anyway if one of those files exists without the
+  # generated banner — a file a person wrote is not the bot's to replace.
+  adopted: true
+
+  # Paths the sync bot must not overwrite when it vendors .standards/ in.
   protect: []

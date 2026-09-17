@@ -68,6 +68,14 @@ jobs:
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0
 
+      # This repository's own check that the leakage gate still fires — not a
+      # gate for consuming repos. It lived in secret-scan.yml, where every
+      # consuming repo ran it against a tests/ directory that exists only here
+      # and failed on the missing file. The fixtures carry leak-shaped values on
+      # purpose, so the failure path is exercised rather than assumed.
+      - name: Leakage scan fixtures still fire
+        run: bash tests/test-leakage.sh
+
   links:
     # External links break for reasons unrelated to the change under review, so
     # this runs on a schedule and on docs changes — never as a gate on an

@@ -12,6 +12,7 @@ Checks:
                  dated pages lead with an ISO date
   links          every relative Markdown link resolves to a file that exists
   headings       the body H1 matches the front matter title
+  ops-log        services and a change_type from the allowed set
   incidents      required sections present, in order
   adr            id matches filename, no numbering gap
 
@@ -33,7 +34,7 @@ REQUIRED = {"title", "type", "status", "updated"}
 KNOWN = REQUIRED | {
     "summary", "tags", "services", "issue", "supersedes", "superseded_by",
     "severity_ui", "id", "date", "deciders", "severity", "window", "data_loss",
-    "revision",
+    "revision", "change_type",
 }
 TYPES = {"tutorial", "how-to", "reference", "explanation", "adr", "incident",
          "ops-log", "project"}
@@ -41,10 +42,15 @@ STATUSES = {"draft", "active", "superseded", "archived",
             "proposed", "accepted", "rejected", "deprecated"}
 SEVERITY_UI_ALLOWED = {"incident", "how-to", "reference"}
 
+# What an ops-log entry was. Named change_type because `type` is already the
+# document type: the standard asked for both under one key, which no page could
+# satisfy, and nothing caught it because only `services` was ever enforced.
+CHANGE_TYPES = {"change", "investigation", "maintenance", "incident-followup"}
+
 INCIDENT_SECTIONS = [
     "overview", "impact and scope", "timeline", "technical findings",
     "root cause analysis", "resolution and recovery",
-    "corrective and preventive actions", "monitoring and observability lessons",
+    "corrective and preventive actions", "lessons learned",
     "monitoring plan", "open questions", "appendix: evidence",
     "appendix: investigation walkthrough",
 ]
@@ -56,6 +62,26 @@ ORDINAL_RE = re.compile(r"^\d+[-_]")
 LINK_RE = re.compile(r"(?<!\!)\[[^\]]*\]\(([^)#\s]+)(?:#[^)]*)?\)")
 
 problems: list[dict] = []
+
+
+def scalar(value: str) -> str:
+    """Read a front-matter scalar the way YAML would.
+
+    `.strip("\"'")` was used for this and is wrong twice over: it strips any
+    number of either quote character from both ends, so a single-quoted title
+    ending in a double quote silently loses it, and it never undoes YAML's
+    doubled-quote escaping. Both produced false "H1 does not match title"
+    reports on files that a real parser read correctly.
+
+    Only the two quoting styles this standard emits are handled; anything else
+    is returned as written, because guessing at YAML here would be worse than
+    leaving it to the build.
+    """
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+        inner = value[1:-1]
+        return inner.replace("''", "'") if value[0] == "'" else inner.replace('\\"', '"')
+    return value
 
 
 def fail(path: Path, message: str, line: int = 0) -> None:
@@ -94,24 +120,24 @@ def check_front_matter(path: Path, fm: dict | None) -> None:
         fail(path, f"front matter has unknown key: {key} (a typo here silently "
                    f"drops the page from generated indexes)")
 
-    doc_type = fm.get("type", "").strip("\"'")
+    doc_type = scalar(fm.get("type", ""))
     if doc_type and doc_type not in TYPES:
         fail(path, f"type '{doc_type}' is not one of {sorted(TYPES)}")
 
-    status = fm.get("status", "").strip("\"'")
+    status = scalar(fm.get("status", ""))
     if status and status not in STATUSES:
         fail(path, f"status '{status}' is not one of {sorted(STATUSES)}")
     if status == "superseded" and not fm.get("superseded_by"):
         fail(path, "status is superseded but superseded_by is missing")
 
-    updated = fm.get("updated", "").strip("\"'")
+    updated = scalar(fm.get("updated", ""))
     if updated:
         try:
             date.fromisoformat(updated)
         except ValueError:
             fail(path, f"updated '{updated}' is not YYYY-MM-DD")
 
-    sev = fm.get("severity_ui", "").strip("\"'").lower()
+    sev = scalar(fm.get("severity_ui", "")).lower()
     if sev == "true" and doc_type not in SEVERITY_UI_ALLOWED:
         fail(path, f"severity_ui is only allowed on {sorted(SEVERITY_UI_ALLOWED)} pages, "
                    f"not '{doc_type}'")
@@ -120,8 +146,14 @@ def check_front_matter(path: Path, fm: dict | None) -> None:
         for key in ("services", "severity", "window", "data_loss"):
             if key not in fm:
                 fail(path, f"incident page missing required key: {key}")
-    if doc_type == "ops-log" and "services" not in fm:
-        fail(path, "ops-log entry missing required key: services")
+    if doc_type == "ops-log":
+        if "services" not in fm:
+            fail(path, "ops-log entry missing required key: services")
+        change_type = scalar(fm.get("change_type", ""))
+        if not change_type:
+            fail(path, "ops-log entry missing required key: change_type")
+        elif change_type not in CHANGE_TYPES:
+            fail(path, f"change_type '{change_type}' is not one of {sorted(CHANGE_TYPES)}")
     if doc_type == "project" and "services" not in fm:
         fail(path, "project record missing required key: services")
 
@@ -223,7 +255,7 @@ def check_h1(path: Path, text: str, fm: dict | None) -> None:
     if not m:
         fail(path, "no body H1 (see docs/documentation/page-anatomy.md)")
         return
-    title = fm["title"].strip().strip("\"'")
+    title = scalar(fm["title"])
     if m.group(1) != title:
         fail(path, f"body H1 '{m.group(1)}' does not match front matter title '{title}'")
 
@@ -238,7 +270,7 @@ def check_adr_numbering(files: list[Path]) -> None:
         numbers.append(number)
         text = path.read_text(encoding="utf-8")
         fm, _ = parse_front_matter(text)
-        declared = (fm or {}).get("id", "").strip("\"'")
+        declared = scalar((fm or {}).get("id", ""))
         if declared and declared != f"ADR-{number:04d}":
             fail(path, f"front matter id '{declared}' does not match filename number {number:04d}")
     for expected, actual in enumerate(sorted(numbers), start=1):
@@ -273,7 +305,7 @@ def main() -> int:
         check_name(path, root)
         check_links(path, text)
         check_h1(path, text, fm)
-        if (fm or {}).get("type", "").strip("\"'") == "incident":
+        if scalar((fm or {}).get("type", "")) == "incident":
             check_incident(path, text)
 
     check_adr_numbering([p for p in pages if p.parent.name == "adr"])

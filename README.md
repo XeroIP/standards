@@ -11,10 +11,10 @@ None of them could reach the other twenty-nine repos. This repo is where they li
 
 | Area | State | Source |
 | --- | --- | --- |
-| [Documentation](docs/documentation/) | **v1, complete** | Written here, plus `ideavault` conventions and the incident standard from `my-unraid-notes` |
+| [Documentation](docs/documentation/) | **Complete** | Written here, plus `ideavault` conventions and the incident standard from `my-unraid-notes` |
 | [Prose](docs/prose/) | Imported, Vale generated from it | `english-ai-rule` — five multi-vendor research runs |
 | [Coding](docs/coding/) | Imported, split per stack | `claude-memory/copilot-instructions.md` |
-| [Design](docs/design/) | **v1, complete** | Console Editorial, built and contrast-verified |
+| [Design](docs/design/) | **Complete** | Console Editorial, built and contrast-verified |
 | [Diagrams](docs/diagrams/) | Imported | `documentation/diagram-generation-patterns.md` and `diagram-qa` |
 | [Observability](docs/observability/) | Stub | Not yet written |
 | [Decision records](docs/adr/) | ADR-0001 accepted | Written here |
@@ -45,10 +45,49 @@ Nothing bumps that pin automatically. Bump it by hand when the workflow file cha
 rare — the rules it runs move independently of it. `AGENTS.md` records why per-repo Dependabot
 was rejected for this and what is intended instead.
 
-The sync bot then opens a PR in that repo on each release, refreshing a vendored
-`.standards/` directory and regenerating `AGENTS.md`, `CLAUDE.md`, and
-`.github/copilot-instructions.md`. Vendoring is deliberate: it puts the rules in the working
-tree an agent already has, with no network fetch and no submodule to go stale.
+The sync bot then refreshes a vendored `.standards/` directory and regenerates `AGENTS.md`,
+`CLAUDE.md`, and `.github/copilot-instructions.md`. Vendoring is deliberate: it puts the rules
+in the working tree an agent already has, with no network fetch and no submodule to go stale.
+
+**It reports by default and writes nothing.** Opening a pull request in someone else's
+repository needs consent at both ends: the repo is listed in `standards-sync.yml`, and its own
+`.standards.yml` sets `sync.adopted: true`. Carrying a `.standards.yml` is not consent on its
+own — a repo can declare a profile long before anyone agrees to have three top-level files
+replaced. The sync also refuses outright when any of those files exists without the generated
+banner, because a file a person wrote is not the bot's to overwrite. `--adopt` overrides that,
+deliberately by hand.
+
+A release syncs that released tag, and `standards_version` in the consuming repo records which
+one it holds. The weekly run only reports: no repo should be handed whatever happens to be on
+`main` at 09:00 on a Monday.
+
+### The sync token
+
+The bot needs a `STANDARDS_SYNC_TOKEN` with `contents: write` and `pull-requests: write` on
+each listed repository, and nothing else. A fine-grained PAT scoped to exactly those
+repositories is the least-privilege option to start with. **It does not exist yet, so the
+write path has never run.**
+
+It is stored as an **environment secret on the `sync` environment**, not as a repository or
+organization secret. The tiers are not interchangeable:
+
+| Where | Reach | Why not |
+| --- | --- | --- |
+| Repository | Every workflow in this repo | This repo is public. A future workflow running on `pull_request` would hand a fork a token with write access to other repositories. |
+| Organization | Every repo in the org | The token is deliberately scoped to a listed set; an org secret widens it to all of them. |
+| **Environment** | **The `sync` job only** | **Chosen.** Adding a required reviewer means the token is released only when a person approves the run. |
+
+That last point is the reason it is worth the extra setup. The workflow already reports by
+default and writes only when `apply` is asked for; the environment gate enforces the same
+decision in a second place, where one says write and the other hands over the means to.
+
+Put a required reviewer on the `sync` environment. Without one the gate stores the secret
+correctly but approves every run, which is the configuration that looks protected and is not.
+
+**Rotation.** A fine-grained PAT expires — a year at most — and it is tied to one person. The
+failure is quiet: the sync starts failing when it checks out a target, and nothing currently
+alerts on that. A GitHub App installation has neither problem and is the right migration once
+more than a couple of repositories are listed.
 
 **The gate runs that vendored copy.** `.standards/` carries the enforcers — `tools/`,
 `styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc` — from the same commit as the rules, and

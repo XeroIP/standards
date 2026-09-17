@@ -157,6 +157,14 @@ squidfunk.github.io
 llmstxt.org
 agents.md
 
+# Package registries. The generator survey records where each version and
+# release date was read from, because an earlier pass took a date from a
+# comparison article and got it wrong by two years. Naming the registry is
+# what makes that method checkable.
+proxy.golang.org
+index.crates.io
+crates.io
+
 # ---------------------------------------------------------------------------
 # Credential shapes. These describe a format rather than naming a value, so
 # listing them leaks nothing. gitleaks covers the same ground more thoroughly;

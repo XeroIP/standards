@@ -130,9 +130,29 @@ def main() -> int:
     parser.add_argument("--private", type=Path, default=PRIVATE_DEFAULT,
                         help="optional private supplement of specific values")
     parser.add_argument("--allowlist", type=Path, default=ALLOWLIST)
+    parser.add_argument("--allowlist-extra", type=Path, default=None,
+                        help="a repo's own permitted values, merged into the allowlist")
     args = parser.parse_args()
 
+    # A path that does not exist is an error, not an empty scan. Passing one
+    # returned "clean", so a typo in a CI invocation would report success while
+    # checking nothing — the vacuous pass this tool exists to prevent elsewhere.
+    missing = [p for p in (args.paths or []) if not p.exists()]
+    if missing:
+        for p in missing:
+            print(f"error: no such path: {p}", file=sys.stderr)
+        return 2
+
     allow = load_allowlist(args.allowlist)
+
+    # A consuming repository's own legitimately-public values are merged in
+    # rather than replacing the shared list. Pointing --allowlist at a repo file
+    # would drop every shared entry, so a repo could weaken the common rules by
+    # declaring one of its own — the opposite of what this is for. (--private is
+    # not this: it adds values to *report*, not to permit.)
+    if args.allowlist_extra and args.allowlist_extra.exists():
+        for section, values in load_allowlist(args.allowlist_extra).items():
+            allow[section].extend(values)
     private = load_private(args.private)
 
     cidr_ok = [ipaddress.ip_network(c, strict=False) for c in allow["ip-cidr"]]
