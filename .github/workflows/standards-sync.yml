@@ -1,10 +1,17 @@
-# Opens a PR in each consuming repo that vendors the current standards and
-# regenerates its agent files.
+# Reports, and on request opens, a PR in each consuming repo that vendors the
+# current standards and regenerates its agent files.
 #
 # Vendoring rather than submoduling puts the rules in the working tree an agent
 # already has: no network fetch, no submodule to go stale, and no indirection an
 # LLM tool might not follow. Generalises the base-plus-tail sync already working
 # in XeroIP/copilot-memory, with repos in place of hosts.
+#
+# **It reports by default and writes nothing.** Opening a pull request in
+# someone else's repository is not something to switch on and hope: the sync
+# replaces three top-level files, and a repo with a hand-written CLAUDE.md
+# loses it. Check mode runs on the schedule so the output can be reviewed for a
+# while before anything is written, and `apply` has to be asked for by hand.
+# The consent gates in sync-standards.py apply either way.
 name: Sync standards
 
 on:
@@ -18,6 +25,10 @@ on:
         description: Space-separated owner/repo list. Empty means all subscribers.
         type: string
         default: ''
+      apply:
+        description: Open pull requests. Unchecked reports what would change and writes nothing.
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -28,8 +39,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # A repo joins by being listed here and carrying a .standards.yml.
-        # Membership is explicit so a sync never surprises a repo's owner.
+        # A repo joins by being listed here AND setting `sync.adopted: true` in
+        # its own .standards.yml. Membership is explicit at both ends: listing
+        # is this repo's intent, the flag is the other repo's consent.
         repo:
           - XeroIP/my-unraid-notes
     steps:
@@ -37,6 +49,10 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: standards
+          # A release syncs that released tag. The schedule reads the default
+          # branch and only reports: a consuming repo should never be handed
+          # whatever happened to be on main at 09:00 on a Monday.
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
 
       - name: Check out the target
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -49,10 +65,32 @@ jobs:
         with:
           python-version: '3.12'
 
+      # --check exits 1 when something is out of date, which is information
+      # rather than a failure, so it is captured instead of failing the job.
+      # Exit 3 is a refusal to sync — no consent, or an agent file this tool did
+      # not write — and that must fail loudly.
+      - name: What would change
+        id: preview
+        run: |
+          set +e
+          python3 standards/tools/sync-standards.py --target target --check
+          rc=$?
+          set -e
+          if [ "$rc" = "3" ]; then
+            exit 3
+          fi
+          if [ "$rc" = "1" ]; then
+            echo "changes=yes" >> "$GITHUB_OUTPUT"
+          else
+            echo "changes=no" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Sync
+        if: inputs.apply && steps.preview.outputs.changes == 'yes'
         run: python3 standards/tools/sync-standards.py --target target
 
       - name: Open a PR if anything changed
+        if: inputs.apply && steps.preview.outputs.changes == 'yes'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           path: target

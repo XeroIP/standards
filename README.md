@@ -45,10 +45,27 @@ Nothing bumps that pin automatically. Bump it by hand when the workflow file cha
 rare — the rules it runs move independently of it. `AGENTS.md` records why per-repo Dependabot
 was rejected for this and what is intended instead.
 
-The sync bot then opens a PR in that repo on each release, refreshing a vendored
-`.standards/` directory and regenerating `AGENTS.md`, `CLAUDE.md`, and
-`.github/copilot-instructions.md`. Vendoring is deliberate: it puts the rules in the working
-tree an agent already has, with no network fetch and no submodule to go stale.
+The sync bot then refreshes a vendored `.standards/` directory and regenerates `AGENTS.md`,
+`CLAUDE.md`, and `.github/copilot-instructions.md`. Vendoring is deliberate: it puts the rules
+in the working tree an agent already has, with no network fetch and no submodule to go stale.
+
+**It reports by default and writes nothing.** Opening a pull request in someone else's
+repository needs consent at both ends: the repo is listed in `standards-sync.yml`, and its own
+`.standards.yml` sets `sync.adopted: true`. Carrying a `.standards.yml` is not consent on its
+own — a repo can declare a profile long before anyone agrees to have three top-level files
+replaced. The sync also refuses outright when any of those files exists without the generated
+banner, because a file a person wrote is not the bot's to overwrite. `--adopt` overrides that,
+deliberately by hand.
+
+A release syncs that released tag, and `standards_version` in the consuming repo records which
+one it holds. The weekly run only reports: no repo should be handed whatever happens to be on
+`main` at 09:00 on a Monday.
+
+The bot needs a `STANDARDS_SYNC_TOKEN` secret with `contents: write` and
+`pull-requests: write` on each listed repository, and nothing else. A fine-grained PAT scoped
+to exactly those repositories is the least-privilege option; a GitHub App installation is
+better past a handful of repos, since a PAT is tied to one person and expires. **That secret
+does not exist yet, so the write path has never run.**
 
 **The gate runs that vendored copy.** `.standards/` carries the enforcers — `tools/`,
 `styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc` — from the same commit as the rules, and
