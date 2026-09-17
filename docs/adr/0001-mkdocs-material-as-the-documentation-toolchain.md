@@ -68,14 +68,16 @@ restructure lands. Choosing it after the restructure means restructuring twice.
 ## Considered options
 
 Each option built the same three pages — an architecture overview, a runbook, and an incident
-review — from the same Markdown in `poc/` in the pilot repository, then had the design system
-applied and its computed styles asserted against the tokens. Figures below were measured in
-one session on one machine with cold caches.
+review — from the same Markdown, then had the design system applied and its computed styles
+asserted against the tokens. Figures below were measured in one session on one machine with
+cold caches, and are recorded in full in
+[the bake-off](../projects/2026-09-06-documentation-toolchain-bake-off.md).
 
 The first five candidates came from a plan rather than from a survey. That was a defect in the
 evaluation, not a shortlist: it made "why not X" unanswerable for any X nobody happened to
 list. Roughly twenty generators were then screened against these drivers, and two earned a
-build. The screen and the thirteen rejections are in `poc/SURVEY.md`; the rejections include
+build. The screen and the thirteen rejections are in
+[the field survey](../projects/2026-09-10-documentation-generator-survey.md); they include
 VitePress on maintenance (stable stale thirteen months, `next` in prolonged alpha), Docsify on
 producing no static HTML, the hosted products on being unself-hostable, and the database-backed
 wikis on not keeping content in git.

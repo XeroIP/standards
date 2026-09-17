@@ -55,6 +55,11 @@ This file is generated from front matter by tools/build-llms-txt.js.
 - [Decision records](https://xeroip.github.io/standards/docs/adr/): The decisions this repository has made about itself, in MADR format.
 - [MkDocs + Material as the documentation toolchain](https://xeroip.github.io/standards/docs/adr/0001-mkdocs-material-as-the-documentation-toolchain)
 
+## Project records
+
+- [Documentation toolchain bake-off](https://xeroip.github.io/standards/docs/projects/2026-09-06-documentation-toolchain-bake-off): Seven documentation generators built the same three pages; the measured result behind ADR-0001.
+- [Documentation generator survey](https://xeroip.github.io/standards/docs/projects/2026-09-10-documentation-generator-survey): The twenty-generator screen that should have preceded the bake-off, and the thirteen rejections.
+
 ## Optional
 
 - [AGENTS.md](https://xeroip.github.io/standards/AGENTS.md): instructions for agents working in the standards repo itself.

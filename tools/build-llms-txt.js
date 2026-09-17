@@ -60,9 +60,24 @@ const AREAS = [
   ["docs/diagrams", "Diagrams"],
   ["docs/observability", "Observability"],
   ["docs/adr", "Decision records"],
+  ["docs/projects", "Project records"],
 ];
 
 const pages = walk(DOCS);
+
+// A page under docs/ matching no area is walked and then silently dropped —
+// the drift this generator exists to prevent, since an index that lies is worse
+// than no index. Two project records were added and the page count did not
+// move, which is how this was found. Fail loudly instead.
+const unindexed = pages.filter(
+  (p) => !AREAS.some(([prefix]) => p.path.startsWith(prefix + "/"))
+);
+if (unindexed.length) {
+  console.error(`${unindexed.length} page(s) under docs/ belong to no area in AREAS:`);
+  for (const p of unindexed) console.error(`  ${p.path}`);
+  console.error("Add the area to AREAS, or the page never appears in llms.txt.");
+  process.exit(1);
+}
 
 const lines = [];
 lines.push("# XeroIP engineering standards");
