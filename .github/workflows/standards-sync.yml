@@ -36,6 +36,20 @@ permissions:
 jobs:
   sync:
     runs-on: ubuntu-latest
+
+    # STANDARDS_SYNC_TOKEN lives here rather than as a repository secret, so it
+    # is scoped to this job instead of being readable by every workflow in a
+    # public repository — including any future one that runs on pull_request,
+    # where a fork would be handed a token with write access to other repos.
+    #
+    # Add a required reviewer on the environment and the token is released only
+    # after a person approves the run. That is the same decision as `apply`,
+    # enforced in a second place: one says write, the other hands over the means.
+    #
+    # Not an organization secret: this token is deliberately scoped to a listed
+    # set of repositories, and an org secret widens reach to all of them.
+    environment: sync
+
     strategy:
       fail-fast: false
       matrix:

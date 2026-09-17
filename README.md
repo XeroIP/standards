@@ -61,11 +61,33 @@ A release syncs that released tag, and `standards_version` in the consuming repo
 one it holds. The weekly run only reports: no repo should be handed whatever happens to be on
 `main` at 09:00 on a Monday.
 
-The bot needs a `STANDARDS_SYNC_TOKEN` secret with `contents: write` and
-`pull-requests: write` on each listed repository, and nothing else. A fine-grained PAT scoped
-to exactly those repositories is the least-privilege option; a GitHub App installation is
-better past a handful of repos, since a PAT is tied to one person and expires. **That secret
-does not exist yet, so the write path has never run.**
+### The sync token
+
+The bot needs a `STANDARDS_SYNC_TOKEN` with `contents: write` and `pull-requests: write` on
+each listed repository, and nothing else. A fine-grained PAT scoped to exactly those
+repositories is the least-privilege option to start with. **It does not exist yet, so the
+write path has never run.**
+
+It is stored as an **environment secret on the `sync` environment**, not as a repository or
+organization secret. The tiers are not interchangeable:
+
+| Where | Reach | Why not |
+| --- | --- | --- |
+| Repository | Every workflow in this repo | This repo is public. A future workflow running on `pull_request` would hand a fork a token with write access to other repositories. |
+| Organization | Every repo in the org | The token is deliberately scoped to a listed set; an org secret widens it to all of them. |
+| **Environment** | **The `sync` job only** | **Chosen.** Adding a required reviewer means the token is released only when a person approves the run. |
+
+That last point is the reason it is worth the extra setup. The workflow already reports by
+default and writes only when `apply` is asked for; the environment gate enforces the same
+decision in a second place, where one says write and the other hands over the means to.
+
+Put a required reviewer on the `sync` environment. Without one the gate stores the secret
+correctly but approves every run, which is the configuration that looks protected and is not.
+
+**Rotation.** A fine-grained PAT expires — a year at most — and it is tied to one person. The
+failure is quiet: the sync starts failing when it checks out a target, and nothing currently
+alerts on that. A GitHub App installation has neither problem and is the right migration once
+more than a couple of repositories are listed.
 
 **The gate runs that vendored copy.** `.standards/` carries the enforcers — `tools/`,
 `styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc` — from the same commit as the rules, and
