@@ -34,4 +34,28 @@ else
   status=1
 fi
 
+# --allowlist-extra is additive, not a replacement. A repo pointing --allowlist
+# at its own file would drop every shared entry, so a repo could weaken the
+# common rules by declaring one of its own. Both directions are asserted here
+# because the additive half passing says nothing about the shared half
+# surviving. (--private is the opposite mechanism: values to report, not permit.)
+echo "--allowlist-extra permits its own values and keeps the shared ones"
+# The values live in tests/fixtures/, which the repo-wide scan skips, so this
+# script does not itself carry leak-shaped strings that the scanner then reports.
+extra="$root/tests/fixtures/allowlist-extra"
+if python3 "$root/tools/check-leakage.py" --paths "$extra/own.md" >/dev/null 2>&1; then
+  echo "  FAIL: the value was not reported without the supplement"
+  status=1
+elif ! python3 "$root/tools/check-leakage.py" --paths "$extra/own.md" \
+       --allowlist-extra "$extra/allow.txt" >/dev/null 2>&1; then
+  echo "  FAIL: the supplement did not permit its own value"
+  status=1
+elif python3 "$root/tools/check-leakage.py" --paths "$extra/other.md" \
+       --allowlist-extra "$extra/allow.txt" >/dev/null 2>&1; then
+  echo "  FAIL: the supplement suppressed an unrelated value"
+  status=1
+else
+  echo "  ok"
+fi
+
 exit $status

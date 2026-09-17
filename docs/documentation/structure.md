@@ -136,6 +136,34 @@ dangerous rather than merely untidy.
 Opting out is a declaration in the repo, visible in review. A workflow that has been quietly
 deleted is not an opt-out; it is drift.
 
+## Visibility
+
+`.standards.yml` also declares `visibility`, which is a different axis from the profile. A
+profile says what kind of code a repository holds. Visibility says who can read it, and the
+two are independent: a `mixed` private repo and a `mixed` public one want opposite answers
+from the same gate.
+
+| | gitleaks | Leakage scan |
+| --- | --- | --- |
+| Public | Yes | Yes |
+| Private | Yes | No |
+
+The split is not a relaxation. A credential belongs in no repository, so gitleaks runs
+everywhere. The leakage scan reports real hostnames, addresses and live paths — which in a
+private repository documenting real infrastructure are the correct content, and failing CI on
+documentation that is right is how a gate stops being trusted.
+
+**The declaration cannot disable the gate.** GitHub's own view of the repository decides, and
+`visibility` can only make the check stricter: a private repo declaring `public` opts in ahead
+of going public, while a public repo declaring `private` changes nothing. An unknown
+visibility is treated as public, so the failure direction is a noisy gate rather than a quiet
+leak.
+
+A public repo's own legitimately-public values — a package registry it cites, a service it
+links to — go in `.leakage-allowlist.txt` at its root. That supplement is additive: the
+vendored allowlist still applies, so a repository cannot weaken the shared rules by declaring
+its own.
+
 ## When these do not apply
 
 A one-off site, a scratch project, an experiment, something built in an afternoon to answer a

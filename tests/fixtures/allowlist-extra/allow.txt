@@ -1,0 +1,4 @@
+# A consuming repository's own permitted values, for tests/test-leakage.sh.
+# Merged into the shared allowlist rather than replacing it.
+[domain]
+widget-registry.acmevendor.io

@@ -11,6 +11,16 @@ version: 1
 # code       — all gates; docs gates apply to docs/ only
 profile: docs-only
 
+# Whether this repository is public. A different axis from `profile`: that
+# says what kind of code a repo holds, this says who can read it. A private
+# repo documenting real infrastructure is supposed to contain real
+# hostnames, so the leakage scan applies to public repos only.
+#
+# GitHub's own view of the repository wins. This can only make the gate
+# stricter — a private repo declaring `public` opts in ahead of going
+# public; a public repo declaring `private` changes nothing.
+visibility: public
+
 # Languages present in this repo. Ignored when profile is docs-only.
 stacks: []
 

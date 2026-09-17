@@ -82,7 +82,7 @@ def load_profile(target: Path) -> dict:
     file is not fatal — it means the repo has not declared a profile yet, and the
     sync should still deliver the text.
     """
-    profile = {"profile": "mixed", "stacks": []}
+    profile = {"profile": "mixed", "stacks": [], "visibility": "public"}
     path = target / ".standards.yml"
     if not path.exists():
         return profile
@@ -90,6 +90,8 @@ def load_profile(target: Path) -> dict:
         line = line.split("#", 1)[0].rstrip()
         if line.startswith("profile:"):
             profile["profile"] = line.split(":", 1)[1].strip().strip("\"'")
+        elif line.startswith("visibility:"):
+            profile["visibility"] = line.split(":", 1)[1].strip().strip("\"'")
         elif line.startswith("stacks:"):
             value = line.split(":", 1)[1].strip()
             if value.startswith("["):
