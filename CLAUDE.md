@@ -155,6 +155,7 @@ The handoff for this repo lives in STATUS.md, imported below. Read it before sta
 @STATUS.md
 
 Keeping it current:
+
 - Before any `git push`, update STATUS.md (sections, `updated` timestamp, `source: manual`) and include it in the commit, following .claude/commands/wrapup.md.
 - When I say "wrap up", or a task is finished, follow .claude/commands/wrapup.md.
 - Commits that change only STATUS.md are handoff notes, not code: make them on the current branch, including main, even where other instructions require a feature branch.
