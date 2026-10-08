@@ -9,7 +9,7 @@ version: 1
 # docs-only  — prose and Markdown gates only, no language tooling
 # mixed      — docs gates plus the language gates matching `stacks`
 # code       — all gates; docs gates apply to docs/ only
-profile: docs-only
+profile: code
 
 # Whether this repository is public. A different axis from `profile`: that
 # says what kind of code a repo holds, this says who can read it. A private

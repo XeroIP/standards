@@ -1,0 +1,133 @@
+/* ============================================================================
+   Console Editorial — design tokens
+   ----------------------------------------------------------------------------
+   Editorial structure and typography carrying the Operations console palette.
+   Dark is canonical; light is derived from it.
+
+   Every component reads these custom properties and never a literal colour.
+   Adapters for each generator live beside this file and map these onto that
+   generator's own variables — they must not redefine values.
+
+   Contrast is verified by design/check-contrast.js. Do not edit a colour here
+   without re-running it.
+   ========================================================================== */
+
+:root {
+  /* ---- Type ---------------------------------------------------------- */
+  --dx-font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --dx-font-body: "Newsreader", Georgia, "Times New Roman", serif;
+  --dx-font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --dx-measure: 64ch;
+
+  --dx-size-body: 18px;
+  --dx-lh-body: 1.72;
+  --dx-size-h1: 40px;
+  --dx-lh-h1: 1.12;
+  --dx-track-h1: -0.012em;
+  --dx-weight-h1: 400;
+  --dx-size-h2: 23px;
+  --dx-weight-h2: 500;
+  --dx-size-h3: 19px;
+  --dx-size-small: 13px;
+  --dx-size-label: 10.5px;
+  --dx-track-label: 0.11em;
+
+  /* Serif on a near-black ground halates and reads thinner than the same face
+     on paper. Newsreader's variable weight axis absorbs it: the dark theme
+     runs 50 units heavier. This is the only non-colour token that differs
+     between themes. */
+  --dx-weight-body: 400;
+
+  --dx-radius: 2px;
+  --dx-rule: 1px;
+  --dx-space-1: 4px;
+  --dx-space-2: 8px;
+  --dx-space-3: 14px;
+  --dx-space-4: 22px;
+  --dx-space-5: 34px;
+  --dx-space-6: 52px;
+
+  /* ---- Colour: light, derived from the canonical dark set below ------- */
+  --dx-bg: #f5f7f9;
+  --dx-surface: #ffffff;
+  --dx-raised: #eef2f5;
+  --dx-ink: #131920;
+  --dx-muted: #5c6773;
+  --dx-border: #dbe1e8;
+  --dx-accent: #10736d;
+  --dx-accent-soft: #e0f3f1;
+  --dx-accent-ink: #ffffff;
+
+  /* Severity. Only reachable inside [data-severity-ui], see below. */
+  --dx-ok-raw: #1a7f37;
+  --dx-warn-raw: #8a5c00;
+  --dx-crit-raw: #cf222e;
+
+  --dx-shadow: 0 1px 2px rgba(16, 22, 30, .05), 0 10px 30px rgba(16, 22, 30, .07);
+}
+
+/* Canonical dark. Applies when the OS asks for dark and no explicit light
+   choice has been stamped on the root. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --dx-weight-body: 450;
+
+    --dx-bg: #0c0f13;
+    --dx-surface: #141920;
+    --dx-raised: #1c232c;
+    --dx-ink: #dce3ec;
+    --dx-muted: #8b97a6;
+    --dx-border: #242c36;
+    --dx-accent: #3fd0c9;
+    --dx-accent-soft: #10262a;
+    --dx-accent-ink: #06201f;
+
+    --dx-ok-raw: #3fb950;
+    --dx-warn-raw: #d29922;
+    --dx-crit-raw: #f85149;
+
+    --dx-shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 10px 30px rgba(0, 0, 0, .38);
+  }
+}
+
+/* Same values again, so an explicit dark choice wins over a light OS. */
+:root[data-theme="dark"] {
+  --dx-weight-body: 450;
+
+  --dx-bg: #0c0f13;
+  --dx-surface: #141920;
+  --dx-raised: #1c232c;
+  --dx-ink: #dce3ec;
+  --dx-muted: #8b97a6;
+  --dx-border: #242c36;
+  --dx-accent: #3fd0c9;
+  --dx-accent-soft: #10262a;
+  --dx-accent-ink: #06201f;
+
+  --dx-ok-raw: #3fb950;
+  --dx-warn-raw: #d29922;
+  --dx-crit-raw: #f85149;
+
+  --dx-shadow: 0 1px 2px rgba(0, 0, 0, .45), 0 10px 30px rgba(0, 0, 0, .38);
+}
+
+/* ---- Severity scoping -------------------------------------------------
+   The severity triad is deliberately unreachable by default. A page opts in
+   by carrying data-severity-ui, set from front matter on incidents, runbooks,
+   and status pages. A reference or explanation page that references
+   var(--dx-ok) gets the inherited ink colour, not green — which is the point.
+   Colour never carries status alone: pair every use with a stripe, a chip, or
+   a label so it survives greyscale print and colour-blind readers.
+   ---------------------------------------------------------------------- */
+:root {
+  --dx-ok: var(--dx-ink);
+  --dx-warn: var(--dx-ink);
+  --dx-crit: var(--dx-ink);
+}
+
+[data-severity-ui] {
+  --dx-ok: var(--dx-ok-raw);
+  --dx-warn: var(--dx-warn-raw);
+  --dx-crit: var(--dx-crit-raw);
+}
