@@ -25,3 +25,8 @@ description = "Test fixtures that must contain leak-shaped values to be useful"
 paths = [
   '''tests/fixtures/leakage/.*''',
 ]
+
+[[rules]]
+id = "audit-probe"
+description = "Enforcement audit probe marker"
+regex = '''AUDIT-GITLEAKS-PROBE-[0-9]{4}'''
