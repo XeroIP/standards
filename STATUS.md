@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-07T23:46:55+00:00
+updated: 2026-10-08T02:13:29+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -31,5 +31,5 @@ with `python3 tools/sync-standards.py --target <scratch repo> --adopt`.
 ## Blockers / waiting on
 
 - The owner's answers to the open checkpoint questions.
-- The handoff tool writes its block into `CLAUDE.md` directly; its next update will drift
-  the generated file again until the generator supports vendor-scoped sections.
+- The handoff block's ownership: an external installer writes it into `CLAUDE.md`, which is
+  generated here. Do not re-run that installer against this repo until that is settled.

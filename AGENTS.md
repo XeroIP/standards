@@ -141,6 +141,17 @@ them.
 Ask one focused question rather than guessing. A standard adopted across thirty repos on a
 wrong assumption is expensive to walk back.
 
+<!--
+The block between the shift-change markers is a managed region owned by an external
+installer, which writes it into CLAUDE.md directly and knows nothing about this file. It
+lives here so that CLAUDE.md can be generated from AGENTS.md. Do not run that installer
+against this repository while the block lives here: a change to its template rewrites the
+region in CLAUDE.md, the agent-file parity check goes red, and the next build reverts it.
+
+The region is kept byte-identical to the installer's output, which has no blank line
+before its list, so markdownlint's MD032 is suspended for the region only.
+-->
+<!-- markdownlint-disable MD032 -->
 <!-- shift-change:start v2 -->
 ## Project status
 
@@ -149,7 +160,6 @@ The handoff for this repo lives in STATUS.md, imported below. Read it before sta
 @STATUS.md
 
 Keeping it current:
-
 - Before any `git push`, update STATUS.md (sections, `updated` timestamp, `source: manual`) and include it in the commit, following .claude/commands/wrapup.md.
 - When I say "wrap up", or a task is finished, follow .claude/commands/wrapup.md.
 - Commits that change only STATUS.md are handoff notes, not code: make them on the current branch, including main, even where other instructions require a feature branch.
@@ -157,3 +167,4 @@ Keeping it current:
 - If STATUS.md has a merge conflict, don't hand-merge it. Write a fresh STATUS.md from both versions and the merged code, then continue the merge.
 - STATUS.md is committed and may be public. Never put credentials, tokens, IP addresses, hostnames, internal URLs, or personal details in it; describe them generically ("the home server", "the API key").
 <!-- shift-change:end -->
+<!-- markdownlint-enable MD032 -->
