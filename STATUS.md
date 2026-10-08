@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-08T05:34:39+00:00
+updated: 2026-10-08T13:42:41+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -13,24 +13,27 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Done recently
 
-- Started the enforcement-honesty audit. Its working notes stay outside the repository
-  until the fixes land.
-- Main was red: the handoff block had been hand-added to `CLAUDE.md`, a generated file, and
-  the parity gate rejected it. The block now lives in `AGENTS.md` and both agent files are
-  regenerated from it.
+- Stage 2 is complete and the stage 3 proposal is drafted. The audit notes stay outside the
+  repository until the fixes land.
+- The owner actions are done: the security reporting channel is enabled, release tags are
+  protected by a ruleset, and the waiting sync runs are cancelled.
 
 ## In progress / broken
 
-- Stage 2 is exercising gates on the throwaway branch `audit/gate-exercise`. Its commits are
-  deliberate breaks and restores, and the branch is deleted when the cycles finish.
+- This throwaway branch, `audit/gate-exercise`, carries the last probes: a public-repo
+  visibility opt-out, then a draft pull request that tests the prose gate on
+  pull_request events. Its commits are deliberate breaks and restores, and the pull request
+  is closed unmerged when they finish.
+- The owner is running the private-path runbook in the private pilot repository.
 
 ## Next step
 
-Finish the red/green cycles on `audit/gate-exercise`, record each run ID against its claim, then
-delete the branch and confirm no queued runs survive it.
+Finish the draft pull request's rounds on this branch, record each run against its claim,
+close the pull request unmerged, then hand the branch to the owner for deletion.
 
 ## Blockers / waiting on
 
-- The owner's answers to the open checkpoint questions.
-- The handoff block's ownership: an external installer writes it into `CLAUDE.md`, which is
-  generated here. Do not re-run that installer against this repo until that is settled.
+- The owner's rulings on the stage 3 proposal's open questions.
+- The private-path runbook results.
+- The handoff block's ownership (#36). Do not re-run that installer against this repo
+  until it is settled.
