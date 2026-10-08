@@ -25,10 +25,3 @@ description = "Test fixtures that must contain leak-shaped values to be useful"
 paths = [
   '''tests/fixtures/leakage/.*''',
 ]
-
-# deliberate break (enforcement audit, throwaway branch only): an inert marker rule, so the
-# failure path of the gitleaks step can be shown without committing anything credential-shaped.
-[[rules]]
-id = "audit-probe"
-description = "Enforcement audit probe marker"
-regex = '''AUDIT-GITLEAKS-PROBE-[0-9]{4}'''
