@@ -43,3 +43,10 @@ died — which is exactly the case a verification script must not get wrong.
 Past roughly 100 lines, or the first time the script needs a data structure, it wants to be
 Python. Bash has no arrays worth the name, no error handling worth the name, and no test story.
 A verification script that grows conditionals is the usual case.
+
+Deliberate break for the enforcement audit: a robust sentence that carries a warning-tier term,
+followed by a fenced block that declares no language.
+
+```
+echo audit
+```
