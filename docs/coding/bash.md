@@ -18,8 +18,6 @@ summary: Strict mode, shellcheck, and where a shell script stops being the right
 Both run pre-commit. shellcheck findings are fixed, not suppressed; a `# shellcheck disable`
 carries a comment saying why on the same line.
 
-This added line halates on purpose, for the audit probe.
-
 ## Every script starts with
 
 ```bash
