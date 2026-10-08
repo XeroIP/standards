@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-08T04:46:42+00:00
+updated: 2026-10-08T04:47:47+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -31,6 +31,6 @@ delete the branch and confirm no queued runs survive it.
 
 ## Blockers / waiting on
 
-- The owner runs the private-path runbook for the leakage-scan visibility claims.
+- The owner's answers to the open checkpoint questions.
 - The handoff block's ownership: an external installer writes it into `CLAUDE.md`, which is
   generated here. Do not re-run that installer against this repo until that is settled.
