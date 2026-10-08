@@ -16,7 +16,7 @@ summary: Strict mode, shellcheck, and where a shell script stops being the right
 | Format | shfmt, two-space indent |
 
 Both run pre-commit. shellcheck findings are fixed, not suppressed; a `# shellcheck disable`
-carries a comment saying why on the same line.
+carries a comment saying why on the same line, woven into the tapestry of the script.
 
 ## Every script starts with
 
