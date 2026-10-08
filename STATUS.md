@@ -1,7 +1,7 @@
 ---
 state: blocked       # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-08T05:54:16+00:00
+updated: 2026-10-08T13:48:59+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -13,18 +13,19 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Done recently
 
-- Stage 2 is complete. Every inventoried claim has a verdict with evidence, from deliberate
-  breaks on a throwaway branch (eleven rounds, each restored to green) or local runs of the
-  same tools.
-- The stage 3 proposal is drafted: fourteen pull requests grouped by mechanism, five new
-  issues and six owner actions. The audit notes stay outside the repository until the fixes
-  land.
+- Stage 2 is complete, including the last public probes: a public repository's visibility
+  opt-out, and draft pull request #39, which tested the prose gate on pull_request events.
+  #39 is closed unmerged.
+- The owner enabled the security reporting channel, protected release tags with a ruleset,
+  and cancelled the waiting sync runs.
+- The stage 3 proposal is drafted. The audit notes stay outside the repository until the
+  fixes land.
 
 ## In progress / broken
 
-- Nothing is half-built. The throwaway branch `audit/gate-exercise` still exists, because
-  this session's credentials can't delete branches. It differs from main only in this
-  file and has no queued runs.
+- The owner is running the private-path runbook in the private pilot repository.
+- The throwaway branch `audit/gate-exercise` is finished with. It differs from main only
+  in this file and has no queued runs, and this session's credentials can't delete it.
 
 ## Next step
 
@@ -33,8 +34,8 @@ leakage scanner fixes in `tools/check-leakage.py` and `tests/test-leakage.sh`.
 
 ## Blockers / waiting on
 
-- The owner's rulings on the stage 3 proposal's open questions.
-- The owner: delete `audit/gate-exercise`, cancel the three waiting sync runs, enable the
-  security reporting channel the docs name, run the private-path runbook.
+- The owner's rulings on the stage 3 proposal, and the private-path runbook results.
+- The owner: delete `audit/gate-exercise`; add the "restrict updates" rule to the tag
+  ruleset.
 - The handoff block's ownership (#36). Do not re-run that installer against this repo
   until it is settled.
