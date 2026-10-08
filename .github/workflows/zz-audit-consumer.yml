@@ -1,0 +1,11 @@
+# Throwaway: exercises docs-ci.yml through workflow_call, the path a consuming
+# repo takes. Deleted with the audit/gate-exercise branch.
+name: Audit consumer caller
+on:
+  push:
+    branches: [audit/gate-exercise]
+permissions:
+  contents: read
+jobs:
+  docs:
+    uses: ./.github/workflows/docs-ci.yml
