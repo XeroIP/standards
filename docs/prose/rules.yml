@@ -200,3 +200,9 @@ monitor:
       the prose window, so this reports rather than enforces.
     pattern: '—'
     max_per: 300
+  - id: AUDIT1
+    name: Audit probe rule
+    why: >-
+      Deliberate break for the enforcement audit: a rule whose generated style is never committed.
+    terms: ["auditprobeterm"]
+    swap: []

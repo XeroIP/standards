@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-08T02:13:29+00:00
+updated: 2026-10-08T04:46:42+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -21,15 +21,16 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## In progress / broken
 
-- The audit's stage 1 checkpoint has three questions still open.
+- Stage 2 is exercising gates on the throwaway branch `audit/gate-exercise`. Its commits are
+  deliberate breaks and restores, and the branch is deleted when the cycles finish.
 
 ## Next step
 
-Answer checkpoint question 4, then start stage 2 by building a throwaway consuming repo
-with `python3 tools/sync-standards.py --target <scratch repo> --adopt`.
+Finish the red/green cycles on `audit/gate-exercise`, record each run ID against its claim, then
+delete the branch and confirm no queued runs survive it.
 
 ## Blockers / waiting on
 
-- The owner's answers to the open checkpoint questions.
+- The owner runs the private-path runbook for the leakage-scan visibility claims.
 - The handoff block's ownership: an external installer writes it into `CLAUDE.md`, which is
   generated here. Do not re-run that installer against this repo until that is settled.
