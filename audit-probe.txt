@@ -1,0 +1,1 @@
+deliberate break (enforcement audit): inert marker for a custom gitleaks rule: AUDIT-GITLEAKS-PROBE-0001

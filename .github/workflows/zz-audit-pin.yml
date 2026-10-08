@@ -1,0 +1,9 @@
+# deliberate break (enforcement audit): a reusable workflow referenced by tag, the way README.md:36-42 says a consumer must not.
+# Dispatch-only so it never runs; policy-pinned-actions.yml reads it as text.
+name: Audit pin probe
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  docs:
+    uses: XeroIP/standards/.github/workflows/docs-ci.yml@v1
