@@ -122,6 +122,14 @@ ban:
     terms: ["load-bearing", "load bearing"]
     swap: []
 
+  - id: AUDITPR
+    name: Audit probe for the pull_request filter
+    why: >-
+      Temporary, on a throwaway branch only. Exercises whether a new ban catches
+      existing text in the pull request that adds it.
+    terms: [halates]
+    swap: [blurs]
+
 limit:
   - id: L1
     name: Adjective inflation
