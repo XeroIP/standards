@@ -1,7 +1,7 @@
 ---
 state: blocked       # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-08T13:48:59+00:00
+updated: 2026-10-08T15:31:39+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -13,29 +13,27 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Done recently
 
-- Stage 2 is complete, including the last public probes: a public repository's visibility
-  opt-out, and draft pull request #39, which tested the prose gate on pull_request events.
-  #39 is closed unmerged.
-- The owner enabled the security reporting channel, protected release tags with a ruleset,
-  and cancelled the waiting sync runs.
-- The stage 3 proposal is drafted. The audit notes stay outside the repository until the
-  fixes land.
+- Stage 2 is complete, including the private-path runbook the owner ran in the private
+  pilot repository. The claim count was re-derived at the current head and is 180: a
+  mechanism claim added after the first sweep was missing and is now graded.
+- The owner actions are all done: the security reporting channel is enabled, release tags
+  are protected against deletion and every update, the waiting sync runs are cancelled,
+  and the throwaway branch is deleted.
+- The owner accepted the stage 3 recommendations, except four design choices and one
+  sync-tool fix that has since been rescoped.
 
 ## In progress / broken
 
-- The owner is running the private-path runbook in the private pilot repository.
-- The throwaway branch `audit/gate-exercise` is finished with. It differs from main only
-  in this file and has no queued runs, and this session's credentials can't delete it.
+- Nothing is half-built. The audit notes stay outside the repository until the fixes land.
 
 ## Next step
 
-Get the owner's rulings on the stage 3 questions, then open the first pull request: the
-leakage scanner fixes in `tools/check-leakage.py` and `tests/test-leakage.sh`.
+Get the owner's ruling on the four stage 3 design choices, one at a time, then open the
+first pull request: the leakage scanner fixes in `tools/check-leakage.py` and
+`tests/test-leakage.sh`. Re-run the claim sweep at that head first.
 
 ## Blockers / waiting on
 
-- The owner's rulings on the stage 3 proposal, and the private-path runbook results.
-- The owner: delete `audit/gate-exercise`; add the "restrict updates" rule to the tag
-  ruleset.
+- The owner's rulings on the four design choices and on the rescoped sync-tool fix.
 - The handoff block's ownership (#36). Do not re-run that installer against this repo
   until it is settled.
