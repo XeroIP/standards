@@ -65,6 +65,13 @@ behaviour.
   `h1.page` written outside backticks is reported as a domain, and the message now names that
   cause.
 
+### Fixed
+
+- **Generator parity catches a generated file that was never committed.** The Vale-styles and
+  design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
+  a new rule's style or a new adapter that the generator produced but nobody committed passed.
+  They now use `git status --porcelain`.
+
 ### Added
 
 - `tools/build-leakage-gaps.py`, which measures the counts behind the scanner's accepted gaps
