@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-09T19:32:40+00:00
+updated: 2026-10-09T20:06:26+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -13,25 +13,25 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Done recently
 
-- PRs 1-4 and the follow-up are merged: #40, #41, #42, #47 and #48. The leakage scanner,
-  gitleaks and generator parity fixes are complete.
-- Issues #43-#46 are filed: incident tables, profile and stack gates,
-  `standards_version` pin semantics, and the site build.
+- PRs 1-5 and the follow-up are merged: #40, #41, #42, #47, #48 and #49. The leakage
+  scanner, gitleaks, generator parity and design token fixes are complete.
+- Issues #43-#46 and #50 are filed. #50 is new: Vale runs at `latest` in both Prose steps.
 
 ## In progress / broken
 
-- PR 5, on `fix/design-tokens`: `tokens.css` generated with the adapters, the severity opt-in
-  fixed in every adapter and both themes, and `check-rendered-design.js` exit codes.
+- PR 6, on `fix/prose-gate`: the cap rules count the whole file (`scope: raw`), with
+  `tests/test-vale.sh` run on CI's own Vale binary; the prose README's marker count is
+  generated; both Prose steps pass `filter_mode: nofilter`.
 - The audit notes stay outside the repository until the last fix lands.
 
 ## Next step
 
-Drive PR 5 to merged, then open PR 6: the prose gate in `tools/build-vale.js` (counts by
-`scope: raw`) and the reviewdog filter in `.github/workflows/docs-ci.yml`.
+Drive PR 6 to merged, then open PR 7 in `tools/check-docs.py`: exclude
+`docs/prose/vendor/` by exact path, make zero pages checked exit 2, and the J4 tag checks.
 
 ## Blockers / waiting on
 
-- Review of PR 5.
+- Review of PR 6.
 - The release exercise is the owner's, and waits until PR 11 is built.
 - The handoff block's ownership (#36). Do not re-run that installer against this repo
   until it is settled.

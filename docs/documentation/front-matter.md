@@ -46,20 +46,20 @@ survives greyscale printing and colour-blind readers.
 
 ## Type-specific requirements
 
-**`adr`** additionally requires `id` (`ADR-NNNN`), `date`, `deciders`, and `status` drawn from
+**`adr`** also requires `id` (`ADR-NNNN`), `date`, `deciders`, and `status` drawn from
 the ADR lifecycle in [`adr.md`](adr.md) rather than the general set above.
 
-**`incident`** additionally requires `services`, `severity`, `window` (start and end), and
+**`incident`** also requires `services`, `severity`, `window` (start and end), and
 `data_loss`. See [`incident-reviews.md`](incident-reviews.md).
 
-**`ops-log`** additionally requires `services` and `change_type`, one of `change`,
+**`ops-log`** also requires `services` and `change_type`, one of `change`,
 `investigation`, `maintenance`, `incident-followup`.
 
 `change_type` is a separate key rather than a second meaning for `type`, because `type` already
 carries the document type and no page can hold both under one name. This was written as `type`
 and was unsatisfiable as specified; it went unnoticed because only `services` was enforced.
 
-**`project`** additionally requires `services`. `issue` is expected wherever the work was
+**`project`** also requires `services`. `issue` is expected wherever the work was
 tracked in one. See [`structure.md`](structure.md) for when a page is a project record rather
 than a how-to.
 

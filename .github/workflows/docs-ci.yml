@@ -75,12 +75,17 @@ jobs:
       - name: Structure, naming, front matter, and internal links
         run: python3 .standards/tools/check-docs.py "${{ inputs.docs-path }}"
 
+      # nofilter: by default reviewdog keeps only findings on lines a pull
+      # request adds, so an error on any other line failed the push run and
+      # passed the pull request run on the same commit. A pull request that
+      # syncs a new rule now fails on the text that rule catches.
       - name: Prose
         uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
         with:
           files: ${{ inputs.docs-path }}
           vale_flags: --config=.standards/.vale.ini --minAlertLevel=warning
           fail_on_error: true
+          filter_mode: nofilter
 
       # No `globs:` here. The config owns which files are linted and which are
       # ignored; passing globs on the command line overrides it, which is how

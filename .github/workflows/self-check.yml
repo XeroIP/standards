@@ -37,13 +37,13 @@ jobs:
       # file that was never committed (a new rule's style, a new adapter) came
       # back from the generator untracked and the step passed. --porcelain lists
       # modified, deleted and untracked files alike.
-      - name: Vale config matches rules.yml
+      - name: Vale config and the prose README's count match rules.yml
         run: |
           node tools/build-vale.js
-          stale=$(git status --porcelain -- .vale.ini styles/)
+          stale=$(git status --porcelain -- .vale.ini styles/ docs/prose/README.md)
           if [ -n "$stale" ]; then
             echo "$stale"
-            echo "styles/ or .vale.ini is stale. Run: node tools/build-vale.js"
+            echo "styles/, .vale.ini or the count in docs/prose/README.md is stale. Run: node tools/build-vale.js"
             exit 1
           fi
 
@@ -78,11 +78,25 @@ jobs:
       - name: Structure, naming, front matter, and internal links
         run: python3 tools/check-docs.py docs/
 
+      # nofilter: by default reviewdog keeps only findings on lines a pull
+      # request adds, so an error on any other line failed the push run and
+      # passed the pull request run on the same commit.
       - name: Prose
         uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
         with:
           vale_flags: --minAlertLevel=warning
           fail_on_error: true
+          filter_mode: nofilter
+
+      # On the Vale binary the step above installed into the tool cache, so a
+      # Vale release that changes how a scope counts fails here. If the cache
+      # moves, find comes back empty, the test looks for vale on PATH, which a
+      # hosted runner doesn't have, and exits 2.
+      - name: Frequency caps count across the whole page
+        run: |
+          VALE="$(find "$RUNNER_TOOL_CACHE/vale" -type f -name vale 2>/dev/null | head -n 1)"
+          export VALE
+          bash tests/test-vale.sh
 
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0

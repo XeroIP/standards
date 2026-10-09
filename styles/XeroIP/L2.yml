@@ -6,6 +6,6 @@ extends: occurrence
 message: "L2 (Formulaic conclusion openers): over the cap of 1."
 level: warning
 max: 1
-scope: text
+scope: raw
 ignorecase: true
 token: '(?:In conclusion|In summary|To summarize|To sum up|All in all)'

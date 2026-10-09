@@ -6,6 +6,6 @@ extends: occurrence
 message: "L11 (Essence claims): over the cap of 1."
 level: warning
 max: 1
-scope: text
+scope: raw
 ignorecase: true
 token: '(?:At its core|Fundamentally|Essentially|At the end of the day)'

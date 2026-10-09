@@ -6,6 +6,6 @@ extends: occurrence
 message: "L3 (Formal transition stack): over the cap of 2."
 level: warning
 max: 2
-scope: text
+scope: raw
 ignorecase: true
 token: '(?:Furthermore|Moreover|Additionally|Consequently|Nevertheless|Notably|Importantly|Interestingly)'
