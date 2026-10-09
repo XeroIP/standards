@@ -28,9 +28,11 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import re
 import shutil
 import subprocess
 import sys
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -60,11 +62,30 @@ VENDORED = [
     ("styles", "styles"),
     (".vale.ini", ".vale.ini"),
     (".markdownlint-cli2.jsonc", ".markdownlint-cli2.jsonc"),
-    # secret-scan.yml falls back to this when a repo has no .gitleaks.toml of
-    # its own. Without it, a freshly synced repo failed gitleaks on a missing
-    # config file.
-    (".gitleaks.toml", ".gitleaks.toml"),
 ]
+
+# secret-scan.yml falls back to .standards/.gitleaks.toml when a repo has none of
+# its own; without one, a freshly synced repo failed gitleaks on a missing file.
+# It is written, not copied: see vendored_gitleaks_config().
+GITLEAKS_CONFIG = ".gitleaks.toml"
+
+GITLEAKS_HEADER = (
+    "# Written by tools/sync-standards.py in XeroIP/standards, from that\n"
+    "# repository's .gitleaks.toml. Edits here are lost on the next sync.\n"
+    "#\n"
+    "# The same rules, without that repository's path exclusions. Its exclusion is\n"
+    "# warranted by review there: one fixture directory holds a fake token on\n"
+    "# purpose, and is reviewed on the same terms as the rest of that repository.\n"
+    "# The warrant does not travel. Anchored at this repository's root, the same\n"
+    "# pattern would exempt this repository's own tests/fixtures/leakage/, which\n"
+    "# nobody reviewing the standards reads, so a real key there would go\n"
+    "# unreported.\n"
+    "#\n"
+    "# To exclude a path here, write a .gitleaks.toml at this repository's root.\n"
+    "# secret-scan.yml uses that file in preference to this one, so the exclusion is\n"
+    "# explicit and this repository's own.\n"
+    "\n"
+)
 
 
 def standards_version() -> str:
@@ -142,6 +163,32 @@ def build_agents_md(target: Path, profile: dict) -> str:
     return "\n".join(parts)
 
 
+def vendored_gitleaks_config(source: str) -> str:
+    """The standards repo's gitleaks config with its [allowlist] removed.
+
+    Only a description and path exclusions may be dropped. A regex or stopword
+    allowlist changes what the rules report, so whether it reaches every
+    consumer is a decision, not a side effect: one is refused here rather than
+    silently kept or silently lost. The result is parsed back and must equal the
+    source minus its allowlist, so the text edit cannot take anything else."""
+    config = tomllib.loads(source)
+    if "allowlists" in config:
+        raise SystemExit(f"sync: {GITLEAKS_CONFIG} uses [[allowlists]]; decide what a "
+                         "consumer's copy keeps before vendoring it")
+    allowlist = config.pop("allowlist", {})
+    if set(allowlist) - {"description", "paths"}:
+        raise SystemExit(f"sync: {GITLEAKS_CONFIG} [allowlist] holds more than path "
+                         "exclusions; decide what a consumer's copy keeps before "
+                         "vendoring it")
+
+    # The [allowlist] table runs from its header to the next table or the end.
+    out = re.sub(r"(?ms)^\[allowlist\][^\n]*\n.*?(?=^\[|\Z)", "", source)
+    if tomllib.loads(out) != config:
+        raise SystemExit(f"sync: removing [allowlist] from {GITLEAKS_CONFIG} "
+                         "changed something else")
+    return GITLEAKS_HEADER + out.rstrip("\n") + "\n"
+
+
 def vendor_docs(target: Path, dry_run: bool) -> list[str]:
     """Replace .standards/ wholesale. It is derived; nothing in it is edited in place."""
     dest = target / VENDOR_DIR
@@ -162,6 +209,11 @@ def vendor_docs(target: Path, dry_run: bool) -> list[str]:
                 mirror = dest / dest_name / rel
                 if not mirror.exists() or not filecmp.cmp(f, mirror, shallow=False):
                     changed.append(str(Path(VENDOR_DIR) / dest_name / rel))
+        config = vendored_gitleaks_config(
+            (ROOT / GITLEAKS_CONFIG).read_text(encoding="utf-8"))
+        mirror = dest / GITLEAKS_CONFIG
+        if not mirror.exists() or mirror.read_text(encoding="utf-8") != config:
+            changed.append(str(Path(VENDOR_DIR) / GITLEAKS_CONFIG))
         return changed
 
     if dest.exists():
@@ -175,6 +227,9 @@ def vendor_docs(target: Path, dry_run: bool) -> list[str]:
             shutil.copy2(src, dest / dest_name)
         else:
             shutil.copytree(src, dest / dest_name)
+    (dest / GITLEAKS_CONFIG).write_text(
+        vendored_gitleaks_config((ROOT / GITLEAKS_CONFIG).read_text(encoding="utf-8")),
+        encoding="utf-8")
 
     (dest / "VERSION").write_text(standards_version() + "\n", encoding="utf-8")
     (dest / "README.md").write_text(
@@ -185,6 +240,8 @@ def vendor_docs(target: Path, dry_run: bool) -> list[str]:
         "and `.gitleaks.toml` are what enforces them, vendored from the same commit so\n"
         "the gate and the documentation cannot disagree about what the rules are. The CI\n"
         "workflow runs these copies rather than fetching the standards repo.\n\n"
+        "`.gitleaks.toml` is written rather than copied: it carries the standards' rules\n"
+        "without that repository's path exclusions. Its header says why.\n\n"
         "You can run the same checks locally:\n\n"
         "```bash\n"
         "python3 .standards/tools/check-docs.py docs\n"

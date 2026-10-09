@@ -28,9 +28,9 @@ either build the missing mechanism or restate the claim as a review item.
 ## Next step
 
 Open the follow-up to #41 from main. It carries the owner's conditions on rulings 1 and 3-6
-in `tools/check-leakage.py`, `tools/update-tlds.py` and the tests. It also restores
-`@host.sh` in prose and stops the vendored scanner skipping a consumer's own fixture
-directories. Then PR 4.
+in `tools/check-leakage.py`, `tools/update-tlds.py` and the tests. It also restores the
+`@`-prefixed `.sh` host in prose, and stops the vendored scanner skipping a consumer's own
+fixture directories. Then PR 4.
 
 ## Blockers / waiting on
 

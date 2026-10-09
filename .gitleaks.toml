@@ -27,6 +27,11 @@ description = "Test fixtures that must contain leak-shaped values to be useful"
 #
 # tools/check-leakage.py excludes the same directory, for the same reason, in
 # its SKIP_DIRS.
+#
+# This exclusion stays here. The copy tools/sync-standards.py writes into a
+# consuming repository's .standards/ drops it, because the review that warrants
+# it covers this repository only, and root-anchored in a consumer it would
+# exempt that repository's own tests/fixtures/leakage/.
 paths = [
   '''^tests/fixtures/leakage/''',
 ]

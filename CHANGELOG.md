@@ -45,8 +45,10 @@ behaviour.
 - **gitleaks finds a config in every consuming repository.** `secret-scan.yml` named the
   repository's root `.gitleaks.toml` unconditionally, and the sync never wrote one, so a
   freshly synced repository failed gitleaks on a missing file and the leakage scan was
-  skipped behind it. The sync now vendors `.gitleaks.toml` into `.standards/`, and the
-  workflow uses the root file, then the vendored copy, then gitleaks' default rules.
+  skipped behind it. The sync now writes `.standards/.gitleaks.toml`, and the workflow uses
+  the root file, then that copy, then gitleaks' default rules. The copy has the same rules
+  and none of this repository's path exclusions. A consumer that needs an exclusion writes
+  its own root `.gitleaks.toml`, which the workflow prefers.
 - **CI and the pre-commit hook run one gitleaks release, 8.30.0.** The action chose its own
   default (8.24.3) while the hook pinned 8.30.0. The hook is now pinned to the release's
   commit rather than its tag.

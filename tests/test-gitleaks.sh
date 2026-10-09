@@ -73,4 +73,68 @@ else
   echo "  ok"
 fi
 
+# The copy a consumer receives must not carry this repository's exclusion. The
+# review that warrants it covers this repository only, and root-anchored in a
+# consumer it would exempt that consumer's own tests/fixtures/leakage/. So a
+# real sync writes the copy, and a token in the consumer's own fixture directory
+# must be reported by it.
+echo "the consumer's copy has no path exclusion, so the consumer's own fixture directory is scanned"
+consumer="$work/consumer"
+mkdir -p "$consumer"
+git -C "$consumer" init -q
+printf 'version: 1\nsync:\n  adopted: true\n' >"$consumer/.standards.yml"
+git -C "$consumer" add -A
+git -C "$consumer" -c user.name=test -c user.email=test@example.com commit -qm init
+rc=0
+python3 "$root/tools/sync-standards.py" --target "$consumer" >"$work/sync.out" 2>&1 || rc=$?
+if [[ $rc -ne 0 ]]; then
+  echo "  FAIL: the sync exited $rc"
+  sed 's/^/    /' "$work/sync.out"
+  status=1
+else
+  mkdir -p "$consumer/tests/fixtures/leakage"
+  cp "$root/$fixture" "$consumer/$fixture"
+  git -C "$consumer" add -A
+  git -C "$consumer" -c user.name=test -c user.email=test@example.com commit -qm fixture
+  rc=0
+  (cd "$consumer" && "$gitleaks" git . --config .standards/.gitleaks.toml --no-banner \
+    --report-format json --report-path "$work/consumer.json") >/dev/null 2>&1 || rc=$?
+  if grep -q '^\[allowlist' "$consumer/.standards/.gitleaks.toml"; then
+    echo "  FAIL: the consumer's copy has an [allowlist]"
+    status=1
+  elif [[ $rc -ne 1 || "$(flagged "$work/consumer.json" | sort -u)" != "$fixture" ]]; then
+    echo "  FAIL: expected exit 1 and only $fixture reported, got exit $rc"
+    status=1
+  else
+    echo "  ok"
+  fi
+fi
+
+# A regex or stopword allowlist changes what the rules report, so the sync must
+# refuse one rather than silently keep or drop it for every consumer.
+echo "the sync refuses an allowlist that holds more than path exclusions"
+# Exit 0 only when both are refused, so a missing function or any other error
+# fails the check instead of passing as a refusal.
+rc=0
+python3 - "$root/tools/sync-standards.py" <<'PY' >"$work/refuse.out" 2>&1 || rc=$?
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("sync", sys.argv[1])
+sync = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(sync)
+for config in ("[allowlist]\nregexes = ['x']\n", "[[allowlists]]\npaths = ['^a/']\n"):
+    try:
+        sync.vendored_gitleaks_config("[extend]\nuseDefault = true\n" + config)
+    except SystemExit:
+        continue
+    print("accepted:", config.splitlines()[0])
+    sys.exit(3)
+PY
+if [[ $rc -eq 0 ]]; then
+  echo "  ok"
+else
+  echo "  FAIL: exit $rc"
+  sed 's/^/    /' "$work/refuse.out"
+  status=1
+fi
+
 exit $status
