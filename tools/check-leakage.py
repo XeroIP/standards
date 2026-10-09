@@ -22,6 +22,27 @@ lives in. A consuming repository runs a vendored copy at
 `.standards/tools/check-leakage.py`; resolving the scan from the script's own
 location read only `.standards/` and never the consumer's files.
 
+What counts as a hostname depends on where it is written. In Markdown prose,
+outside code spans and fences, a dotted word is a hostname when its last label
+is any suffix IANA has delegated (`tools/iana-tlds.txt`, refreshed weekly by
+`.github/workflows/refresh-tld-list.yml`) or a private-use name such as `.lan`
+or `.home`. In code and config files, and in code spans and fences, only the
+short `[tld]` list counts, because there a dotted word is usually an
+identifier.
+
+Two gaps are accepted, each for a stated reason:
+
+- A host on one of the suffixes that are also common file extensions (`.md`,
+  `.py`, `.sh` and the rest of `[tld-prose-url-only]`) is reported in prose
+  only inside a URL. Counting them bare reported 93 filenames in this
+  repository's prose (measured 2026-10-09), and a gate that reports every
+  filename stops being read.
+  The list was checked against the maintainer's own domains: no overlap.
+- A host on an unusual suffix written in code, or in a code span or fence, is
+  not reported. Counting every suffix there gave 81 findings in this
+  repository's code (measured 2026-10-09), every one false: identifiers such
+  as `m.group` and `obj.id`.
+
 Usage:
     python3 tools/check-leakage.py                  scan tracked files
     python3 tools/check-leakage.py --paths a.md b.md
@@ -42,6 +63,7 @@ from pathlib import Path
 # `.standards/`. Not what gets scanned; see repo_root().
 SCRIPT_ROOT = Path(__file__).resolve().parent.parent
 ALLOWLIST = SCRIPT_ROOT / "tools" / "allowlist.txt"
+IANA_TLDS = SCRIPT_ROOT / "tools" / "iana-tlds.txt"
 
 # Default location for the optional private supplement. Absent by default.
 PRIVATE_DEFAULT = Path(
@@ -73,6 +95,11 @@ FQDN_RE = re.compile(
     r"\b((?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,24})\b", re.IGNORECASE
 )
 
+# Markdown: its prose is read against every delegated suffix.
+PROSE_SUFFIXES = {".md", ".markdown"}
+FENCE_RE = re.compile(r"^ {0,3}(`{3,}|~{3,})")
+CODE_SPAN_RE = re.compile(r"(`+)(.+?)\1")
+
 # Extensions that are never prose and would otherwise produce noise.
 SKIP_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".webp", ".pdf", ".zip",
                  ".woff", ".woff2", ".ttf", ".otf", ".ico", ".lock"}
@@ -94,7 +121,7 @@ def load_allowlist(path: Path) -> dict[str, list[str]]:
     """Read the sectioned allowlist. Unknown sections are an error, not ignored:
     a typo'd section header would otherwise silently drop every value under it."""
     known = {"ip-cidr", "ip-host", "domain", "credential-pattern", "tld",
-             "tld-url-context-only"}
+             "tld-url-context-only", "tld-private-use", "tld-prose-url-only"}
     sections: dict[str, list[str]] = {k: [] for k in known}
     current = None
 
@@ -112,6 +139,36 @@ def load_allowlist(path: Path) -> dict[str, list[str]]:
         sections[current].append(line.split("#")[0].strip())
 
     return sections
+
+
+def load_iana(path: Path) -> set[str]:
+    """IANA's delegated suffixes, lower-cased. A missing list is an error: the
+    prose check would otherwise fall back to the short list without a word."""
+    if not path.exists():
+        print(f"error: {path} is missing. Run: python3 tools/update-tlds.py",
+              file=sys.stderr)
+        raise SystemExit(2)
+    return {line.strip().lower() for line in path.read_text(encoding="utf-8").splitlines()
+            if line.strip() and not line.startswith("#")}
+
+
+def markdown_parts(text: str):
+    """Each line of a Markdown file as (lineno, prose, code): code is whatever
+    sits in a fence or a code span, prose is the rest."""
+    fence = None
+    for lineno, line in enumerate(text.splitlines(), 1):
+        m = FENCE_RE.match(line)
+        if fence:
+            if (m and m.group(1)[0] == fence[0] and len(m.group(1)) >= len(fence)
+                    and not line.strip().strip(fence[0])):
+                fence = None
+            yield lineno, "", line
+        elif m:
+            fence = m.group(1)
+            yield lineno, "", line
+        else:
+            spans = [m.group(0) for m in CODE_SPAN_RE.finditer(line)]
+            yield lineno, CODE_SPAN_RE.sub(" ", line), " ".join(spans)
 
 
 def load_private(path: Path) -> list[str]:
@@ -157,6 +214,26 @@ def looks_like_ipv6(token: str) -> bool:
     groups = [g for g in token.split(":") if g]
     return (any(c.isdigit() for c in token)
             and (len(groups) >= 3 or any(len(g) >= 3 for g in groups)))
+
+
+def domain_findings(text: str, bare: set[str], url_only: set[str],
+                    allowed: list[str], url_mark: str = r"(?://|@)") -> list[str]:
+    """The hostnames in text that are not allowlisted. A dotted word is only a
+    hostname when its last label is in bare, or in url_only with url_mark (a
+    `://` or `@`) before it. Everything else is an identifier: fs.readFileSync,
+    os.path."""
+    out = []
+    for host in FQDN_RE.findall(text):
+        low = host.lower()
+        suffix = low.rsplit(".", 1)[-1]
+        if suffix in url_only:
+            if not re.search(url_mark + re.escape(host), text, re.I):
+                continue
+        elif suffix not in bare:
+            continue
+        if not domain_allowed(low, allowed):
+            out.append(host)
+    return out
 
 
 def ip_finding(written: str, prefix: str, cidr_ok: list, host_ok: list) -> str | None:
@@ -219,6 +296,12 @@ def main() -> int:
     host_ok = [ipaddress.ip_network(c, strict=False) for c in allow["ip-host"]]
     tlds = {t.lower() for t in allow["tld"]}
     tlds_url_only = {t.lower() for t in allow["tld-url-context-only"]}
+    # Prose: every delegated suffix and the private-use names, less those that
+    # are also file extensions, which need a URL around them.
+    prose_url_only = {t.lower() for t in allow["tld-prose-url-only"]}
+    prose_bare = (load_iana(IANA_TLDS) | tlds
+                  | {t.lower() for t in allow["tld-private-use"]}) - prose_url_only
+    prose_url = prose_url_only | (tlds_url_only - prose_bare)
     domain_ok = [d.lower().rstrip(".") for d in allow["domain"]]
     cred_res = [re.compile(p) for p in allow["credential-pattern"]]
     private_res = [re.compile(p) for p in private]
@@ -249,7 +332,22 @@ def main() -> int:
             continue
         scanned += 1
 
-        for lineno, line in enumerate(text.splitlines(), 1):
+        lines = text.splitlines()
+        if path.suffix.lower() in PROSE_SUFFIXES:
+            parts = markdown_parts(text)
+        else:
+            parts = ((n, "", line) for n, line in enumerate(lines, 1))
+
+        for lineno, prose, code in parts:
+            line = lines[lineno - 1]
+            # In prose an `@` marks a host only after a user part, as in an
+            # address: `@STATUS.md` is an agent-file import, not a host.
+            hosts = (domain_findings(prose, prose_bare, prose_url, domain_ok,
+                                     r"(?://|\w@)")
+                     + domain_findings(code, tlds, tlds_url_only, domain_ok))
+            for host in hosts:
+                findings.append((path, lineno, host, "domain not in [domain]"))
+
             candidates = IPV4_RE.findall(line) + [
                 (m, p) for m, p in IPV6_RE.findall(line) if looks_like_ipv6(m)]
             for match, prefix in candidates:
@@ -259,22 +357,6 @@ def main() -> int:
                     continue
                 if why:
                     findings.append((path, lineno, f"{match}{prefix}", why))
-
-            for host in FQDN_RE.findall(line):
-                low = host.lower()
-                suffix = low.rsplit(".", 1)[-1]
-                # A dotted token is only a hostname if its last label is a real
-                # suffix. Everything else is an identifier: fs.readFileSync,
-                # os.path, h1.page. Without this the scanner is unusable.
-                if suffix in tlds_url_only:
-                    # Ambiguous with a file extension, so require URL context.
-                    if not re.search(r"(?://|@)" + re.escape(host), line, re.I):
-                        continue
-                elif suffix not in tlds:
-                    continue
-                if domain_allowed(low, domain_ok):
-                    continue
-                findings.append((path, lineno, host, "domain not in [domain]"))
 
             for rx in cred_res:
                 if rx.search(line):
