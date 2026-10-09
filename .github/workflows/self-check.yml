@@ -33,17 +33,29 @@ jobs:
       - name: llms.txt matches the docs tree
         run: node tools/build-llms-txt.js --check
 
+      # git status, not git diff: diff ignores untracked files, so a generated
+      # file that was never committed (a new rule's style, a new adapter) came
+      # back from the generator untracked and the step passed. --porcelain lists
+      # modified, deleted and untracked files alike.
       - name: Vale config matches rules.yml
         run: |
           node tools/build-vale.js
-          git diff --exit-code -- .vale.ini styles/ \
-            || { echo "styles/ or .vale.ini is stale. Run: node tools/build-vale.js"; exit 1; }
+          stale=$(git status --porcelain -- .vale.ini styles/)
+          if [ -n "$stale" ]; then
+            echo "$stale"
+            echo "styles/ or .vale.ini is stale. Run: node tools/build-vale.js"
+            exit 1
+          fi
 
       - name: Design adapters match tokens.json
         run: |
           node docs/design/build-adapters.js
-          git diff --exit-code -- docs/design/adapters/ \
-            || { echo "adapters are stale. Run: node docs/design/build-adapters.js"; exit 1; }
+          stale=$(git status --porcelain -- docs/design/adapters/)
+          if [ -n "$stale" ]; then
+            echo "$stale"
+            echo "adapters are stale. Run: node docs/design/build-adapters.js"
+            exit 1
+          fi
 
       - name: Design tokens pass WCAG AA in both themes
         run: node docs/design/check-contrast.js
