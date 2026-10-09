@@ -29,3 +29,5 @@ A host on a private-use suffix: somehost.local
 A host on a private-use suffix: somehost.localdomain
 A host on a private-use suffix: somehost.private
 A host on a private-use suffix: somehost.intranet
+A bare @-prefixed host in prose, which no user part rule may excuse: @somehost.io
+A bare @-prefixed host on a suffix that is also a file extension: @somehost.sh

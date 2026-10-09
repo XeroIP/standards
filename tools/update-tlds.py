@@ -6,9 +6,11 @@ are hostnames. A short hand-kept list missed a personal domain on any suffix
 nobody had thought to add, which is the case an allowlist exists to catch.
 
 The file is IANA's own, byte for byte, so its provenance can be checked against
-the source. It is rewritten only when the set of suffixes changes. IANA bumps
-the version line every day, and a commit per header change would bury the
-commits that matter.
+the source. Its first line, IANA's version and date, is the whole provenance
+record: it is written as fetched, never stripped, and --check fails a file
+without it. The file is rewritten only when the set of suffixes changes. IANA
+bumps the version line every day, and a commit per header change would bury
+the commits that matter.
 
 A truncated or garbled download must not shrink the list: every suffix it drops
 is one the scanner stops reporting. So a fetch is validated before it is
@@ -17,6 +19,9 @@ written, and a result under MIN_ENTRIES is refused.
 Usage:
     python3 tools/update-tlds.py            fetch; rewrite the file if the set changed
     python3 tools/update-tlds.py --check    validate the committed file, offline
+
+--source and --target exist for tests: a file:// URL in place of IANA's, and a
+copy in place of the committed list.
 
 Exit status: 0 on success, 1 when --check finds the committed file invalid,
 2 when a fetch fails or returns something that is not the list.
@@ -38,13 +43,14 @@ TARGET = Path(__file__).resolve().parent / "iana-tlds.txt"
 MIN_ENTRIES = 1000
 
 LABEL_RE = re.compile(r"^[A-Z0-9-]+$")
+HEADER_RE = re.compile(r"^# Version \d+, Last Updated .+ UTC$")
 
 
 def parse(text: str) -> set[str]:
     """The suffixes in IANA's format, or ValueError naming what is wrong."""
     lines = text.splitlines()
-    if not lines or not lines[0].startswith("# Version "):
-        raise ValueError("first line is not IANA's '# Version' header")
+    if not lines or not HEADER_RE.match(lines[0]):
+        raise ValueError("first line is not IANA's version and date header")
     labels = [line.strip() for line in lines[1:] if line.strip()]
     bad = [label for label in labels if not LABEL_RE.match(label)]
     if bad:
@@ -61,25 +67,28 @@ def main() -> int:
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--check", action="store_true",
                         help="validate the committed file without fetching")
+    parser.add_argument("--source", default=SOURCE, help=argparse.SUPPRESS)
+    parser.add_argument("--target", type=Path, default=TARGET, help=argparse.SUPPRESS)
     args = parser.parse_args()
+    target = args.target
 
-    current = TARGET.read_text(encoding="utf-8") if TARGET.exists() else ""
+    current = target.read_text(encoding="utf-8") if target.exists() else ""
 
     if args.check:
         try:
             labels = parse(current)
         except ValueError as e:
-            print(f"{TARGET.name}: {e}", file=sys.stderr)
+            print(f"{target.name}: {e}", file=sys.stderr)
             return 1
-        print(f"{TARGET.name}: {len(labels)} suffixes, {current.splitlines()[0][2:]}")
+        print(f"{target.name}: {len(labels)} suffixes, {current.splitlines()[0][2:]}")
         return 0
 
     try:
-        with urllib.request.urlopen(SOURCE, timeout=30) as response:
+        with urllib.request.urlopen(args.source, timeout=30) as response:
             fetched = response.read().decode("ascii")
         new = parse(fetched)
     except (OSError, UnicodeDecodeError, ValueError) as e:
-        print(f"error: {SOURCE}: {e}", file=sys.stderr)
+        print(f"error: {args.source}: {e}", file=sys.stderr)
         return 2
 
     try:
@@ -91,7 +100,7 @@ def main() -> int:
         print(f"unchanged: {len(new)} suffixes ({fetched.splitlines()[0][2:]})")
         return 0
 
-    TARGET.write_text(fetched, encoding="utf-8")
+    target.write_text(fetched, encoding="utf-8")
     added, removed = sorted(new - old), sorted(old - new)
     print(f"updated: {len(new)} suffixes, {len(added)} added, {len(removed)} removed")
     if old:

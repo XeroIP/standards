@@ -99,40 +99,61 @@ fi
 
 # A consuming repository runs the vendored copy at .standards/tools/. The scan
 # must cover that repository's own files; resolving it from the script's
-# location read only .standards/ and passed whatever sat beside it.
-#
-# The same repository checks the fixture exclusion, which is a path prefix from
-# the root. A substring match also skipped any path that merely contained it.
-echo "a vendored copy scans the consuming repository, and skips only the fixture prefix"
+# location read only .standards/ and passed whatever sat beside it. And it
+# reads the consumer's own tests/fixtures/leakage/: the fixture skip is
+# warranted by review of this repository's fixtures, so it does not travel.
+echo "a vendored copy scans the whole consuming repository, its fixture directories included"
 consumer="$work/consumer"
-mkdir -p "$consumer/.standards/tools" "$consumer/notes/tests/fixtures-old" \
-  "$consumer/tests/fixtures/leakage"
+mkdir -p "$consumer/.standards/tools" "$consumer/tests/fixtures/leakage"
 cp "$checker" "$root/tools/allowlist.txt" "$root/tools/iana-tlds.txt" \
   "$consumer/.standards/tools/"
 cp "$fixtures/leaks.md" "$consumer/probe.md"
-cp "$fixtures/leaks.md" "$consumer/notes/tests/fixtures-old/probe.md"
 cp "$fixtures/leaks.md" "$consumer/tests/fixtures/leakage/probe.md"
 git -C "$consumer" init -q
 git -C "$consumer" add -A
 rc=0
 (cd "$consumer" && python3 .standards/tools/check-leakage.py) >"$work/consumer.out" 2>&1 || rc=$?
-reported() { findings <"$work/consumer.out" | grep -q "^$1:"; }
+reported() { findings <"$1" | grep -q "^$2:"; }
 if [[ $rc -ne 1 ]]; then
   echo "  FAIL: expected exit 1, got $rc"
   sed 's/^/    /' "$work/consumer.out"
   status=1
-elif ! reported "probe.md"; then
+elif ! reported "$work/consumer.out" "probe.md"; then
   echo "  FAIL: the consuming repository's own file was not scanned"
   status=1
-elif ! reported "notes/tests/fixtures-old/probe.md"; then
+elif ! reported "$work/consumer.out" "tests/fixtures/leakage/probe.md"; then
+  echo "  FAIL: the consumer's own fixture directory was skipped"
+  status=1
+elif findings <"$work/consumer.out" | grep -v -e '^probe\.md:' -e '^tests/' | grep -q .; then
+  echo "  FAIL: the vendored files reported themselves:"
+  findings <"$work/consumer.out" | grep -v -e '^probe\.md:' -e '^tests/' | sed 's/^/    /'
+  status=1
+else
+  echo "  ok"
+fi
+
+# In the repository the scanner ships in, the fixture skip applies, as a path
+# prefix from the root. A substring match also skipped any path that merely
+# contained it.
+echo "in its own repository the scanner skips the fixture prefix and nothing else"
+own="$work/own"
+mkdir -p "$own/tools" "$own/tests/fixtures/leakage" "$own/notes/tests/fixtures-old"
+cp "$checker" "$root/tools/allowlist.txt" "$root/tools/iana-tlds.txt" "$own/tools/"
+cp "$fixtures/leaks.md" "$own/tests/fixtures/leakage/probe.md"
+cp "$fixtures/leaks.md" "$own/notes/tests/fixtures-old/probe.md"
+git -C "$own" init -q
+git -C "$own" add -A
+rc=0
+(cd "$own" && python3 tools/check-leakage.py) >"$work/own.out" 2>&1 || rc=$?
+if [[ $rc -ne 1 ]]; then
+  echo "  FAIL: expected exit 1, got $rc"
+  sed 's/^/    /' "$work/own.out"
+  status=1
+elif ! reported "$work/own.out" "notes/tests/fixtures-old/probe.md"; then
   echo "  FAIL: a path containing the fixture directory was skipped"
   status=1
-elif reported "tests/fixtures/leakage/probe.md"; then
+elif reported "$work/own.out" "tests/fixtures/leakage/probe.md"; then
   echo "  FAIL: the fixture directory was scanned"
-  status=1
-elif findings <"$work/consumer.out" | grep -v -e '^probe\.md:' -e '^notes/' | grep -q .; then
-  echo "  FAIL: the vendored files reported themselves:"
-  findings <"$work/consumer.out" | grep -v -e '^probe\.md:' -e '^notes/' | sed 's/^/    /'
   status=1
 else
   echo "  ok"
@@ -148,6 +169,55 @@ if [[ $rc -eq 2 ]]; then
   echo "  ok"
 else
   echo "  FAIL: expected exit 2, got $rc"
+  status=1
+fi
+
+# The suffix list is IANA's file verbatim, so its first line, IANA's version and
+# date, is its whole provenance record. Nothing may strip it: --check fails a
+# file without it, and a fetch is written byte for byte, header included.
+echo "the suffix list keeps IANA's header, and a fetch writes the file verbatim"
+tlds="$root/tools/update-tlds.py"
+list="$root/tools/iana-tlds.txt"
+bad=0
+if ! python3 "$tlds" --check >/dev/null 2>&1; then
+  echo "  FAIL: the committed list fails --check"
+  bad=1
+fi
+tail -n +2 "$list" >"$work/headless.txt"
+if python3 "$tlds" --check --target "$work/headless.txt" >/dev/null 2>&1; then
+  echo "  FAIL: a list without IANA's header passed --check"
+  bad=1
+fi
+# A changed set is written as fetched: header and all.
+grep -v -x 'NL' "$list" >"$work/source.txt"
+cp "$list" "$work/target.txt"
+if ! python3 "$tlds" --source "file://$work/source.txt" --target "$work/target.txt" >/dev/null 2>&1 \
+   || ! cmp -s "$work/source.txt" "$work/target.txt"; then
+  echo "  FAIL: a changed set was not written byte for byte"
+  bad=1
+fi
+# A header-only change writes nothing.
+{ echo "# Version 1999010100, Last Updated Fri Jan  1 00:00:00 1999 UTC"; tail -n +2 "$list"; } >"$work/source.txt"
+cp "$list" "$work/target.txt"
+if ! python3 "$tlds" --source "file://$work/source.txt" --target "$work/target.txt" >/dev/null 2>&1 \
+   || ! cmp -s "$list" "$work/target.txt"; then
+  echo "  FAIL: a header-only change rewrote the list"
+  bad=1
+fi
+# A truncated download is refused, for that reason, and the list is left alone.
+head -n 500 "$list" >"$work/source.txt"
+cp "$list" "$work/target.txt"
+rc=0
+python3 "$tlds" --source "file://$work/source.txt" --target "$work/target.txt" \
+  >"$work/refuse.out" 2>&1 || rc=$?
+if [[ $rc -ne 2 ]] || ! grep -q 'fewer than' "$work/refuse.out" \
+   || ! cmp -s "$list" "$work/target.txt"; then
+  echo "  FAIL: a truncated download was not refused (exit $rc)"
+  bad=1
+fi
+if [[ $bad -eq 0 ]]; then
+  echo "  ok"
+else
   status=1
 fi
 

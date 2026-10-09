@@ -48,6 +48,11 @@ jobs:
       - name: Design tokens pass WCAG AA in both themes
         run: node docs/design/check-contrast.js
 
+      # The counts in check-leakage.py's docstring are measured over this tree.
+      # Written by hand they go stale unnoticed; regenerated, a drift fails here.
+      - name: Leakage gap counts match the tree
+        run: python3 tools/build-leakage-gaps.py --check
+
   docs:
     runs-on: ubuntu-latest
     steps:
