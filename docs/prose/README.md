@@ -41,7 +41,7 @@ has no way to tell that one owner stands behind both without being told.
 
 ## What is enforced, and what is not
 
-21 markers generate Vale rules: 11 errors, 8 warnings, 2 suggestions.
+22 markers generate Vale rules: 12 errors, 8 warnings, 2 suggestions.
 
 Five markers deliberately generate nothing. Cadence flattening, formulaic paragraph
 architecture, triple-adjective stacking, inline pseudo-lists, and contraction avoidance all
@@ -58,6 +58,12 @@ The master rule expresses caps per 500 or 300 words. Vale counts per file. The g
 converts a cap to a per-document `occurrence` rule and records the original in a comment,
 because the approximation is close enough to catch real overuse and wrong enough to be worth
 stating plainly.
+
+The count covers the whole file: code blocks, front matter and comments included. Vale's
+`text` and `paragraph` scopes count each paragraph on its own, so a term once in each of three
+paragraphs never reaches a cap of two. `summary` counts the page but skips tables and headings.
+A cap that overcounts shows a warning someone can read; one that undercounts passes overuse in
+silence.
 
 ## Running it
 

@@ -41,6 +41,7 @@ Never edit these by hand. Change the source, run the generator:
 | `CLAUDE.md` | `AGENTS.md` | `tools/build-agent-files.js` |
 | `.github/copilot-instructions.md` | `AGENTS.md` | `tools/build-agent-files.js` |
 | `.vale.ini`, `styles/XeroIP/*.yml` | `docs/prose/rules.yml` | `tools/build-vale.js` |
+| the marker count in `docs/prose/README.md` | `docs/prose/rules.yml` | `tools/build-vale.js` |
 | `llms.txt` | the `docs/` tree | `tools/build-llms-txt.js` |
 | `docs/design/tokens.css`, `docs/design/adapters/*.css` | `docs/design/tokens.json` | `docs/design/build-adapters.js` |
 | the gap counts in `tools/check-leakage.py`'s docstring | the tracked tree | `tools/build-leakage-gaps.py` |

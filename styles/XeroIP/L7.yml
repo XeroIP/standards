@@ -6,6 +6,6 @@ extends: occurrence
 message: "L7 (Not only / but also): over the cap of 1."
 level: warning
 max: 1
-scope: text
+scope: raw
 ignorecase: true
 token: '\bnot only\b[^.]{0,80}\bbut also\b'

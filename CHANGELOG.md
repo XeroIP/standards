@@ -75,6 +75,15 @@ behaviour.
 - **`check-rendered-design.js` exits 2 when it could not run**, as its header says: no browser,
   a page that would not load or had nothing to measure, or any other error before a verdict.
   It exited 1, which reads as a failed assertion.
+- **Frequency caps count across the whole file.** The cap rules counted each paragraph on its
+  own, so a capped term once in each of three paragraphs passed a cap of two. They now count
+  the raw file, code blocks, front matter and comments included. Caps are warnings, so this
+  surfaces more findings and fails nothing.
+- **A pull request's prose check reports every line, not only the lines it adds.** Vale's
+  findings went through reviewdog's added-lines filter, so an error on an untouched line failed
+  the push run and passed the pull request run on the same commit. Both Prose steps now pass
+  `filter_mode: nofilter`. A sync pull request that brings a new rule fails on the text that
+  rule catches, as the push after it would have.
 
 ### Fixed
 
@@ -82,6 +91,9 @@ behaviour.
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.
   They now use `git status --porcelain`.
+- **The marker count in `docs/prose/README.md` is generated.** It said 21 markers and 11
+  errors while `rules.yml` held 22 and 12. `tools/build-vale.js` now writes the line, and the
+  parity check covers it.
 
 ### Added
 
@@ -90,6 +102,9 @@ behaviour.
 - `tools/iana-tlds.txt`, IANA's list of delegated suffixes, fetched by `tools/update-tlds.py`.
   `refresh-tld-list.yml` refreshes it weekly and opens a pull request when the set changes,
   with the leakage checks' results in its body.
+- `tests/test-vale.sh`, which runs the committed Vale config on pages built at the cap and one
+  paragraph over it, for every cap rule. CI runs it on the Vale binary the Prose step
+  installed.
 
 ## [0.1.0] — 2026-09-16
 

@@ -30,8 +30,10 @@ is what makes a generator's output reproducible.
 | --- | --- | --- |
 | `CLAUDE.md`, `.github/copilot-instructions.md` | `AGENTS.md` | `tools/build-agent-files.js` |
 | `.vale.ini`, `styles/XeroIP/*.yml` | `docs/prose/rules.yml` | `tools/build-vale.js` |
+| the marker count in `docs/prose/README.md` | `docs/prose/rules.yml` | `tools/build-vale.js` |
 | `llms.txt` | the `docs/` tree | `tools/build-llms-txt.js` |
-| `docs/design/adapters/*.css` | `docs/design/tokens.json` | `docs/design/build-adapters.js` |
+| `docs/design/tokens.css`, `docs/design/adapters/*.css` | `docs/design/tokens.json` | `docs/design/build-adapters.js` |
+| the gap counts in `tools/check-leakage.py`'s docstring | the tracked tree | `tools/build-leakage-gaps.py` |
 
 CI re-runs every generator and fails if the result differs from what is committed. Editing a
 derived file is work that gets thrown away on the next build.

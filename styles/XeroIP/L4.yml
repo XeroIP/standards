@@ -6,6 +6,6 @@ extends: occurrence
 message: "L4 (Vague benefit verbs): over the cap of 2."
 level: warning
 max: 2
-scope: text
+scope: raw
 ignorecase: true
 token: '(?:enhance|streamline|facilitate|leverage|empower)'
