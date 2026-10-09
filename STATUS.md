@@ -1,7 +1,7 @@
 ---
 state: blocked       # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-08T17:14:39+00:00
+updated: 2026-10-09T04:50:59+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -19,9 +19,10 @@ either build the missing mechanism or restate the claim as a review item.
 - The owner actions are all done: the security reporting channel is enabled, release tags
   are protected against deletion and every update, the waiting sync runs are cancelled,
   and the throwaway branch is deleted.
-- The owner accepted the stage 3 recommendations, the rescoped sync-tool fix, and two of
-  four design choices: how the leakage scanner decides what counts as a domain, and where
-  llms.txt links point until the documentation site exists.
+- The owner accepted the stage 3 recommendations, the rescoped sync-tool fix, and three of
+  four design choices: how the leakage scanner decides what counts as a domain, where
+  llms.txt links point until the documentation site exists, and that a release runs the
+  sync (with the sync bumping each consumer's pinned version in the same pull request).
 
 ## In progress / broken
 
@@ -29,12 +30,13 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Next step
 
-Get the owner's ruling on the remaining two stage 3 design choices (the release path of
-the sync workflow, then `severity_ui` on reference pages), then open the first pull request: the leakage scanner fixes in `tools/check-leakage.py` and
-`tests/test-leakage.sh`. Re-run the claim sweep at that head first.
+Get the owner's ruling on the last stage 3 design choice (`severity_ui` on reference
+pages), then open the first pull request: the leakage scanner fixes in
+`tools/check-leakage.py` and `tests/test-leakage.sh`. Re-run the claim sweep at that
+head first.
 
 ## Blockers / waiting on
 
-- The owner's rulings on the remaining two design choices.
+- The owner's ruling on the last design choice.
 - The handoff block's ownership (#36). Do not re-run that installer against this repo
   until it is settled.
