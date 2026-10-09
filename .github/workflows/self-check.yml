@@ -47,13 +47,15 @@ jobs:
             exit 1
           fi
 
-      - name: Design adapters match tokens.json
+      # The generator also fails on its own if a stylesheet reads a token it
+      # doesn't define, or sets a severity token outside the opt-in block.
+      - name: tokens.css and the design adapters match tokens.json
         run: |
           node docs/design/build-adapters.js
-          stale=$(git status --porcelain -- docs/design/adapters/)
+          stale=$(git status --porcelain -- docs/design/tokens.css docs/design/adapters/)
           if [ -n "$stale" ]; then
             echo "$stale"
-            echo "adapters are stale. Run: node docs/design/build-adapters.js"
+            echo "tokens.css or the adapters are stale. Run: node docs/design/build-adapters.js"
             exit 1
           fi
 

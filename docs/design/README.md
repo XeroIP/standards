@@ -14,8 +14,8 @@ light is derived from it.
 | File | What it is |
 | --- | --- |
 | `tokens.json` | **Source of truth.** Colour, type, and shape values, plus the contrast pairs to verify. |
-| `tokens.css` | The same values as CSS custom properties, for anything that loads CSS directly. |
-| `build-adapters.js` | Generates one adapter stylesheet per site generator from `tokens.json`. |
+| `tokens.css` | The same values as CSS custom properties, for anything that loads CSS directly. Generated, never edited by hand. |
+| `build-adapters.js` | Generates `tokens.css` and one adapter stylesheet per site generator from `tokens.json`, and fails if any stylesheet reads a token it doesn't define. |
 | `adapters/` | The generated per-generator stylesheets. Never edited by hand. |
 | `check-contrast.js` | Verifies every declared pair against WCAG AA in both themes. Exits non-zero on failure. |
 
@@ -43,8 +43,8 @@ absorbs it. This is the only non-colour token that changes between themes.
 The accent keeps its hue and changes luminance: `#3FD0C9` reaches 10.1:1 on the dark ground
 but only 2.4:1 on white, so light mode darkens it to `#10736D` at 5.3:1.
 
-Severity — `--dx-ok`, `--dx-warn`, `--dx-crit` — resolves to `--dx-ink` unless an ancestor
-carries `data-severity-ui`, set from front matter on incidents, runbooks, and status pages.
+Severity — `--dx-ok`, `--dx-warn`, `--dx-crit` — resolves to `--dx-ink` unless the element or
+an ancestor carries `data-severity-ui`, set from front matter on incidents, runbooks, and status pages.
 A reference or explanation page that asks for a severity colour gets ink, by construction.
 Status is always carried by form as well as colour, so it survives greyscale print and
 colour-blind readers.
@@ -53,14 +53,14 @@ colour-blind readers.
 
 1. Components read tokens. A literal colour in a component is a bug.
 2. Adapters map tokens onto a generator's own variables. They never redefine a value.
-3. Adapters are generated. Edit `tokens.json` and re-run `build-adapters.js`.
-4. `check-contrast.js` passes before any colour change is committed.
+3. Adapters and `tokens.css` are generated. Edit `tokens.json` and re-run `build-adapters.js`.
+4. CI runs `check-contrast.js` on every push, and a failing pair fails the build.
 
 ## Verifying
 
 ```bash
 node docs/design/check-contrast.js   # 30/30 pairs pass WCAG AA in both themes
-node docs/design/build-adapters.js   # regenerate all seven adapters
+node docs/design/build-adapters.js   # regenerate tokens.css and all seven adapters
 ```
 
 The system was applied to five site generators and verified by reading computed styles from
