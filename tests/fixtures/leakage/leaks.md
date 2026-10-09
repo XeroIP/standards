@@ -18,3 +18,14 @@ A host written with its subnet: 192.168.99.99/24
 A host written as a one-address block: 192.168.99.99/32
 A subnet inside a private block: 192.168.99.0/24
 A host on a private IPv6 network: fd12:3456:789a::99
+A personal domain on a country suffix, in prose: notarealdomain.nl
+A personal domain on a newer suffix, in prose: notarealdomain.dev
+A suffix that is also a file extension, inside a URL: https://notarealdomain.sh/x
+The same suffix in an address: admin@notarealdomain.zip
+A host on a private-use suffix: somehost.home
+A host on a private-use suffix: somehost.corp
+A host on a private-use suffix: somehost.lan
+A host on a private-use suffix: somehost.local
+A host on a private-use suffix: somehost.localdomain
+A host on a private-use suffix: somehost.private
+A host on a private-use suffix: somehost.intranet

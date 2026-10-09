@@ -33,6 +33,21 @@ behaviour.
 - **The fixture exclusion is a path prefix naming the two leakage fixture directories.** A
   substring match skipped any path containing `tests/fixtures`, including a consumer's own
   fixtures and a directory such as `notes/tests/fixtures-old/`.
+- **Markdown prose counts every delegated suffix as a hostname.** A token was a hostname only
+  on one of 16 listed suffixes, so a personal domain on `.nl`, `.eu`, `.dev` or `.home`
+  written in a sentence passed. Prose outside code spans and fences now counts every suffix
+  IANA has delegated, plus the private-use names `.home`, `.corp`, `.lan`, `.local`,
+  `.internal`, `.localdomain`, `.private` and `.intranet`. Fourteen suffixes that are also
+  common file extensions, such as `.md` and `.sh`, count only inside a URL or an address.
+  Code and config files, and code spans and fences, keep the short list. An identifier
+  written bare in prose on a delegated suffix, such as `h1.page`, is now reported: put it in
+  a code span.
+
+### Added
+
+- `tools/iana-tlds.txt`, IANA's list of delegated suffixes, fetched by `tools/update-tlds.py`.
+  `refresh-tld-list.yml` refreshes it weekly and opens a pull request when the set changes,
+  with the leakage checks' results in its body.
 
 ## [0.1.0] — 2026-09-16
 

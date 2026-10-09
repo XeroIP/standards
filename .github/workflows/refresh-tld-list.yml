@@ -1,0 +1,96 @@
+# Keeps tools/iana-tlds.txt current, so a hostname on a suffix IANA delegates
+# after the list was committed is still a finding in Markdown prose.
+#
+# A snapshot refreshed only at release would make "a domain registered next
+# year" a promise with a shelf life that rests on someone remembering. This
+# runs weekly, and opens or updates one pull request when the set of suffixes
+# changes. IANA bumps the file's version line daily; a header change alone
+# writes nothing.
+#
+# The write permissions are this job's alone, and the triggers are schedule and
+# dispatch only: a write token is never handed to a pull request from a fork.
+# A pull request opened with GITHUB_TOKEN does not run CI on itself, so the
+# checks run here and their results go into the pull request body.
+name: Refresh IANA suffix list
+
+on:
+  schedule:
+    - cron: '23 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.12'
+
+      - name: Fetch the list
+        id: fetch
+        run: |
+          set -euo pipefail
+          python3 tools/update-tlds.py | tee fetch.txt
+          if git diff --quiet -- tools/iana-tlds.txt; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Each check's exit status is captured from the command itself, and the
+      # job fails after the pull request is opened, so a red result is both
+      # visible on the run and written where the reviewer reads.
+      - name: Check the new list
+        id: checks
+        if: steps.fetch.outputs.changed == 'true'
+        run: |
+          set -uo pipefail
+          failed=0
+          {
+            echo "Opened by \`.github/workflows/refresh-tld-list.yml\`, run ${GITHUB_RUN_ID}."
+            echo
+            echo '```'
+            cat fetch.txt
+            echo '```'
+            echo
+            echo "| check | result |"
+            echo "| --- | --- |"
+          } > body.md
+          for check in "python3 tools/update-tlds.py --check" \
+                       "bash tests/test-leakage.sh" \
+                       "python3 tools/check-leakage.py"; do
+            $check > out.txt 2>&1
+            rc=$?
+            if [ $rc -eq 0 ]; then result="pass"; else result="**fail** (exit $rc)"; failed=1; fi
+            echo "| \`$check\` | $result |" >> body.md
+            echo "::group::$check (exit $rc)"; cat out.txt; echo "::endgroup::"
+          done
+          rm -f out.txt fetch.txt
+          echo "failed=$failed" >> "$GITHUB_OUTPUT"
+
+      - name: Open or update the pull request
+        if: steps.fetch.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          branch: chore/refresh-iana-suffixes
+          add-paths: tools/iana-tlds.txt
+          title: 'chore: refresh the IANA suffix list'
+          body-path: body.md
+          commit-message: |
+            chore: refresh the IANA suffix list
+
+            The set of delegated suffixes changed. check-leakage.py reads this
+            list to decide which dotted words in Markdown prose are hostnames.
+
+      - name: Fail when a check failed
+        if: steps.checks.outputs.failed == '1'
+        run: |
+          echo "A check failed on the new list; see the pull request body."
+          exit 1

@@ -76,6 +76,11 @@ jobs:
       - name: Leakage scan fixtures still fire
         run: bash tests/test-leakage.sh
 
+      # Offline. The weekly refresh fetches; this only proves the committed
+      # list is IANA's format and long enough to be the whole list.
+      - name: IANA suffix list is well-formed
+        run: python3 tools/update-tlds.py --check
+
   links:
     # External links break for reasons unrelated to the change under review, so
     # this runs on a schedule and on docs changes — never as a gate on an

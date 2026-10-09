@@ -64,17 +64,15 @@ fe80::/64             # the link-local prefix every interface uses
 ::/128                # IPv6 unspecified
 
 # ---------------------------------------------------------------------------
-# Suffixes that make a dotted token a hostname rather than an identifier.
+# Suffixes that make a dotted token a hostname in code and config files, and
+# in code spans and fences in Markdown. In Markdown prose they count too,
+# alongside every suffix in tools/iana-tlds.txt and [tld-private-use] below.
 #
-# Without this, `fs.readFileSync`, `os.path` and `h1.page` all read as domains
-# and the scanner reports several hundred findings per run — which is how a
-# check gets switched off. A token is only tested against [domain] when its
-# final label appears here.
-#
-# Deliberately a short list of suffixes plausible in this estate, not the full
-# IANA set. A leaked hostname under an exotic TLD would be missed; that is the
-# accepted cost of a check people will actually leave enabled. Add suffixes as
-# they become relevant.
+# In code, `fs.readFileSync`, `os.path` and `h1.page` would all read as domains
+# against a long list: every IANA suffix there gave 81 findings in this
+# repository's code on 2026-10-09, all identifiers. So code keeps this short
+# list of suffixes plausible in this estate. The accepted cost: a hostname on
+# another suffix, written in code, is missed.
 # ---------------------------------------------------------------------------
 [tld]
 com
@@ -99,17 +97,16 @@ invalid
 
 # ---------------------------------------------------------------------------
 # Suffixes that are simultaneously real TLDs and common file extensions or
-# identifiers: verify-stack.sh, .env.example, Path.home, main.dev.
+# identifiers in code: verify-stack.sh, .env.example, Path.home, main.dev.
 #
-# Treating these as hostnames unconditionally produced five false positives on
-# the first run of this scanner and would produce more in any repository with
-# code in it. They are still checked — but only in URL context, where a `://`
-# or `@` makes the intent unambiguous. A bare `something.sh` in prose is read
-# as a filename.
+# In code and config files these count only in URL context, where a `://` or
+# `@` makes the intent unambiguous. Treating them as hostnames unconditionally
+# produced five false positives on the first run of this scanner. Prose has
+# its own, shorter list below; `home` here governs code only, and prose counts
+# it as private-use.
 #
-# The cost: a leaked hostname under one of these suffixes, written without a
-# scheme, is missed. Accepted, because the alternative is a check that reports
-# noise and therefore gets ignored.
+# The cost: in code, a leaked hostname under one of these suffixes, written
+# without a scheme, is missed.
 # ---------------------------------------------------------------------------
 [tld-url-context-only]
 sh
@@ -127,6 +124,49 @@ xyz
 home
 test
 example
+
+# ---------------------------------------------------------------------------
+# Private-use names, counted as hostnames everywhere in Markdown prose.
+#
+# None is delegated by IANA, so tools/iana-tlds.txt can never supply them, and
+# they are the suffixes a home network actually uses. Kept here by hand, never
+# demoted to URL context.
+# ---------------------------------------------------------------------------
+[tld-private-use]
+home
+corp
+lan
+local
+internal
+localdomain
+private
+intranet
+
+# ---------------------------------------------------------------------------
+# Delegated suffixes that collide with a common file extension. In Markdown
+# prose these count only inside a URL, so `README.md` or `build.sh` in a
+# sentence is read as a filename.
+#
+# The criterion is the collision, not taste. Counting them bare reported 93
+# filenames in this repository's prose on 2026-10-09. The cost: a host on one of these
+# suffixes, written in prose without a scheme, is missed. The list was checked
+# against the maintainer's own domains: no overlap.
+# ---------------------------------------------------------------------------
+[tld-prose-url-only]
+cc
+java
+md
+mm
+mov
+pl
+pm
+ps
+py
+rs
+sh
+so
+tf
+zip
 
 # ---------------------------------------------------------------------------
 # Domains that may be written.
@@ -169,6 +209,7 @@ vale.sh
 squidfunk.github.io
 llmstxt.org
 agents.md
+data.iana.org         # the suffix list tools/update-tlds.py fetches
 
 # Package registries. The generator survey records where each version and
 # release date was read from, because an earlier pass took a date from a

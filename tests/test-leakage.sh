@@ -107,7 +107,8 @@ echo "a vendored copy scans the consuming repository, and skips only the fixture
 consumer="$work/consumer"
 mkdir -p "$consumer/.standards/tools" "$consumer/notes/tests/fixtures-old" \
   "$consumer/tests/fixtures/leakage"
-cp "$checker" "$root/tools/allowlist.txt" "$consumer/.standards/tools/"
+cp "$checker" "$root/tools/allowlist.txt" "$root/tools/iana-tlds.txt" \
+  "$consumer/.standards/tools/"
 cp "$fixtures/leaks.md" "$consumer/probe.md"
 cp "$fixtures/leaks.md" "$consumer/notes/tests/fixtures-old/probe.md"
 cp "$fixtures/leaks.md" "$consumer/tests/fixtures/leakage/probe.md"
@@ -135,6 +136,19 @@ elif findings <"$work/consumer.out" | grep -v -e '^probe\.md:' -e '^notes/' | gr
   status=1
 else
   echo "  ok"
+fi
+
+# The prose check reads IANA's suffix list from beside the scanner. Without it
+# the scan must stop, not fall back to the short list and report clean.
+echo "a missing suffix list is an error"
+rm "$consumer/.standards/tools/iana-tlds.txt"
+rc=0
+(cd "$consumer" && python3 .standards/tools/check-leakage.py) >/dev/null 2>&1 || rc=$?
+if [[ $rc -eq 2 ]]; then
+  echo "  ok"
+else
+  echo "  FAIL: expected exit 2, got $rc"
+  status=1
 fi
 
 echo "outside a git repository, with no paths, the scan is an error"
