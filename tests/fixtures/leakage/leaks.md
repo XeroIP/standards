@@ -11,7 +11,7 @@ A host inside a real private range: 192.168.99.99
 A domain that is not on the allowlist: notarealdomain.net
 A domain registered after the allowlist was written: somelab.io
 An internal hostname: somehost.internal
-A credential shape: ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+A credential shape: ghp_FAKE0fake1FAKE2fake3FAKE4fake5FAKE6f
 An ambiguous suffix in URL context: https://notreal.dev/path
 A range outside every permitted block: 198.18.0.0/15
 A host written with its subnet: 192.168.99.99/24

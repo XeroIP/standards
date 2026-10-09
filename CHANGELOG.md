@@ -42,6 +42,18 @@ behaviour.
   Code and config files, and code spans and fences, keep the short list. An identifier
   written bare in prose on a delegated suffix, such as `h1.page`, is now reported: put it in
   a code span.
+- **gitleaks finds a config in every consuming repository.** `secret-scan.yml` named the
+  repository's root `.gitleaks.toml` unconditionally, and the sync never wrote one, so a
+  freshly synced repository failed gitleaks on a missing file and the leakage scan was
+  skipped behind it. The sync now writes `.standards/.gitleaks.toml`, and the workflow uses
+  the root file, then that copy, then gitleaks' default rules. The copy has the same rules
+  and none of this repository's path exclusions. A consumer that needs an exclusion writes
+  its own root `.gitleaks.toml`, which the workflow prefers.
+- **CI and the pre-commit hook run one gitleaks release, 8.30.0.** The action chose its own
+  default (8.24.3) while the hook pinned 8.30.0. The hook is now pinned to the release's
+  commit rather than its tag.
+- **The fixture exclusion in `.gitleaks.toml` is anchored at the repository root.** Unanchored,
+  it also excluded any path that contained `tests/fixtures/leakage/`.
 
 ### Added
 

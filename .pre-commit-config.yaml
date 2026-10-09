@@ -31,7 +31,10 @@ repos:
         pass_filenames: false
         files: ^(AGENTS\.md|CLAUDE\.md|\.github/copilot-instructions\.md)$
 
+  # Pinned to the release's commit, not its tag: a tag can be moved, and this
+  # repository refuses to trust a mutable ref for the same reason
+  # policy-pinned-actions.yml exists. secret-scan.yml runs the same release.
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.30.0
+    rev: 6eaad039603a4de39fddd1cf5f727391efe9974e  # frozen: v8.30.0
     hooks:
       - id: gitleaks
