@@ -38,6 +38,10 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/update-tlds.py | tee fetch.txt
+          # A new suffix can change the gap counts in check-leakage.py's
+          # docstring, which self-check holds to the tree. Rewrite them here so
+          # the pull request carries both.
+          python3 tools/build-leakage-gaps.py
           if git diff --quiet -- tools/iana-tlds.txt; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
           else
@@ -64,6 +68,7 @@ jobs:
             echo "| --- | --- |"
           } > body.md
           for check in "python3 tools/update-tlds.py --check" \
+                       "python3 tools/build-leakage-gaps.py --check" \
                        "bash tests/test-leakage.sh" \
                        "python3 tools/check-leakage.py"; do
             $check > out.txt 2>&1
@@ -80,7 +85,9 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           branch: chore/refresh-iana-suffixes
-          add-paths: tools/iana-tlds.txt
+          add-paths: |
+            tools/iana-tlds.txt
+            tools/check-leakage.py
           title: 'chore: refresh the IANA suffix list'
           body-path: body.md
           commit-message: |

@@ -54,9 +54,21 @@ behaviour.
   commit rather than its tag.
 - **The fixture exclusion in `.gitleaks.toml` is anchored at the repository root.** Unanchored,
   it also excluded any path that contained `tests/fixtures/leakage/`.
+- **A consuming repository's own fixture directories are scanned.** The vendored leakage
+  scanner applied this repository's fixture skip to a consumer's `tests/fixtures/leakage/`
+  and `tests/fixtures/allowlist-extra/`, directories nobody here reviews. The skip now applies
+  only in the repository the scanner ships in.
+- **In prose, an `@` before a host marks it again, except before `.md`.** Requiring a user
+  part for every `@` stopped a bare `@` before a host on `.sh` being reported. Only `.md`, the
+  suffix agent-file imports use, needs a user part now.
+- **A finding in Markdown prose says it may be a missing code span.** An identifier such as
+  `h1.page` written outside backticks is reported as a domain, and the message now names that
+  cause.
 
 ### Added
 
+- `tools/build-leakage-gaps.py`, which measures the counts behind the scanner's accepted gaps
+  and writes them into its docstring. `self-check.yml` fails when they drift from the tree.
 - `tools/iana-tlds.txt`, IANA's list of delegated suffixes, fetched by `tools/update-tlds.py`.
   `refresh-tld-list.yml` refreshes it weekly and opens a pull request when the set changes,
   with the leakage checks' results in its body.

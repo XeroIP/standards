@@ -30,18 +30,31 @@ or `.home`. In code and config files, and in code spans and fences, only the
 short `[tld]` list counts, because there a dotted word is usually an
 identifier.
 
-Two gaps are accepted, each for a stated reason:
+That split couples this scanner to Markdown style. An identifier written in
+prose without a code span, such as `h1.page`, ends in a delegated suffix and is
+reported here as a domain, although the defect is the missing code span, which
+is markdownlint's concern. A prose finding says so: put the identifier in a
+code span and this gate stops complaining.
+
+Three gaps are accepted, each for a stated reason. The two counts below are
+measured over the standards repository's tracked files and rewritten by
+`tools/build-leakage-gaps.py`. CI fails when they no longer match the tree.
 
 - A host on one of the suffixes that are also common file extensions (`.md`,
-  `.py`, `.sh` and the rest of `[tld-prose-url-only]`) is reported in prose
-  only inside a URL. Counting them bare reported 93 filenames in this
-  repository's prose (measured 2026-10-09), and a gate that reports every
-  filename stops being read.
-  The list was checked against the maintainer's own domains: no overlap.
+  `.py`, `.sh` and the rest of `[tld-prose-url-only]`) counts in prose only
+  inside a URL or after an `@`, and for `.md` only after a user part, so an
+  agent-file import such as `@STATUS.md` is not a host. Counted bare, these
+  suffixes reported 93 filenames in prose, and a gate that reports every
+  filename stops being read. The list was checked against the maintainer's own
+  domains: no overlap.
 - A host on an unusual suffix written in code, or in a code span or fence, is
-  not reported. Counting every suffix there gave 81 findings in this
-  repository's code (measured 2026-10-09), every one false: identifiers such
-  as `m.group` and `obj.id`.
+  not reported. Counting every suffix there gives 94 findings in code. When
+  first measured (2026-10-09, #41), every one was an identifier such as
+  `m.group` or `obj.id`.
+- An illustrative subnet inside a real private block, such as a /24 inside
+  `192.168.0.0/16`, is reported. A block passes only when `[ip-cidr]` lists it
+  exactly or it sits inside a documentation range, so an example network uses
+  one of those ranges or is allowlisted by name.
 
 Usage:
     python3 tools/check-leakage.py                  scan tracked files
@@ -114,7 +127,20 @@ SKIP_NAMES = {"package-lock.json"}
 # are reviewed on the same terms as anything else in a public repository. Each
 # entry is a directory relative to the repository root, matched as a path
 # prefix: `notes/tests/fixtures-old/` is scanned.
+#
+# The skip applies in the repository this file ships in and nowhere else. The
+# review that warrants it covers these fixtures, not a directory of the same
+# name in a consuming repository, so a vendored copy reads a consumer's own
+# tests/fixtures/leakage/ like any other directory.
 SKIP_DIRS = {"tests/fixtures/leakage", "tests/fixtures/allowlist-extra"}
+
+# Agent files import Markdown with `@path`, as in `@STATUS.md`. For these
+# suffixes an `@` in prose marks a host only after a user part, as an address
+# has one. Every other suffix keeps the plain `@`, which still marks a host.
+IMPORT_SUFFIXES = frozenset({"md"})
+
+PROSE_FINDING = ("domain not in [domain], in Markdown prose (an identifier, not a "
+                 "host? put it in a code span)")
 
 
 def load_allowlist(path: Path) -> dict[str, list[str]]:
@@ -217,23 +243,51 @@ def looks_like_ipv6(token: str) -> bool:
 
 
 def domain_findings(text: str, bare: set[str], url_only: set[str],
-                    allowed: list[str], url_mark: str = r"(?://|@)") -> list[str]:
+                    allowed: list[str], user_at: frozenset = frozenset()) -> list[str]:
     """The hostnames in text that are not allowlisted. A dotted word is only a
-    hostname when its last label is in bare, or in url_only with url_mark (a
-    `://` or `@`) before it. Everything else is an identifier: fs.readFileSync,
-    os.path."""
+    hostname when its last label is in bare, or in url_only with a `://` or `@`
+    before it; for a suffix in user_at, the `@` must follow a user part.
+    Everything else is an identifier: fs.readFileSync, os.path."""
     out = []
     for host in FQDN_RE.findall(text):
         low = host.lower()
         suffix = low.rsplit(".", 1)[-1]
         if suffix in url_only:
-            if not re.search(url_mark + re.escape(host), text, re.I):
+            mark = r"(?://|\w@)" if suffix in user_at else r"(?://|@)"
+            if not re.search(mark + re.escape(host), text, re.I):
                 continue
         elif suffix not in bare:
             continue
         if not domain_allowed(low, allowed):
             out.append(host)
     return out
+
+
+def prose_suffixes(allow: dict[str, list[str]]) -> tuple[set[str], set[str]]:
+    """(bare, url_only) for Markdown prose: every delegated suffix and the
+    private-use names, less those that are also file extensions, which need a
+    URL or an address around them."""
+    tlds = {t.lower() for t in allow["tld"]}
+    tlds_url_only = {t.lower() for t in allow["tld-url-context-only"]}
+    collide = {t.lower() for t in allow["tld-prose-url-only"]}
+    bare = (load_iana(IANA_TLDS) | tlds
+            | {t.lower() for t in allow["tld-private-use"]}) - collide
+    return bare, collide | (tlds_url_only - bare)
+
+
+def skipped(path: Path, root: Path | None, explicit: bool, allowlist: Path) -> bool:
+    """Whether the scan leaves this file unread."""
+    if path.suffix.lower() in SKIP_SUFFIXES or path.name in SKIP_NAMES:
+        return True
+    # A vendored copy lives under a consumer's .standards/, so its SCRIPT_ROOT
+    # is not the root it scans, and SKIP_DIRS does not apply there.
+    if not explicit and root is not None and root.resolve() == SCRIPT_ROOT:
+        rel = path.relative_to(root).as_posix()
+        if any(rel == d or rel.startswith(d + "/") for d in SKIP_DIRS):
+            return True
+    # The allowlist necessarily contains every allowed value; scanning it
+    # against itself proves nothing and reports everything.
+    return path.resolve() == allowlist.resolve()
 
 
 def ip_finding(written: str, prefix: str, cidr_ok: list, host_ok: list) -> str | None:
@@ -296,12 +350,7 @@ def main() -> int:
     host_ok = [ipaddress.ip_network(c, strict=False) for c in allow["ip-host"]]
     tlds = {t.lower() for t in allow["tld"]}
     tlds_url_only = {t.lower() for t in allow["tld-url-context-only"]}
-    # Prose: every delegated suffix and the private-use names, less those that
-    # are also file extensions, which need a URL around them.
-    prose_url_only = {t.lower() for t in allow["tld-prose-url-only"]}
-    prose_bare = (load_iana(IANA_TLDS) | tlds
-                  | {t.lower() for t in allow["tld-private-use"]}) - prose_url_only
-    prose_url = prose_url_only | (tlds_url_only - prose_bare)
+    prose_bare, prose_url = prose_suffixes(allow)
     domain_ok = [d.lower().rstrip(".") for d in allow["domain"]]
     cred_res = [re.compile(p) for p in allow["credential-pattern"]]
     private_res = [re.compile(p) for p in private]
@@ -316,15 +365,7 @@ def main() -> int:
     scanned = 0
 
     for path in files:
-        if path.suffix.lower() in SKIP_SUFFIXES or path.name in SKIP_NAMES:
-            continue
-        if not args.paths:
-            rel = path.relative_to(root).as_posix()
-            if any(rel == d or rel.startswith(d + "/") for d in SKIP_DIRS):
-                continue
-        # The allowlist necessarily contains every allowed value; scanning it
-        # against itself proves nothing and reports everything.
-        if path.resolve() == args.allowlist.resolve():
+        if skipped(path, root, bool(args.paths), args.allowlist):
             continue
         try:
             text = path.read_text(encoding="utf-8")
@@ -340,12 +381,10 @@ def main() -> int:
 
         for lineno, prose, code in parts:
             line = lines[lineno - 1]
-            # In prose an `@` marks a host only after a user part, as in an
-            # address: `@STATUS.md` is an agent-file import, not a host.
-            hosts = (domain_findings(prose, prose_bare, prose_url, domain_ok,
-                                     r"(?://|\w@)")
-                     + domain_findings(code, tlds, tlds_url_only, domain_ok))
-            for host in hosts:
+            for host in domain_findings(prose, prose_bare, prose_url, domain_ok,
+                                        IMPORT_SUFFIXES):
+                findings.append((path, lineno, host, PROSE_FINDING))
+            for host in domain_findings(code, tlds, tlds_url_only, domain_ok):
                 findings.append((path, lineno, host, "domain not in [domain]"))
 
             candidates = IPV4_RE.findall(line) + [

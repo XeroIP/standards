@@ -49,6 +49,7 @@ Never edit these by hand. Change the source, run the generator:
 | `.vale.ini`, `styles/XeroIP/*.yml` | `docs/prose/rules.yml` | `tools/build-vale.js` |
 | `llms.txt` | the `docs/` tree | `tools/build-llms-txt.js` |
 | `docs/design/adapters/*.css` | `docs/design/tokens.json` | `docs/design/build-adapters.js` |
+| the gap counts in `tools/check-leakage.py`'s docstring | the tracked tree | `tools/build-leakage-gaps.py` |
 
 CI re-runs every generator and fails if the result differs from what is committed. That check
 is the only thing keeping a derived file honest.
