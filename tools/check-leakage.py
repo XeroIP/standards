@@ -17,6 +17,11 @@ shape (a project codename, a service nickname). It is additive: the public
 allowlist stands alone, so a fresh clone with no supplement still gets real
 protection.
 
+The repository scanned is the one the command runs in, not the one this file
+lives in. A consuming repository runs a vendored copy at
+`.standards/tools/check-leakage.py`; resolving the scan from the script's own
+location read only `.standards/` and never the consumer's files.
+
 Usage:
     python3 tools/check-leakage.py                  scan tracked files
     python3 tools/check-leakage.py --paths a.md b.md
@@ -33,8 +38,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
-ALLOWLIST = ROOT / "tools" / "allowlist.txt"
+# Where this file and its allowlist live: the standards repo, or a consumer's
+# `.standards/`. Not what gets scanned; see repo_root().
+SCRIPT_ROOT = Path(__file__).resolve().parent.parent
+ALLOWLIST = SCRIPT_ROOT / "tools" / "allowlist.txt"
 
 # Default location for the optional private supplement. Absent by default.
 PRIVATE_DEFAULT = Path(
@@ -50,6 +57,16 @@ IPV4_RE = re.compile(
     r"\b((?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d))"
     r"(/(?:3[0-2]|[12]?\d))?\b"
 )
+
+# A run of hex groups and colons, validated by ipaddress afterwards. The
+# boundaries exclude a dot so `::ffff:192.0.2.1` is left to the IPv4 pattern.
+IPV6_RE = re.compile(
+    r"(?<![\w:.])((?:[0-9a-f]{0,4}:){2,7}[0-9a-f]{0,4})"
+    r"(/(?:12[0-8]|1[01]\d|[1-9]?\d))?(?![\w:.])", re.IGNORECASE
+)
+
+HOST_FINDING = ("host address outside the documentation ranges (RFC 5737: "
+                "192.0.2.0/24, 198.51.100.0/24, 203.0.113.0/24; RFC 3849: 2001:db8::/32)")
 
 # Requires a dot and a plausible TLD, so bare words and file names do not match.
 FQDN_RE = re.compile(
@@ -67,8 +84,10 @@ SKIP_NAMES = {"package-lock.json"}
 #
 # The values inside them are fictional. Excluding a path from a leak scanner is
 # how a real leak hides, so this exclusion is narrow, named, and the fixtures
-# are reviewed on the same terms as anything else in a public repository.
-SKIP_DIRS = {"tests/fixtures"}
+# are reviewed on the same terms as anything else in a public repository. Each
+# entry is a directory relative to the repository root, matched as a path
+# prefix: `notes/tests/fixtures-old/` is scanned.
+SKIP_DIRS = {"tests/fixtures/leakage", "tests/fixtures/allowlist-extra"}
 
 
 def load_allowlist(path: Path) -> dict[str, list[str]]:
@@ -107,20 +126,61 @@ def load_private(path: Path) -> list[str]:
     return out
 
 
-def tracked_files() -> list[Path]:
+def repo_root() -> Path | None:
+    """The repository the command runs in, or None outside one."""
     result = subprocess.run(
-        ["git", "-C", str(ROOT), "ls-files"],
+        ["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True,
+    )
+    return Path(result.stdout.strip()) if result.returncode == 0 else None
+
+
+def tracked_files(root: Path) -> list[Path]:
+    result = subprocess.run(
+        ["git", "-C", str(root), "ls-files"],
         capture_output=True, text=True, check=True,
     )
-    return [ROOT / p for p in result.stdout.splitlines() if p]
+    return [root / p for p in result.stdout.splitlines() if p]
 
 
-def registrable(host: str) -> str:
-    """The last two labels, used to allow a whole domain rather than every
-    subdomain of it. Deliberately naive — no public-suffix list — because the
-    failure mode is over-reporting, which is the safe direction here."""
-    parts = host.lower().rstrip(".").split(".")
-    return ".".join(parts[-2:]) if len(parts) >= 2 else host.lower()
+def domain_allowed(host: str, allowed: list[str]) -> bool:
+    """An allowlisted domain permits itself and its own subdomains, never its
+    siblings. Listing `xeroip.github.io` must not permit every other site on the
+    same shared host. The rule this replaced allowed an entry's last two labels,
+    so one host under a shared suffix opened the whole suffix."""
+    return any(host == d or host.endswith("." + d) for d in allowed)
+
+
+def looks_like_ipv6(token: str) -> bool:
+    """ipaddress accepts a Python slice (`0::2`) and a hex word pair (`Add::Dec`)
+    as IPv6. A written address has a digit, and either three groups or one group
+    of three or more digits, as `2001:db8::10` has both."""
+    groups = [g for g in token.split(":") if g]
+    return (any(c.isdigit() for c in token)
+            and (len(groups) >= 3 or any(len(g) >= 3 for g in groups)))
+
+
+def ip_finding(written: str, prefix: str, cidr_ok: list, host_ok: list) -> str | None:
+    """Why an address or CIDR may not be written, or None if it may.
+
+    A host is permitted inside [ip-host]. A block is permitted when [ip-cidr]
+    lists it exactly, or when it sits inside [ip-host], whose every address may
+    be written anyway. A subnet of a private block is not the block:
+    `192.168.0.0/16` says "a private network", and a /24 inside it names the one
+    in use. So does an address written with its prefix, or a single-address
+    block such as a /32: each is a host, and is checked as one.
+    The rule this replaced tested containment in [ip-cidr], so a listed
+    `0.0.0.0/0` permitted every CIDR there is."""
+    addr = ipaddress.ip_address(written)
+    in_hosts = any(addr in ok for ok in host_ok)
+    if not prefix:
+        return None if in_hosts else HOST_FINDING
+    net = ipaddress.ip_network(f"{written}{prefix}", strict=False)
+    if addr != net.network_address or net.num_addresses == 1:
+        return None if in_hosts else HOST_FINDING
+    if net in cidr_ok or any(net.version == ok.version and net.subnet_of(ok)
+                             for ok in host_ok):
+        return None
+    return "CIDR not in [ip-cidr]"
 
 
 def main() -> int:
@@ -159,20 +219,26 @@ def main() -> int:
     host_ok = [ipaddress.ip_network(c, strict=False) for c in allow["ip-host"]]
     tlds = {t.lower() for t in allow["tld"]}
     tlds_url_only = {t.lower() for t in allow["tld-url-context-only"]}
-    domain_ok = {d.lower() for d in allow["domain"]}
-    domain_ok |= {registrable(d) for d in allow["domain"]}
+    domain_ok = [d.lower().rstrip(".") for d in allow["domain"]]
     cred_res = [re.compile(p) for p in allow["credential-pattern"]]
     private_res = [re.compile(p) for p in private]
 
-    files = args.paths if args.paths else tracked_files()
+    root = repo_root()
+    if root is None and not args.paths:
+        print("error: not inside a git repository. Run from the repository to scan, "
+              "or pass --paths.", file=sys.stderr)
+        return 2
+    files = args.paths if args.paths else tracked_files(root)
     findings: list[tuple[Path, int, str, str]] = []
     scanned = 0
 
     for path in files:
         if path.suffix.lower() in SKIP_SUFFIXES or path.name in SKIP_NAMES:
             continue
-        if not args.paths and any(d in str(path).replace("\\", "/") for d in SKIP_DIRS):
-            continue
+        if not args.paths:
+            rel = path.relative_to(root).as_posix()
+            if any(rel == d or rel.startswith(d + "/") for d in SKIP_DIRS):
+                continue
         # The allowlist necessarily contains every allowed value; scanning it
         # against itself proves nothing and reports everything.
         if path.resolve() == args.allowlist.resolve():
@@ -184,21 +250,15 @@ def main() -> int:
         scanned += 1
 
         for lineno, line in enumerate(text.splitlines(), 1):
-            for match, prefix in IPV4_RE.findall(line):
+            candidates = IPV4_RE.findall(line) + [
+                (m, p) for m, p in IPV6_RE.findall(line) if looks_like_ipv6(m)]
+            for match, prefix in candidates:
                 try:
-                    addr = ipaddress.ip_address(match)
+                    why = ip_finding(match, prefix, cidr_ok, host_ok)
                 except ValueError:
                     continue
-                if prefix:
-                    net = ipaddress.ip_network(f"{match}{prefix}", strict=False)
-                    if not any(net.subnet_of(ok) for ok in cidr_ok):
-                        findings.append((path, lineno, f"{match}{prefix}",
-                                         "CIDR not in [ip-cidr]"))
-                elif not any(addr in ok for ok in host_ok):
-                    findings.append((path, lineno, match,
-                                     "host address outside the documentation ranges "
-                                     "(RFC 5737: 192.0.2.0/24, 198.51.100.0/24, "
-                                     "203.0.113.0/24)"))
+                if why:
+                    findings.append((path, lineno, f"{match}{prefix}", why))
 
             for host in FQDN_RE.findall(line):
                 low = host.lower()
@@ -212,7 +272,7 @@ def main() -> int:
                         continue
                 elif suffix not in tlds:
                     continue
-                if low in domain_ok or registrable(low) in domain_ok:
+                if domain_allowed(low, domain_ok):
                     continue
                 findings.append((path, lineno, host, "domain not in [domain]"))
 
@@ -228,7 +288,7 @@ def main() -> int:
         # --paths may point outside the repository (fixtures, ad-hoc checks), so
         # relative_to would raise. Report whatever form is readable.
         try:
-            rel = path.relative_to(ROOT)
+            rel = path.resolve().relative_to(root) if root else path
         except ValueError:
             rel = path
         print(f"{rel}:{lineno}: {value}  — {why}")
@@ -237,7 +297,7 @@ def main() -> int:
         print(f"\n{len(findings)} finding(s) in {scanned} file(s).\n")
         print("This repository is public. Use a placeholder instead:")
         print("  domains   example.internal, example.com")
-        print("  addresses 192.0.2.10 (TEST-NET-1), or a CIDR when a range is meant")
+        print("  addresses 192.0.2.10 (TEST-NET-1) or 2001:db8::10, or a listed CIDR")
         print("  services  service-a, service-b")
         print("\nIf the value is legitimately public — a third party you link to —")
         print("add it to tools/allowlist.txt with a comment saying why.")

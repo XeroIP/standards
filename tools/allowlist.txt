@@ -17,11 +17,16 @@
 # tools/check-leakage.py reads this file.
 
 # ---------------------------------------------------------------------------
-# Network blocks that may be written as a CIDR.
+# Network blocks that may be written as a CIDR, each exactly as listed.
 #
 # A CIDR names a range, not a host, so writing 192.168.0.0/16 to mean "an
-# RFC1918 network" reveals nothing. Writing 192.168.1.21 names a machine.
-# Host addresses are governed by [ip-host] below and are far stricter.
+# RFC1918 network" reveals nothing. A /24 inside it names the network in use,
+# so a subnet of a block here is a finding. Subnets of the documentation
+# ranges in [ip-host] are the exception: every address in them may be written
+# anyway, so any block inside them may be too.
+#
+# An address written with its prefix, or a /32, names a machine and is checked
+# against [ip-host], which is far stricter.
 # ---------------------------------------------------------------------------
 [ip-cidr]
 10.0.0.0/8
@@ -32,15 +37,20 @@
 203.0.113.0/24
 100.64.0.0/10
 169.254.0.0/16
-0.0.0.0/0
+0.0.0.0/0             # the default route
+fc00::/7              # unique local, the IPv6 counterpart of the private blocks
+fd00::/8              # the locally assigned half of fc00::/7, the form usually written
+fe80::/10             # link-local
+fe80::/64             # the link-local prefix every interface uses
+::/0                  # the IPv6 default route
 
 # ---------------------------------------------------------------------------
 # Individual addresses that may be written.
 #
 # RFC 5737 reserves three ranges specifically so that documentation can use
-# concrete addresses without naming anything real. Use those for examples that
-# need a host. Everything else — including any address inside a real RFC1918
-# range — is a finding.
+# concrete addresses without naming anything real, and RFC 3849 reserves one
+# for IPv6. Use those for examples that need a host. Everything else —
+# including any address inside a real RFC1918 range — is a finding.
 # ---------------------------------------------------------------------------
 [ip-host]
 192.0.2.0/24          # TEST-NET-1, RFC 5737
@@ -49,6 +59,9 @@
 127.0.0.0/8           # loopback
 0.0.0.0/32            # unspecified
 255.255.255.255/32    # broadcast
+2001:db8::/32         # IPv6 documentation, RFC 3849
+::1/128               # IPv6 loopback
+::/128                # IPv6 unspecified
 
 # ---------------------------------------------------------------------------
 # Suffixes that make a dotted token a hostname rather than an identifier.
