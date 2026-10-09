@@ -12,7 +12,27 @@ behaviour.
 
 ## [Unreleased]
 
-Nothing yet.
+### Changed
+
+- **The leakage scan reads the repository it runs in.** The vendored copy at
+  `.standards/tools/check-leakage.py` found the repository from its own location, so in a
+  consuming repository it listed only `.standards/` and passed every file beside it. Outside
+  a git repository it now exits 2 unless given `--paths`. A public consumer's next scan reads
+  its own files for the first time, so expect findings there.
+- **An allowlisted domain permits itself and its subdomains, not its siblings.** Matching
+  compared the last two labels, so listing one host under a shared suffix permitted every
+  other host under it: any Pages site, storage bucket or CDN host. The allowlist entries were
+  already host-specific; only the matching changed.
+- **A CIDR must match an `[ip-cidr]` block exactly, or sit inside a documentation range.**
+  Containment against a list holding `0.0.0.0/0` permitted every CIDR, and a /24 inside a
+  private block passed as its parent. An address written with a prefix, or as a /32, is now
+  checked as a host against `[ip-host]`.
+- **IPv6 addresses are detected.** No pattern matched them before. The RFC 3849
+  documentation range, loopback and the unspecified address may be written as hosts;
+  unique-local, link-local and `::/0` as blocks.
+- **The fixture exclusion is a path prefix naming the two leakage fixture directories.** A
+  substring match skipped any path containing `tests/fixtures`, including a consumer's own
+  fixtures and a directory such as `notes/tests/fixtures-old/`.
 
 ## [0.1.0] — 2026-09-16
 

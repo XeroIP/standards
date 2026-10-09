@@ -13,3 +13,8 @@ A domain registered after the allowlist was written: somelab.io
 An internal hostname: somehost.internal
 A credential shape: ghp_aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
 An ambiguous suffix in URL context: https://notreal.dev/path
+A range outside every permitted block: 198.18.0.0/15
+A host written with its subnet: 192.168.99.99/24
+A host written as a one-address block: 192.168.99.99/32
+A subnet inside a private block: 192.168.99.0/24
+A host on a private IPv6 network: fd12:3456:789a::99
