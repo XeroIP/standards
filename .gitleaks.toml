@@ -12,16 +12,21 @@ description = "Test fixtures that must contain leak-shaped values to be useful"
 # tests/fixtures/leakage/leaks.md exists so the failure path of
 # tools/check-leakage.py is exercised rather than assumed — a guard that has
 # only ever passed is not a verified guard. It therefore contains a token-shaped
-# string on purpose, and gitleaks correctly flagged it.
+# string on purpose, and gitleaks correctly flagged it. tests/test-gitleaks.sh
+# keeps that true: it runs gitleaks' default rules on the fixture and expects a
+# finding. The token is varied and spells FAKE, because a run of one repeated
+# character falls under gitleaks' entropy floor and was never flagged at all.
 #
 # The values inside are fictional and were written to be shaped rather than
 # real. Excluding a path from a secret scanner is exactly how a real secret
 # hides, so this exclusion is narrow, points at one directory, and that
 # directory is reviewed on the same terms as anything else in a public
-# repository.
+# repository. The pattern is anchored at the repository root: without the `^`
+# it also excluded any path that merely contained it, such as
+# notes/tests/fixtures/leakage/.
 #
 # tools/check-leakage.py excludes the same directory, for the same reason, in
 # its SKIP_DIRS.
 paths = [
-  '''tests/fixtures/leakage/.*''',
+  '''^tests/fixtures/leakage/''',
 ]

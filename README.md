@@ -90,11 +90,11 @@ alerts on that. A GitHub App installation has neither problem and is the right m
 more than a couple of repositories are listed.
 
 **The gate runs that vendored copy.** `.standards/` carries the enforcers — `tools/`,
-`styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc` — from the same commit as the rules, and
-`docs-ci.yml` never fetches this repository. Vendoring the rules while fetching the enforcer
-from a mutable ref meant a repo could be failed by rules that differed from the ones in its own
-tree; shipping both together removes that by construction. It also means the gate runs
-locally:
+`styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc`, `.gitleaks.toml` — from the same commit as
+the rules, and `docs-ci.yml` never fetches this repository. Vendoring the rules while fetching
+the enforcer from a mutable ref meant a repo could be failed by rules that differed from the
+ones in its own tree; shipping both together removes that by construction. It also means the
+gate runs locally:
 
 ```bash
 python3 .standards/tools/check-docs.py docs

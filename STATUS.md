@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-09T05:20:33+00:00
+updated: 2026-10-09T15:28:13+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -13,28 +13,24 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Done recently
 
-- All four stage 3 design choices are ruled, and the claim sweep was re-run at the head
-  before the first fix: nothing unexplained.
-- Stage 2 is complete and the owner actions are all done.
-- Building the first fix found three more ways the leakage scanner passed values it
-  should report: any CIDR, a host written with its prefix, and every IPv6 address. They
-  are fixed in that same pull request. The audit notes now grade 182 claims.
+- PR 1 (#40, leakage scanner) and PR 2 (#41, every IANA suffix in prose) are merged.
+- Issues #43-#46 are filed: incident tables, profile and stack gates,
+  `standards_version` pin semantics, and the site build.
+- The owner reviewed PRs 1-3 by diff and ruled on seven points. Rulings 1-6 accepted,
+  some with conditions; ruling 7 rejected the gitleaks exclusion travelling to consumers.
 
 ## In progress / broken
 
-- PR 1 (#40), the leakage scanner fixes: repository scope for vendored copies, exact
-  domain matching, a path-prefix fixture exclusion, exact CIDR blocks, and IPv6. Waiting
-  on CI and review.
-- PR 2, on `fix/leakage-scanner-every-suffix`, is stacked on PR 1: Markdown prose counts
-  every IANA suffix and the private-use names, from `tools/iana-tlds.txt`, refreshed weekly
-  by `.github/workflows/refresh-tld-list.yml`. Retarget it to main once #40 merges.
+- PR 3 (#42): the sync now writes consumers a gitleaks config with this repository's
+  rules and none of its path exclusions. Merge once CI is green.
 - The audit notes stay outside the repository until the last fix lands.
 
 ## Next step
 
-Open PR 3 from main: vendor `.gitleaks.toml` through `tools/sync-standards.py`, make
-`.github/workflows/secret-scan.yml` fall back to it, and pin gitleaks to one version in CI
-and in `.pre-commit-config.yaml`.
+Open the follow-up to #41 from main. It carries the owner's conditions on rulings 1 and 3-6
+in `tools/check-leakage.py`, `tools/update-tlds.py` and the tests. It also restores
+`@host.sh` in prose and stops the vendored scanner skipping a consumer's own fixture
+directories. Then PR 4.
 
 ## Blockers / waiting on
 

@@ -81,6 +81,28 @@ jobs:
       - name: IANA suffix list is well-formed
         run: python3 tools/update-tlds.py --check
 
+  # The gitleaks configuration's own test; secret-scan.yml runs the scan
+  # itself. The release is the one secret-scan.yml and the pre-commit hook pin,
+  # installed from its release tarball and checked against a recorded checksum
+  # rather than trusted by tag.
+  gitleaks-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install gitleaks 8.30.0
+        run: |
+          set -euo pipefail
+          curl -sSfL -o "$RUNNER_TEMP/gitleaks.tgz" \
+            https://github.com/gitleaks/gitleaks/releases/download/v8.30.0/gitleaks_8.30.0_linux_x64.tar.gz
+          echo "79a3ab579b53f71efd634f3aaf7e04a0fa0cf206b7ed434638d1547a2470a66e  $RUNNER_TEMP/gitleaks.tgz" \
+            | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$RUNNER_TEMP" gitleaks
+          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
+
+      - name: gitleaks flags the fixture, and the config excludes only its directory
+        run: bash tests/test-gitleaks.sh
+
   links:
     # External links break for reasons unrelated to the change under review, so
     # this runs on a schedule and on docs changes — never as a gate on an

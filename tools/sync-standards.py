@@ -60,6 +60,10 @@ VENDORED = [
     ("styles", "styles"),
     (".vale.ini", ".vale.ini"),
     (".markdownlint-cli2.jsonc", ".markdownlint-cli2.jsonc"),
+    # secret-scan.yml falls back to this when a repo has no .gitleaks.toml of
+    # its own. Without it, a freshly synced repo failed gitleaks on a missing
+    # config file.
+    (".gitleaks.toml", ".gitleaks.toml"),
 ]
 
 
@@ -177,8 +181,8 @@ def vendor_docs(target: Path, dry_run: bool) -> list[str]:
         "# Vendored standards\n\n"
         "Copied from XeroIP/standards by its sync workflow. Every file here is derived:\n"
         "edits are lost on the next sync. Change the standard upstream instead.\n\n"
-        "`docs/` are the rules. `tools/`, `styles/`, `.vale.ini` and\n"
-        "`.markdownlint-cli2.jsonc` are what enforces them, vendored from the same commit so\n"
+        "`docs/` are the rules. `tools/`, `styles/`, `.vale.ini`, `.markdownlint-cli2.jsonc`\n"
+        "and `.gitleaks.toml` are what enforces them, vendored from the same commit so\n"
         "the gate and the documentation cannot disagree about what the rules are. The CI\n"
         "workflow runs these copies rather than fetching the standards repo.\n\n"
         "You can run the same checks locally:\n\n"
