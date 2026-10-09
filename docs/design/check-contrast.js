@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Verifies every foreground/background pair declared in tokens.json against
 // WCAG 2.1 contrast minimums, in both themes. Exits non-zero on any failure so
-// it can gate CI. Run after any colour change in tokens.css.
+// it can gate CI. Run after any colour change in tokens.json, which tokens.css
+// and every adapter are generated from.
 const fs = require("fs");
 const path = require("path");
 
@@ -70,6 +71,6 @@ console.log("-".repeat(74));
 console.log(`${rows.length - failures}/${rows.length} pairs pass`);
 
 if (failures > 0) {
-  console.error(`\n${failures} contrast failure(s). Fix tokens.css and tokens.json together.`);
+  console.error(`\n${failures} contrast failure(s). Fix tokens.json, then run build-adapters.js.`);
   process.exit(1);
 }

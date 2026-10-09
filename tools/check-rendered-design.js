@@ -26,7 +26,10 @@
 //   node tools/check-rendered-design.js --site site/ --pages / --tokens path/to/tokens.json
 //   node tools/check-rendered-design.js --site site/ --pages / --exceptions design-exceptions.json
 //
-// Exit codes: 0 all assertions hold, 1 at least one failed, 2 could not run.
+// Exit codes: 0 all assertions hold, 1 at least one failed, 2 could not run:
+// no browser, a page that would not load or had nothing to measure, or any
+// other error before a verdict. A failed assertion outranks a page that could
+// not be measured, so 1 means something was measured and was wrong.
 
 const fs = require("fs");
 const path = require("path");
@@ -113,7 +116,14 @@ const MEASURE = () => {
   const exceptions = args.exceptions ? JSON.parse(fs.readFileSync(args.exceptions, "utf8")) : {};
 
   const server = await serve(path.resolve(args.site), args.port);
-  const browser = await launchBrowser();
+  let browser;
+  try {
+    browser = await launchBrowser();
+  } catch (e) {
+    console.error(`could not launch a browser: ${e.message.split("\n")[0]}`);
+    server.close();
+    process.exit(2);
+  }
   const report = [];
   let couldNotMeasure = 0;
 
@@ -137,9 +147,13 @@ const MEASURE = () => {
       // A page with no substantial paragraph cannot be judged. Say so rather
       // than reporting a vacuous pass — a gate that silently measures nothing
       // is the failure mode this whole tool exists to catch.
+      // Its assertions are skipped too: graded against nothing they read as
+      // failures, and the exit status would say "measured and wrong".
       if (!m.paraFound) {
         console.error(`FAIL ${page} (${scheme}): no paragraph over 120 characters to measure`);
         couldNotMeasure++;
+        await ctx.close();
+        continue;
       }
 
       const t = T.themes[scheme];
@@ -202,5 +216,10 @@ const MEASURE = () => {
     `in 2 themes, ${excused} declared exception(s), ${fails} failure(s)`
   );
   if (couldNotMeasure) console.log(`${couldNotMeasure} measurement(s) could not be taken.`);
-  if (fails > 0 || couldNotMeasure > 0) process.exitCode = 1;
-})();
+  if (fails > 0) process.exitCode = 1;
+  else if (couldNotMeasure > 0) process.exitCode = 2;
+})().catch((e) => {
+  // An uncaught error would exit 1 and read as a failed assertion.
+  console.error(`could not run: ${e.message.split("\n")[0]}`);
+  process.exit(2);
+});

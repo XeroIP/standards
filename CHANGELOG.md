@@ -64,6 +64,17 @@ behaviour.
 - **A finding in Markdown prose says it may be a missing code span.** An identifier such as
   `h1.page` written outside backticks is reported as a domain, and the message now names that
   cause.
+- **`tokens.css` is generated from `tokens.json` with the adapters.** It was kept by hand,
+  nothing checked it against `tokens.json`, and `check-contrast.js` never read it. It now has
+  the same parity check as the adapters, so a hand edit fails CI. Its values are unchanged.
+- **The severity opt-in works in every adapter, in both themes.** Measured in a browser, all
+  seven adapters were wrong in 35 of 42 cases. Opting in gave black or ink, because each read
+  `--dx-ok-raw`, which none defined. In dark mode, severity colour showed on every page with no
+  opt-in, because the theme blocks set `--dx-ok` directly. Severity now resolves per element,
+  so it follows the theme wherever the generator puts its theme marker.
+- **`check-rendered-design.js` exits 2 when it could not run**, as its header says: no browser,
+  a page that would not load or had nothing to measure, or any other error before a verdict.
+  It exited 1, which reads as a failed assertion.
 
 ### Fixed
 
