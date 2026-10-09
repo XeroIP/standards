@@ -78,6 +78,11 @@ jobs:
       - name: Structure, naming, front matter, and internal links
         run: python3 tools/check-docs.py docs/
 
+      # Each check check-docs.py claims, on a page that breaks it and on one
+      # that doesn't. The tree above is valid, so it shows only the passing half.
+      - name: check-docs fails what it claims to
+        run: bash tests/test-check-docs.sh
+
       # nofilter: by default reviewdog keeps only findings on lines a pull
       # request adds, so an error on any other line failed the push run and
       # passed the pull request run on the same commit.

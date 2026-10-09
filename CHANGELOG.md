@@ -84,6 +84,20 @@ behaviour.
   the push run and passed the pull request run on the same commit. Both Prose steps now pass
   `filter_mode: nofilter`. A sync pull request that brings a new rule fails on the text that
   rule catches, as the push after it would have.
+- **check-docs checks a page under any `vendor/` directory but this repository's
+  `docs/prose/vendor/`.** It skipped every path with a part named `vendor`, so a consumer's
+  `docs/team/vendor/` passed unchecked. A consuming repository's own `docs/prose/vendor/` is
+  checked too: the exclusion is found from the script's location and doesn't travel.
+- **check-docs exits 2 when it finds no Markdown pages.** It printed "0 pages checked" and
+  passed, so a `docs-path` pointing at an empty directory passed the gate.
+- **ADRs must carry the required sections, and `supersedes` must name an ADR that exists.**
+  `adr.md` said both failed the build; neither was checked. The sections are context and
+  problem statement, decision drivers, considered options, decision outcome and consequences,
+  as H2 or H3.
+- **`severity_ui` needs a page type and tag that allow it.** It's allowed on an incident, a
+  how-to tagged `runbook` and a reference page tagged `status`. Any reference or how-to page
+  could set it before. It must be `true` or `false`, so `yes` no longer passes as unset, and a
+  `data-severity-ui` attribute in a page body needs it.
 
 ### Fixed
 
@@ -105,6 +119,8 @@ behaviour.
 - `tests/test-vale.sh`, which runs the committed Vale config on pages built at the cap and one
   paragraph over it, for every cap rule. CI runs it on the Vale binary the Prose step
   installed.
+- `tests/test-check-docs.sh`, which builds a page that breaks each check `check-docs.py`
+  claims and one that doesn't, and asserts the exit status and the message.
 
 ## [0.1.0] — 2026-09-16
 

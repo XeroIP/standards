@@ -2,7 +2,7 @@
 title: Front matter
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-09
 summary: The required YAML schema on every page, and the opt-in that scopes severity colour.
 ---
 
@@ -26,7 +26,7 @@ the thing that always drifts.
 | Key | Type | Notes |
 | --- | --- | --- |
 | `summary` | string | One sentence. Used in index cards and in `llms.txt`. |
-| `tags` | list | Lowercase, hyphenated. |
+| `tags` | list | Lowercase, hyphenated. Descriptive, except `runbook` and `status`: see below. |
 | `services` | list | Systems this page concerns. Required on `ops-log` and `incident`. |
 | `issue` | string | `#N` or a URL. |
 | `supersedes` / `superseded_by` | string | Path to another page. Required when `status: superseded`. |
@@ -35,11 +35,25 @@ the thing that always drifts.
 ## `severity_ui`
 
 Set `severity_ui: true` to make the severity palette — healthy, degraded, failed — available
-on that page. It resolves to plain ink everywhere else, so a reference page cannot render
-severity colour even if its markup asks for it.
+on that page. It resolves to plain ink everywhere else.
 
-Allowed on `incident`, `how-to` pages that are runbooks, and status pages. The point is that a
-calm reference page never inherits an alert vocabulary it has no use for.
+It's allowed on three kinds of page, and the page's type and tags say which kind it is:
+
+| Type | Needs |
+| --- | --- |
+| `incident` | nothing more |
+| `how-to` | `runbook` in `tags` |
+| `reference` | `status` in `tags` |
+
+So a reference page not tagged `status` cannot render severity: the build fails it if it sets
+`severity_ui`, or if its body carries a `data-severity-ui` attribute without the key. The
+point is that a calm reference page never inherits an alert vocabulary it has no use for.
+
+`runbook` and `status` are the two tags that carry meaning; every other tag is descriptive. A
+tag alone changes nothing, and a page renders severity only with `severity_ui: true`.
+
+The check makes the opt-in declared and consistent with the page type. It can't tell whether a
+page tagged `runbook` really is one, so that part is a review item.
 
 Colour never carries status alone. Pair it with a stripe, a chip, or a word, so the meaning
 survives greyscale printing and colour-blind readers.
@@ -72,7 +86,7 @@ type: how-to
 status: active
 updated: 2026-09-07
 summary: Recovers a single service from the nightly archive without touching the array.
-tags: [backup, recovery]
+tags: [backup, recovery, runbook]
 services: [service-a]
 severity_ui: true
 ---
@@ -84,3 +98,6 @@ severity_ui: true
 unknown key, a `type` outside the enum, a malformed date, or `status: superseded` without
 `superseded_by`. Unknown keys fail deliberately: a typo in a key name is silent otherwise, and
 a page that has been quietly excluded from an index is worse than one that fails the build.
+
+It also fails `severity_ui` set to anything but `true` or `false`, set on a page whose type and
+tags don't allow it, or a `data-severity-ui` attribute in a page that doesn't set it.
