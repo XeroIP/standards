@@ -47,8 +47,12 @@ jobs:
           done < <(find .github/workflows -name '*.yml' -o -name '*.yaml')
           if [ "$bad" -ne 0 ]; then
             echo
+            # A placeholder, not a real pin. Dependabot rewrote the SHA in this
+            # line on a bump and left its version comment, so the example
+            # named one release's SHA under another's tag, and no check reads
+            # an echo.
             echo "Pin with the version in a trailing comment:"
-            echo "  uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4.2.2"
+            echo "  uses: actions/checkout@<40-char-sha> # vX.Y.Z"
             exit 1
           fi
           echo "all action references pinned"
