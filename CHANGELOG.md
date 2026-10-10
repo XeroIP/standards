@@ -111,6 +111,14 @@ behaviour.
 - **lychee no longer accepts 429.** An accepted 429 passed a link nobody checked. lychee
   retries a 429, waiting longer each time, and fails the link only when every attempt is
   rate-limited. Ten runs over `llms.txt`'s 32 URLs from a runner saw none.
+- **The diagram checkers exit 1 on any finding.** `check_overlaps.py` and
+  `check_cross_reference.py` exited with their finding count, which an exit status wraps at
+  256, so 256 findings exited 0. They now exit 0 or 1 and print the count. The divergence
+  from the imported copies is recorded in `docs/diagrams/tools/README.md` and in an import
+  marker on each script.
+- **The cross-reference example runs here.** It named three files in another repository and
+  crashed with `FileNotFoundError`. `examples/cross-ref.json` checks a made-up fact across
+  three files of its own.
 
 ### Fixed
 
@@ -136,6 +144,8 @@ behaviour.
   claims and one that doesn't, and asserts the exit status and the message.
 - `tests/test-llms-txt.sh`, which runs the `llms.txt` generator on a copy of the tree with a
   made-up `mkdocs.yml` and checks that entries follow its `site_url`.
+- `tests/test-diagram-tools.sh`, which runs both diagram checkers at 0, 1 and 256 findings and
+  runs the shipped example, clean and with one source changed.
 
 ## [0.1.0] — 2026-09-16
 

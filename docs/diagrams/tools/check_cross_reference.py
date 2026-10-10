@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# IMPORTED from XeroIP/documentation (diagram-qa/). Changed here: the exit
+# status, and the example. See README.md in this directory.
 """check_cross_reference.py — generic multi-source fact cross-checker.
 
 Catches a defect class no amount of rendering/visual inspection can ever
@@ -53,12 +55,15 @@ A join_key value appearing in only one source is reported as "only found
 in" that source — this is not necessarily a bug (maybe that source covers
 extra ground the others don't), but it's surfaced so a human can judge.
 
-Exit code is the number of mismatches found (0 = clean).
+Exit code is 0 when clean and 1 otherwise; the count is printed. It used to
+be the count itself, which an exit status wraps at 256: 256 mismatches
+exited 0.
 
 Example
 -------
-See examples/ in this folder for a real, working config (built against
-the sprinkler-controller project's three-way GPIO/zone duplication).
+examples/cross-ref.json checks one fact across three files in three
+formats, all under examples/cross-ref/. Run it from examples/:
+    python ../check_cross_reference.py cross-ref.json
 
 No external dependencies (uses only json, re, and the stdlib).
 """
@@ -149,4 +154,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(1 if main(sys.argv[1:]) else 0)

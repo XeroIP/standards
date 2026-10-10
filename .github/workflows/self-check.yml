@@ -90,6 +90,11 @@ jobs:
       - name: check-docs fails what it claims to
         run: bash tests/test-check-docs.sh
 
+      # The imported diagram checkers exited with their finding count, which
+      # wraps at 256. This holds them to 0 or 1, and runs the shipped example.
+      - name: Diagram checkers fail on any finding
+        run: bash tests/test-diagram-tools.sh
+
       # nofilter: by default reviewdog keeps only findings on lines a pull
       # request adds, so an error on any other line failed the push run and
       # passed the pull request run on the same commit.
