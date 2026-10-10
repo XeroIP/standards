@@ -1,6 +1,7 @@
 # External links only. Internal link integrity is checked at build time by
 # tools/check-docs.py, which resolves every relative path in under a second and
-# needs no network — so it gates every push while this does not.
+# needs no network — so it gates every push while this does not. This runs
+# weekly and when a change touches a file it reads (.github/workflows/links.yml).
 scheme = ["https", "http"]
 
 # Codes meaning "the link is real but the bot is being turned away".

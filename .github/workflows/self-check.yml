@@ -33,6 +33,11 @@ jobs:
       - name: llms.txt matches the docs tree
         run: node tools/build-llms-txt.js --check
 
+      # The switch to the site can't be watched before the site exists, so this
+      # runs the generator on a copy of the tree with a made-up mkdocs.yml.
+      - name: llms.txt follows mkdocs.yml's site_url once it exists
+        run: bash tests/test-llms-txt.sh
+
       # git status, not git diff: diff ignores untracked files, so a generated
       # file that was never committed (a new rule's style, a new adapter) came
       # back from the generator untracked and the step passed. --porcelain lists
@@ -140,16 +145,3 @@ jobs:
 
       - name: gitleaks flags the fixture, and the config excludes only its directory
         run: bash tests/test-gitleaks.sh
-
-  links:
-    # External links break for reasons unrelated to the change under review, so
-    # this runs on a schedule and on docs changes — never as a gate on an
-    # unrelated PR. Split taken from XeroIP/sr177-weber-analysis.
-    runs-on: ubuntu-latest
-    if: github.event_name != 'push' || contains(github.event.head_commit.message, 'docs')
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: --config .lychee.toml --no-progress './**/*.md'
-          fail: true

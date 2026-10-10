@@ -48,7 +48,7 @@ measured over the standards repository's tracked files and rewritten by
   filename stops being read. The list was checked against the maintainer's own
   domains: no overlap.
 - A host on an unusual suffix written in code, or in a code span or fence, is
-  not reported. Counting every suffix there gives 96 findings in code. When
+  not reported. Counting every suffix there gives 97 findings in code. When
   first measured (2026-10-09, #41), every one was an identifier such as
   `m.group` or `obj.id`.
 - An illustrative subnet inside a real private block, such as a /24 inside

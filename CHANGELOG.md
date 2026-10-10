@@ -98,6 +98,15 @@ behaviour.
   how-to tagged `runbook` and a reference page tagged `status`. Any reference or how-to page
   could set it before. It must be `true` or `false`, so `yes` no longer passes as unset, and a
   `data-severity-ui` attribute in a page body needs it.
+- **The links job runs when a file lychee reads changes, and weekly.** It ran on every pull
+  request, and on a push only when the commit message contained "docs", whatever the push
+  changed. It now runs when the diff touches any Markdown file, `llms.txt`, `.lychee.toml` or
+  its workflow, and on a weekly schedule, in its own workflow, `links.yml`.
+- **`llms.txt` points at each page's Markdown on main, and lychee checks it.** Every entry
+  pointed at a site that isn't built, so all 32 returned 404, and lychee never read the file.
+  Entries point at `raw.githubusercontent.com` until a `mkdocs.yml` exists, then at its
+  `site_url`. On a push or a pull request those URLs are checked against the checkout, since a
+  page a pull request adds isn't on main yet; the weekly run checks them live.
 
 ### Fixed
 
@@ -121,6 +130,8 @@ behaviour.
   installed.
 - `tests/test-check-docs.sh`, which builds a page that breaks each check `check-docs.py`
   claims and one that doesn't, and asserts the exit status and the message.
+- `tests/test-llms-txt.sh`, which runs the `llms.txt` generator on a copy of the tree with a
+  made-up `mkdocs.yml` and checks that entries follow its `site_url`.
 
 ## [0.1.0] — 2026-09-16
 

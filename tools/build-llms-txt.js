@@ -16,7 +16,52 @@ const path = require("path");
 const ROOT = path.resolve(__dirname, "..");
 const DOCS = path.join(ROOT, "docs");
 const OUT = path.join(ROOT, "llms.txt");
-const BASE = "https://xeroip.github.io/standards";
+const MKDOCS = path.join(ROOT, "mkdocs.yml");
+
+// Where each entry points. The site doesn't exist yet, and every entry pointed
+// at it, so every link 404ed. Until it does, an entry is the page's Markdown on
+// main: llms.txt is read by models, and llmstxt.org asks for Markdown. The site
+// build (ADR-0001) creates mkdocs.yml; from then on entries follow its
+// site_url, so shipping the site rewrites this index on the next build, and
+// --check fails until it's regenerated. Nobody has to remember the switch.
+const RAW = "https://raw.githubusercontent.com/XeroIP/standards/main";
+
+// Top-level keys only, read by line. A Material config commonly carries
+// `!!python/name:` tags, which a YAML loader outside Python refuses.
+function mkdocs() {
+  if (!fs.existsSync(MKDOCS)) return null;
+  const text = fs.readFileSync(MKDOCS, "utf8");
+  const key = (name) => {
+    const m = new RegExp(`^${name}:[ \\t]*(.*)$`, "m").exec(text);
+    return m ? m[1].replace(/\s+#.*$/, "").trim().replace(/^['"]|['"]$/g, "") : "";
+  };
+  const site = key("site_url");
+  if (!site) {
+    console.error("mkdocs.yml sets no site_url, so llms.txt can't point at the site. Set it.");
+    process.exit(1);
+  }
+  return {
+    base: site.replace(/\/$/, ""),
+    docsDir: key("docs_dir") || "docs",
+    directoryUrls: key("use_directory_urls") !== "false",
+  };
+}
+
+// The URL for a file at `rel` from the repo root. On the site, a page follows
+// MkDocs's defaults: docs_dir stripped, README as its directory's index, and
+// directory URLs unless the config turns them off. A file outside docs_dir
+// isn't on the site, so it stays on main.
+function urlFor(rel, site) {
+  const inDocs = site && rel.startsWith(site.docsDir + "/");
+  if (!inDocs) return `${RAW}/${rel}`;
+  const page = rel.slice(site.docsDir.length + 1);
+  if (!page.endsWith(".md")) return `${site.base}/${page}`;
+  const stem = page.replace(/\.md$/, "");
+  if (stem === "README" || stem.endsWith("/README")) return `${site.base}/${stem.replace(/README$/, "")}`;
+  return `${site.base}/${stem}${site.directoryUrls ? "/" : ".html"}`;
+}
+
+const SITE = mkdocs();
 
 // Front matter only; the body is never parsed. Values are scalars or inline
 // lists, which is all the schema in docs/documentation/front-matter.md allows.
@@ -102,7 +147,7 @@ for (const [prefix, heading] of AREAS) {
   lines.push(`## ${heading}`);
   lines.push("");
   for (const { path: rel, fm } of inArea) {
-    const url = `${BASE}/${rel.replace(/\.md$/, "").replace(/\/README$/, "/")}`;
+    const url = urlFor(rel, SITE);
     const summary = fm.summary || "";
     const draft = fm.status === "draft" ? " *(draft)*" : "";
     lines.push(`- [${fm.title}](${url})${draft}${summary ? `: ${summary}` : ""}`);
@@ -112,9 +157,9 @@ for (const [prefix, heading] of AREAS) {
 lines.push("");
 lines.push("## Optional");
 lines.push("");
-lines.push(`- [AGENTS.md](${BASE}/AGENTS.md): instructions for agents working in the standards repo itself.`);
-lines.push(`- [rules.yml](${BASE}/docs/prose/rules.yml): the prose markers in machine-readable form, with tier and marker id.`);
-lines.push(`- [tokens.json](${BASE}/docs/design/tokens.json): design tokens, the source every adapter is generated from.`);
+lines.push(`- [AGENTS.md](${urlFor("AGENTS.md", SITE)}): instructions for agents working in the standards repo itself.`);
+lines.push(`- [rules.yml](${urlFor("docs/prose/rules.yml", SITE)}): the prose markers in machine-readable form, with tier and marker id.`);
+lines.push(`- [tokens.json](${urlFor("docs/design/tokens.json", SITE)}): design tokens, the source every adapter is generated from.`);
 lines.push("");
 
 const content = lines.join("\n");
