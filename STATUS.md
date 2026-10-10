@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-10T18:01:29+00:00
+updated: 2026-10-10T18:06:05+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -23,12 +23,15 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## In progress / broken
 
-- Nothing open. The audit notes stay outside the repository until the last fix lands.
+- PR 12, on `fix/pins`: `verify-action-pins.sh` runs in a `pins` job in self-check and says
+  when it can't read a repository; the policy job's example pin is a placeholder; AGENTS.md
+  restates what CI does with tags.
+- The audit notes stay outside the repository until the last fix lands.
 
 ## Next step
 
-Branch from `main` and build PR 12, the pins: `policy-pinned-actions.yml` and
-`verify-action-pins.sh`.
+Drive PR 12 to merged, then build PR 13: the incident starter,
+`docs/documentation/templates/incident.md`, generated from `INCIDENT_SECTIONS` with `--check`.
 
 ## Blockers / waiting on
 
