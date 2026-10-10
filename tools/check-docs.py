@@ -8,13 +8,17 @@ review item, so this file and docs/documentation/ are kept in step deliberately.
 Checks:
   front matter   required keys, known keys only, enum values, date format,
                  superseded_by present when status is superseded
+  severity_ui    true or false; true only on an incident, a how-to tagged
+                 runbook or a reference page tagged status; data-severity-ui
+                 in a page body only where severity_ui is true
   naming         lowercase-hyphenated, no ordinal prefix outside adr/,
                  dated pages lead with an ISO date
   links          every relative Markdown link resolves to a file that exists
   headings       the body H1 matches the front matter title
   ops-log        services and a change_type from the allowed set
   incidents      required sections present, in order
-  adr            id matches filename, no numbering gap
+  adr            required sections present, id matches filename, supersedes
+                 names an ADR that exists, no numbering gap
 
 Usage:
     python3 tools/check-docs.py docs/
@@ -40,12 +44,26 @@ TYPES = {"tutorial", "how-to", "reference", "explanation", "adr", "incident",
          "ops-log", "project"}
 STATUSES = {"draft", "active", "superseded", "archived",
             "proposed", "accepted", "rejected", "deprecated"}
-SEVERITY_UI_ALLOWED = {"incident", "how-to", "reference"}
+
+# severity_ui is declared, and consistent with the page type: an incident may
+# set it; a how-to or a reference page only with the tag that says it is a
+# runbook or a status page. Nothing here can tell whether a page tagged
+# `runbook` really is one, so a mislabelled page is a review item.
+SEVERITY_UI_TAGS = {"how-to": ("runbook", "a runbook"), "reference": ("status", "a status page")}
+SEVERITY_ATTR_RE = re.compile(r"\bdata-severity-ui\b")
 
 # What an ops-log entry was. Named change_type because `type` is already the
 # document type: the standard asked for both under one key, which no page could
 # satisfy, and nothing caught it because only `services` was ever enforced.
 CHANGE_TYPES = {"change", "investigation", "maintenance", "incident-followup"}
+
+# MADR puts Consequences and Confirmation under Decision outcome as H3; this
+# repo's ADRs make them H2. Either level counts.
+ADR_SECTIONS = [
+    "context and problem statement", "decision drivers", "considered options",
+    "decision outcome", "consequences",
+]
+NULLS = {"", "null", "~"}
 
 INCIDENT_SECTIONS = [
     "overview", "impact and scope", "timeline", "technical findings",
@@ -60,6 +78,15 @@ DATED_RE = re.compile(r"^\d{4}-\d{2}-\d{2}-[a-z0-9]+(-[a-z0-9]+)*\.md$")
 ADR_RE = re.compile(r"^(\d{4})-[a-z0-9]+(-[a-z0-9]+)*\.md$")
 ORDINAL_RE = re.compile(r"^\d+[-_]")
 LINK_RE = re.compile(r"(?<!\!)\[[^\]]*\]\(([^)#\s]+)(?:#[^)]*)?\)")
+
+# docs/prose/vendor/ holds instructions meant to be pasted verbatim into a system
+# prompt or rules file. Front matter would travel with them and corrupt the one
+# thing they exist for, so they are excluded by design. The exclusion is this
+# repository's directory, found from the script's own location. Skipping any
+# path part named `vendor` also skipped a page under docs/team/vendor/, here or
+# in a consuming repository. A vendored copy finds it inside .standards/, which
+# is skipped anyway, so the exclusion doesn't travel.
+VENDOR = Path(__file__).resolve().parent.parent / "docs" / "prose" / "vendor"
 
 problems: list[dict] = []
 
@@ -90,7 +117,12 @@ def fail(path: Path, message: str, line: int = 0) -> None:
 
 def parse_front_matter(text: str) -> tuple[dict | None, int]:
     """Return (mapping, body_start_line). Nested blocks are recorded as present
-    without parsing their contents — only top-level keys are validated here."""
+    without parsing their contents — only top-level keys are validated here.
+
+    A block list (`tags:` then `- runbook` lines) is folded into flow form, so
+    list_value() reads `tags` the same whichever way it was written. Skipped
+    as nested, it read as empty, and a tag the severity check needs was lost.
+    """
     if not text.startswith("---\n"):
         return None, 0
     end = text.find("\n---", 4)
@@ -98,15 +130,33 @@ def parse_front_matter(text: str) -> tuple[dict | None, int]:
         return None, 0
     block = text[4:end]
     data: dict[str, str] = {}
+    items: dict[str, list[str]] = {}
+    last = None
     for raw in block.split("\n"):
         if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        item = re.match(r"^\s*-\s+(.*)$", raw)
+        if item:
+            if last is not None and data[last] == "":
+                items.setdefault(last, []).append(item.group(1).strip())
             continue
         if raw.startswith((" ", "\t")):      # nested under the previous key
             continue
         m = re.match(r"^([\w_]+):\s*(.*)$", raw)
         if m:
-            data[m.group(1)] = m.group(2).strip()
+            last = m.group(1)
+            data[last] = m.group(2).strip()
+    for key, values in items.items():
+        data[key] = "[" + ", ".join(values) + "]"
     return data, text[:end].count("\n") + 2
+
+
+def list_value(value: str) -> list[str]:
+    """A front-matter list in flow form, `[a, b]`. A bare scalar is one item."""
+    value = value.strip()
+    if value.startswith("[") and value.endswith("]"):
+        value = value[1:-1]
+    return [scalar(v) for v in value.split(",") if v.strip()]
 
 
 def check_front_matter(path: Path, fm: dict | None) -> None:
@@ -137,10 +187,20 @@ def check_front_matter(path: Path, fm: dict | None) -> None:
         except ValueError:
             fail(path, f"updated '{updated}' is not YYYY-MM-DD")
 
+    # Only true and false. A YAML 1.1 reader, PyYAML among them, reads `yes` and
+    # `on` as true, and those passed here as anything but.
     sev = scalar(fm.get("severity_ui", "")).lower()
-    if sev == "true" and doc_type not in SEVERITY_UI_ALLOWED:
-        fail(path, f"severity_ui is only allowed on {sorted(SEVERITY_UI_ALLOWED)} pages, "
-                   f"not '{doc_type}'")
+    if sev not in {"", "true", "false"}:
+        fail(path, f"severity_ui '{sev}' must be true or false")
+    elif sev == "true" and doc_type in SEVERITY_UI_TAGS:
+        tag, kind = SEVERITY_UI_TAGS[doc_type]
+        if tag not in list_value(fm.get("tags", "")):
+            fail(path, f"severity_ui on a {doc_type} page requires `{tag}` in tags; "
+                       f"add it if this is {kind}, or remove severity_ui")
+    elif sev == "true" and doc_type != "incident":
+        fail(path, f"severity_ui is allowed on incident pages, how-to pages tagged "
+                   f"`runbook` and reference pages tagged `status`, not on '{doc_type}'; "
+                   f"remove severity_ui")
 
     if doc_type == "incident":
         for key in ("services", "severity", "window", "data_loss"):
@@ -225,9 +285,37 @@ def check_links(path: Path, text: str) -> None:
                 fail(path, f"broken relative link: {target}", i)
 
 
+def check_severity_markup(path: Path, text: str, fm: dict | None) -> None:
+    """data-severity-ui in a page body only where the front matter allows it.
+
+    The adapters turn severity colour on for any element carrying the
+    attribute, so raw HTML could opt a page in that the front-matter check
+    never saw, and a reference page with no `status` tag could render it.
+    """
+    if scalar((fm or {}).get("severity_ui", "")).lower() == "true":
+        return
+    for i, line in enumerate(strip_code(text).split("\n"), start=1):
+        if SEVERITY_ATTR_RE.search(line):
+            fail(path, "data-severity-ui in the page needs severity_ui: true in front "
+                       "matter, on a page type and tag that allow it", i)
+
+
+def headings(text: str, levels: str) -> list[str]:
+    """Heading text at the given levels, lowercased, without a trailing period
+    or a leading section number."""
+    found = re.findall(rf"^#{{{levels}}}\s+(.+)$", text, re.M)
+    return [re.sub(r"^\d+\.\s*", "", h.strip().lower().rstrip(".")) for h in found]
+
+
+def check_adr_sections(path: Path, text: str) -> None:
+    present = set(headings(strip_code(text), "2,3"))
+    for required in ADR_SECTIONS:
+        if required not in present:
+            fail(path, f"ADR missing required section: {required}")
+
+
 def check_incident(path: Path, text: str) -> None:
-    headings = [h.strip().lower().rstrip(".") for h in re.findall(r"^##\s+(.+)$", text, re.M)]
-    normalised = [re.sub(r"^\d+\.\s*", "", h) for h in headings]
+    normalised = headings(text, "2")
     position = 0
     for required in INCIDENT_SECTIONS:
         try:
@@ -262,6 +350,7 @@ def check_h1(path: Path, text: str, fm: dict | None) -> None:
 
 def check_adr_numbering(files: list[Path]) -> None:
     numbers = []
+    supersedes = []
     for path in files:
         m = ADR_RE.match(path.name)
         if not m:
@@ -273,6 +362,13 @@ def check_adr_numbering(files: list[Path]) -> None:
         declared = scalar((fm or {}).get("id", ""))
         if declared and declared != f"ADR-{number:04d}":
             fail(path, f"front matter id '{declared}' does not match filename number {number:04d}")
+        supersedes.append((path, scalar((fm or {}).get("supersedes", ""))))
+    # An ADR is named by the number in its filename, which is what the id check
+    # above holds the id to.
+    existing = {f"ADR-{n:04d}" for n in numbers}
+    for path, target in supersedes:
+        if target.lower() not in NULLS and target not in existing:
+            fail(path, f"supersedes '{target}' names no ADR in this tree")
     for expected, actual in enumerate(sorted(numbers), start=1):
         if expected != actual:
             problems.append({"file": "adr/", "line": 0,
@@ -291,13 +387,16 @@ def main() -> int:
         print(f"error: {root} is not a directory", file=sys.stderr)
         return 2
 
-    # docs/prose/vendor/ holds instructions meant to be pasted verbatim into a
-    # system prompt or rules file. Front matter would travel with them and
-    # corrupt the one thing they exist for, so they are excluded by design.
     pages = sorted(
         p for p in root.rglob("*.md")
-        if ".standards" not in p.parts and "vendor" not in p.parts
+        if ".standards" not in p.parts and VENDOR not in p.resolve().parents
     )
+    # A tree with nothing to check passes everything, so it's an error, as a
+    # path that doesn't exist already is. A caller's docs-path pointing at an
+    # empty directory passed with "0 pages checked".
+    if not pages:
+        print(f"error: no Markdown pages to check under {root}", file=sys.stderr)
+        return 2
     for path in pages:
         text = path.read_text(encoding="utf-8")
         fm, _ = parse_front_matter(text)
@@ -305,8 +404,12 @@ def main() -> int:
         check_name(path, root)
         check_links(path, text)
         check_h1(path, text, fm)
-        if scalar((fm or {}).get("type", "")) == "incident":
+        check_severity_markup(path, text, fm)
+        doc_type = scalar((fm or {}).get("type", ""))
+        if doc_type == "incident":
             check_incident(path, text)
+        if doc_type == "adr":
+            check_adr_sections(path, text)
 
     check_adr_numbering([p for p in pages if p.parent.name == "adr"])
 
