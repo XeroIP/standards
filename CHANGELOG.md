@@ -135,6 +135,14 @@ behaviour.
 - **`--check` counts every change the next sync would make.** A file under `.standards/` that
   the sync would delete, an edited `VERSION` or `README.md`, and a stale `standards_version`
   all reported up to date.
+- **A published release syncs and opens the pull requests.** The Sync and PR steps in
+  `standards-sync.yml` were gated on `apply`, which only a manual run carries, so a release
+  previewed and wrote nothing. Both steps still wait for the `sync` environment's reviewer.
+- **The sync has no schedule.** The weekly run waited at that reviewer gate and reported
+  nothing: three runs queued unapproved for three weeks.
+- **`repos` narrows a manual sync run to the repos it names.** Nothing read the input, so a
+  run asked for one repo ran for every listed one, and with `apply` would have written to all
+  of them.
 
 ### Fixed
 

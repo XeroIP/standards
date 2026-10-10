@@ -49,7 +49,7 @@ The sync bot then refreshes a vendored `.standards/` directory and regenerates `
 `CLAUDE.md`, and `.github/copilot-instructions.md`. Vendoring is deliberate: it puts the rules
 in the working tree an agent already has, with no network fetch and no submodule to go stale.
 
-**It reports by default and writes nothing.** Opening a pull request in someone else's
+**A manual run reports by default and writes nothing.** Opening a pull request in someone else's
 repository needs consent at both ends: the repo is listed in `standards-sync.yml`, and its own
 `.standards.yml` sets `sync.adopted: true`. Carrying a `.standards.yml` is not consent on its
 own — a repo can declare a profile long before anyone agrees to have three top-level files
@@ -60,9 +60,11 @@ region a tool maintains can be declared in `sync.managed_regions`; it's left out
 and every run prints where it is and how much of the file it covers. The regenerated file
 doesn't carry it over (#36). `--adopt` overrides all of this, deliberately by hand.
 
-A release syncs that released tag, and `standards_version` in the consuming repo records which
-one it holds. The weekly run only reports: no repo should be handed whatever happens to be on
-`main` at 09:00 on a Monday.
+A published release syncs that released tag and opens the pull requests, and `standards_version`
+in the consuming repo records which one it holds. A manual run reads `main` and opens them only
+with `apply`. Both wait for a person to approve the run in the `sync` environment before the
+token is handed over. There's no scheduled run: an unattended one waits at that gate and reports
+nothing.
 
 ### The sync token
 
