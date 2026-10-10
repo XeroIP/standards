@@ -33,7 +33,8 @@ workflow:
 
 # The standards release this repo is synced against. The sync offers this tag
 # rather than whatever is on main, so a bad release does not reach every
-# consuming repo before anyone has looked at it.
+# consuming repo before anyone has looked at it. Each sync rewrites this line to
+# the version it vendored, so it records what the repo holds.
 standards_version: v0.1.0
 
 sync:
@@ -44,5 +45,15 @@ sync:
   # generated banner — a file a person wrote is not the bot's to replace.
   adopted: true
 
-  # Paths the sync bot must not overwrite when it vendors .standards/ in.
+  # Paths under .standards/ the sync bot must not overwrite when it vendors the
+  # standards in, written relative to .standards/ (docs/coding/bash.md). One
+  # that exists is kept as it is; every run says so.
   protect: []
+
+  # Regions of the generated agent files that another tool maintains, by the
+  # name in their markers (<!-- name:start ... --> to <!-- name:end -->). The
+  # sync refuses a generated file edited since the last sync; a declared region
+  # is left out of that check, and every run prints where it is and how much of
+  # the file it covers. The sync doesn't carry the region into the file it
+  # writes (#36).
+  managed_regions: []

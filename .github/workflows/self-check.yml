@@ -30,6 +30,11 @@ jobs:
       - name: Agent files match AGENTS.md
         run: node tools/build-agent-files.js --check
 
+      # Real syncs into scratch consumers, ending with the vendored markdownlint
+      # on the sync's own output, which needs the npm ci above.
+      - name: The sync writes what a consumer's gates accept, and refuses edits
+        run: bash tests/test-sync.sh
+
       - name: llms.txt matches the docs tree
         run: node tools/build-llms-txt.js --check
 
