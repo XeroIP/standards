@@ -2,7 +2,7 @@
 title: Diagram QA tools
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-10
 summary: Two dependency-free checkers for defects that eyeballing a rendered SVG reliably misses.
 ---
 
@@ -10,6 +10,19 @@ summary: Two dependency-free checkers for defects that eyeballing a rendered SVG
 
 # Diagram QA tools
 
+**Where this copy differs from upstream.** The scripts and the example here are changed from
+what `XeroIP/documentation` provided; the text below is upstream's, unedited. The changes are
+recorded so that a re-import doesn't undo them unnoticed:
+
+- Both scripts exit 0 when clean and 1 otherwise, and print the count. As imported, both
+  exited with the count, which an exit status wraps at 256, so 256 findings exited 0. Where
+  the text below says the exit code is the number of findings, this copy exits 1.
+- The example is `examples/cross-ref.json`, with its own source files under
+  `examples/cross-ref/`; run it from `examples/`. The one the text below names checked files
+  in another repository and failed here.
+- `check_overlaps.py`'s docstring no longer names another project's file.
+
+`tests/test-diagram-tools.sh` covers the first two in CI.
 
 Two small, generic, dependency-free Python tools for catching defects in
 technical diagrams (SVG wiring diagrams, pinout charts, schematics, etc.)

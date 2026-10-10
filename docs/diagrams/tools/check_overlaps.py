@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# IMPORTED from XeroIP/documentation (diagram-qa/). Changed here: the exit
+# status, and a reference to another project. See README.md in this directory.
 """check_overlaps.py — generic SVG label/shape collision detector.
 
 Catches the class of bug that a fixed-zoom screenshot review can miss: a
@@ -22,16 +24,17 @@ Usage:
     python check_overlaps.py <file.svg> [<file2.svg> ...]
     python check_overlaps.py images/*.svg
 
-Exit code is the number of findings (0 = clean), so it can be used as a
-pass/fail gate in a script or CI step without any extra plumbing.
+Exit code is 0 when clean and 1 otherwise, so it can be used as a pass/fail
+gate in a script or CI step without any extra plumbing. The count is printed.
+It used to be the count itself, which an exit status wraps at 256: 256
+findings exited 0.
 
 How it works
 ------------
 Text bounding box: width is estimated as
     len(text) * font_size * WIDTH_FACTOR
 This constant (0.62) is the same heuristic already proven against real
-IBM Plex Sans metrics in a sibling project's diagram generator (see
-sprinkler-controller/docs/build-part3-wiring.py's tag() helper) — dropped
+IBM Plex Sans metrics in a sibling project's diagram generator — dropped
 its "+14" term there since that was padding for a pill-shaped tag
 background, not applicable to freeform text. Height is estimated as
 font_size * HEIGHT_FACTOR (1.2), a standard line-height approximation.
@@ -387,4 +390,4 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:]))
+    sys.exit(1 if main(sys.argv[1:]) else 0)

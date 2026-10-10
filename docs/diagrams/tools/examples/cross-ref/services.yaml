@@ -1,0 +1,7 @@
+# One of three places this example records each service's port.
+service-a:
+  port: 8080
+service-b:
+  port: 8081
+service-c:
+  port: 8082

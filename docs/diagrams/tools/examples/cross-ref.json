@@ -1,0 +1,23 @@
+{
+  "_comment": "Self-contained example: checks that each service's port agrees across a YAML config, a Python table and an HTML reference page, all under cross-ref/. Paths are relative to where the checker runs, so run it from this directory: python ../check_cross_reference.py cross-ref.json",
+  "join_key": "service",
+  "compare_fields": ["port"],
+  "sources": [
+    {
+      "name": "services.yaml",
+      "path": "cross-ref/services.yaml",
+      "pattern": "^(?P<service>service-[a-z]):\\s*\\n\\s+port:\\s*(?P<port>\\d+)",
+      "flags": ["MULTILINE"]
+    },
+    {
+      "name": "ports.py (PORTS table)",
+      "path": "cross-ref/ports.py",
+      "pattern": "\"(?P<service>service-[a-z])\":\\s*(?P<port>\\d+)"
+    },
+    {
+      "name": "reference.html (port table)",
+      "path": "cross-ref/reference.html",
+      "pattern": "<tr><td>(?P<service>service-[a-z])</td><td>(?P<port>\\d+)</td></tr>"
+    }
+  ]
+}
