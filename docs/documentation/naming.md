@@ -44,9 +44,10 @@ reader; a hand-written URL is unverifiable and silently rots.
 to the page and name the section in the sentence. Anchors are generated from heading text, so
 editing a heading breaks every inbound anchor without warning.
 
-**External links get checked on a schedule, not on every push.** Lychee runs weekly and on
-changes to the docs tree. External sites go down for reasons that have nothing to do with the
-change under review, so a dead third-party link must not block an unrelated PR.
+**External links get checked on a schedule, not on every push.** Lychee runs weekly and when
+a change touches a file it reads: any Markdown file, or `llms.txt`. External sites go down for
+reasons that have nothing to do with the change under review, so a dead third-party link must
+not block an unrelated PR.
 
 ## Redirects
 

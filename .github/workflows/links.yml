@@ -1,0 +1,76 @@
+# External links, checked when a file lychee reads changes, and once a week.
+#
+# A link breaks for reasons unrelated to the change under review, so this never
+# gates a change that touches no link input. Which inputs changed is read from
+# the diff. It used to be read from the commit message: a push whose message
+# said "docs" ran it on any change, and a docs change whose message didn't was
+# never checked. The weekly run catches a link that rots with nothing changing
+# here. GitHub stops a public repository's schedule after 60 days with no
+# activity in it, and nothing here can prevent that; the next commit restarts it.
+#
+# llms.txt points at each page's Markdown on main. A page a pull request adds
+# isn't on main until it merges, and raw.githubusercontent.com serves a push
+# from cache for minutes, so on a push or a pull request lychee skips those
+# URLs. That each one names a file in the tree is tests/test-llms-txt.sh's
+# job, in self-check on every push and pull request. The weekly run checks
+# them live.
+name: Links
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '41 5 * * 3'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      # lychee reads every Markdown file and llms.txt. A base this job can't
+      # read, as on a new branch or after a force push, counts as a change.
+      - name: Did a link input change?
+        id: inputs
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+          RAW: '^https://raw\.githubusercontent\.com/XeroIP/standards/main/'
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" = schedule ] || [ "$EVENT" = workflow_dispatch ]; then
+            echo "Scheduled or dispatched: checking every link live."
+            echo "run=true" >> "$GITHUB_OUTPUT"
+            echo "skip=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$BASE" ] || [ "$BASE" = 0000000000000000000000000000000000000000 ] \
+             || ! git cat-file -e "$BASE^{commit}" 2>/dev/null; then
+            echo "No base to diff against: checking."
+            run=true
+          else
+            changed=$(git diff --name-only "$BASE" HEAD)
+            if grep -q -E '\.md$|^llms\.txt$|^\.lychee\.toml$|^\.github/workflows/links\.yml$' <<<"$changed"; then
+              echo "A link input changed:"
+              grep -E '\.md$|^llms\.txt$|^\.lychee\.toml$|^\.github/workflows/links\.yml$' <<<"$changed" | sed 's/^/  /'
+              run=true
+            else
+              echo "No link input changed; nothing to check."
+              run=false
+            fi
+          fi
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+          echo "skip=--exclude '$RAW'" >> "$GITHUB_OUTPUT"
+
+      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        if: steps.inputs.outputs.run == 'true'
+        with:
+          args: --config .lychee.toml --no-progress ${{ steps.inputs.outputs.skip }} './**/*.md' llms.txt
+          fail: true
+

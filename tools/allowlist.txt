@@ -191,6 +191,9 @@ test
 
 # Public, already-published references
 github.com
+raw.githubusercontent.com   # llms.txt's targets. The exact host: a bare
+                            # githubusercontent.com would permit every user's
+                            # content host under it.
 xeroip.github.io
 adr.github.io
 diataxis.fr
