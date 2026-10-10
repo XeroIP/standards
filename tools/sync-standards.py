@@ -14,7 +14,17 @@ What it writes into the target repo:
 
 The repo keeps its own voice in .standards-tail.md. That file is the repo's and
 is never overwritten; everything else under .standards/ is derived and is
-replaced wholesale on each sync.
+replaced wholesale on each sync, except paths the repo lists in `sync.protect`,
+which are kept as they are and reported on every run.
+
+Each generated agent file carries a content hash. A later sync refuses when the
+file no longer matches it, because the difference is someone's edit and a sync
+would delete it. A region the repo declares in `sync.managed_regions` is left
+out of the hash, so a tool that maintains it doesn't trip the check; the
+regenerated file doesn't carry the region over (#36).
+
+The sync also writes `standards_version` in the repo's .standards.yml to the
+version it vendored, so the pin records what the repo holds.
 
 Vendoring rather than submoduling is deliberate: it puts the rules in the working
 tree an agent already has, with no network fetch and no submodule to go stale.
@@ -28,10 +38,12 @@ from __future__ import annotations
 
 import argparse
 import filecmp
+import hashlib
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import tomllib
 from pathlib import Path
 
@@ -45,6 +57,12 @@ BANNER = (
 
 TAIL_FILE = ".standards-tail.md"
 VENDOR_DIR = ".standards"
+AGENT_FILES = ("AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md")
+
+# The generated files' content hash, on its own line under the banner. It's
+# computed with this line removed, so writing it doesn't change it.
+HASH_RE = re.compile(r"^<!-- sync-hash: sha256:([0-9a-f]{64}) -->\n", re.M)
+NAME_RE = re.compile(r"^[a-z0-9][a-z0-9-]*$")
 
 # What gets vendored. The rules and the tools that enforce them travel together,
 # deliberately.
@@ -108,12 +126,34 @@ def load_profile(target: Path) -> dict:
     sync should still deliver the text.
     """
     profile = {"profile": "mixed", "stacks": [], "visibility": "public",
-               "adopted": False, "standards_version": ""}
+               "adopted": False, "standards_version": "",
+               "protect": [], "managed_regions": []}
     path = target / ".standards.yml"
     if not path.exists():
         return profile
+    in_sync = False
+    list_key = None
     for line in path.read_text(encoding="utf-8").splitlines():
         line = line.split("#", 1)[0].rstrip()
+        if not line.strip():
+            continue
+        # sync.protect and sync.managed_regions, as a flow list or a block list.
+        if not line.startswith((" ", "\t")):
+            in_sync, list_key = line.startswith("sync:"), None
+        elif in_sync:
+            key = re.match(r"\s*(protect|managed_regions):\s*(.*)$", line)
+            item = re.match(r"\s*-\s+(.*)$", line)
+            if key:
+                name, value = key.groups()
+                list_key = name if not value else None
+                if value.startswith("["):
+                    inner = value[1 : value.rfind("]")]
+                    profile[name] = [v.strip().strip("\"'") for v in inner.split(",") if v.strip()]
+                continue
+            if item and list_key:
+                profile[list_key].append(item.group(1).strip().strip("\"'"))
+                continue
+            list_key = None
         if line.startswith("profile:"):
             profile["profile"] = line.split(":", 1)[1].strip().strip("\"'")
         elif line.strip().startswith("adopted:"):
@@ -130,12 +170,58 @@ def load_profile(target: Path) -> dict:
     return profile
 
 
+def region_pattern(name: str) -> re.Pattern:
+    """A declared region, from its start marker (any version: `v2`, `v3`) to its
+    end marker, inclusive."""
+    return re.compile(rf"^<!-- {re.escape(name)}:start[^\n]*-->\n.*?"
+                      rf"^<!-- {re.escape(name)}:end -->[ \t]*\n?", re.M | re.S)
+
+
+def content_hash(text: str, regions: list[str]) -> str:
+    """sha256 of the text without its hash line and its declared regions.
+
+    Runs of three or more newlines then collapse to two, so a region that stood
+    between two paragraphs leaves the text it was removed from unchanged. Other
+    blank lines still count: a region spliced into the middle of a paragraph,
+    with blank lines around it, splits that paragraph, and the hash catches it.
+    A region that isn't declared is hashed like any other text, and a declared
+    one that isn't there leaves the whole file hashed, so both mistakes refuse
+    rather than pass."""
+    text = HASH_RE.sub("", text)
+    for name in regions:
+        text = region_pattern(name).sub("", text)
+    text = re.sub(r"\n{3,}", "\n\n", text).rstrip() + "\n"
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def region_report(rel: str, text: str, regions: list[str]) -> list[str]:
+    """Where each declared region is and how much of the file it covers. Printed
+    on every run, so a declaration wide enough to hide an edit is visible."""
+    total = len(text.splitlines()) or 1
+    out = []
+    for name in regions:
+        spans = list(region_pattern(name).finditer(text))
+        if not spans:
+            out.append(f"{rel}: managed region '{name}' declared but not present; "
+                       "whole-file hash applies")
+        for m in spans:
+            first = text.count("\n", 0, m.start()) + 1
+            last = first + m.group(0).rstrip("\n").count("\n")
+            n = last - first + 1
+            out.append(f"{rel}: skipping managed region '{name}' at lines {first}-{last} "
+                       f"({n} of {total} lines, {100 * n // total}%)")
+    return out
+
+
 def build_agents_md(target: Path, profile: dict) -> str:
     """Shared base, then the repo's own tail if it has one."""
     base = (ROOT / "docs" / "coding" / "global.md").read_text(encoding="utf-8")
     # Strip front matter; the assembled file is not a docs page.
     if base.startswith("---"):
         base = base.split("---", 2)[2].lstrip("\n")
+    # The assembled file has its own H1. The base's second one failed MD025 in
+    # every consumer's docs gate, on a file the consumer can't edit.
+    base = re.sub(r"^# ", "## ", base, count=1, flags=re.M)
 
     stacks = ", ".join(profile["stacks"]) if profile["stacks"] else "none declared"
     parts = [
@@ -160,7 +246,9 @@ def build_agents_md(target: Path, profile: dict) -> str:
     if tail_path.exists():
         parts += ["---", "", "## This repository", "", tail_path.read_text(encoding="utf-8").strip(), ""]
 
-    return "\n".join(parts)
+    text = "\n".join(parts)
+    digest = content_hash(text, profile["managed_regions"])
+    return text.replace(BANNER, f"{BANNER}\n<!-- sync-hash: sha256:{digest} -->", 1)
 
 
 def vendored_gitleaks_config(source: str) -> str:
@@ -189,50 +277,8 @@ def vendored_gitleaks_config(source: str) -> str:
     return GITLEAKS_HEADER + out.rstrip("\n") + "\n"
 
 
-def vendor_docs(target: Path, dry_run: bool) -> list[str]:
-    """Replace .standards/ wholesale. It is derived; nothing in it is edited in place."""
-    dest = target / VENDOR_DIR
-    changed = []
-
-    if dry_run:
-        for src_name, dest_name in VENDORED:
-            src = ROOT / src_name
-            if src.is_file():
-                mirror = dest / dest_name
-                if not mirror.exists() or not filecmp.cmp(src, mirror, shallow=False):
-                    changed.append(str(Path(VENDOR_DIR) / dest_name))
-                continue
-            for f in sorted(src.rglob("*")):
-                if f.is_dir():
-                    continue
-                rel = f.relative_to(src)
-                mirror = dest / dest_name / rel
-                if not mirror.exists() or not filecmp.cmp(f, mirror, shallow=False):
-                    changed.append(str(Path(VENDOR_DIR) / dest_name / rel))
-        config = vendored_gitleaks_config(
-            (ROOT / GITLEAKS_CONFIG).read_text(encoding="utf-8"))
-        mirror = dest / GITLEAKS_CONFIG
-        if not mirror.exists() or mirror.read_text(encoding="utf-8") != config:
-            changed.append(str(Path(VENDOR_DIR) / GITLEAKS_CONFIG))
-        return changed
-
-    if dest.exists():
-        shutil.rmtree(dest)
-    dest.mkdir(parents=True)
-    for src_name, dest_name in VENDORED:
-        src = ROOT / src_name
-        if not src.exists():
-            raise SystemExit(f"sync: {src_name} is missing from the standards repo")
-        if src.is_file():
-            shutil.copy2(src, dest / dest_name)
-        else:
-            shutil.copytree(src, dest / dest_name)
-    (dest / GITLEAKS_CONFIG).write_text(
-        vendored_gitleaks_config((ROOT / GITLEAKS_CONFIG).read_text(encoding="utf-8")),
-        encoding="utf-8")
-
-    (dest / "VERSION").write_text(standards_version() + "\n", encoding="utf-8")
-    (dest / "README.md").write_text(
+def vendored_readme() -> str:
+    return (
         "# Vendored standards\n\n"
         "Copied from XeroIP/standards by its sync workflow. Every file here is derived:\n"
         "edits are lost on the next sync. Change the standard upstream instead.\n\n"
@@ -248,9 +294,92 @@ def vendor_docs(target: Path, dry_run: bool) -> list[str]:
         "vale --config=.standards/.vale.ini docs\n"
         "npx markdownlint-cli2 --config .standards/.markdownlint-cli2.jsonc\n"
         "```\n\n"
-        f"Version: `{standards_version()}`\n",
-        encoding="utf-8",
+        f"Version: `{standards_version()}`\n"
     )
+
+
+def vendored_files() -> dict[str, Path | str]:
+    """Every file the sync writes under .standards/, by its path there: a source
+    file to copy, or the text to write."""
+    out: dict[str, Path | str] = {}
+    for src_name, dest_name in VENDORED:
+        src = ROOT / src_name
+        if not src.exists():
+            raise SystemExit(f"sync: {src_name} is missing from the standards repo")
+        if src.is_file():
+            out[dest_name] = src
+            continue
+        for f in sorted(src.rglob("*")):
+            if f.is_file():
+                out[str(Path(dest_name) / f.relative_to(src))] = f
+    out[GITLEAKS_CONFIG] = vendored_gitleaks_config(
+        (ROOT / GITLEAKS_CONFIG).read_text(encoding="utf-8"))
+    out["VERSION"] = standards_version() + "\n"
+    out["README.md"] = vendored_readme()
+    return out
+
+
+def protected(rel: str, protect: list[str]) -> bool:
+    """Whether a path under .standards/ is one the repo asked the sync to keep."""
+    return any(rel == p or rel.startswith(p.rstrip("/") + "/") for p in protect)
+
+
+def vendor_docs(target: Path, protect: list[str], dry_run: bool) -> list[str]:
+    """Replace .standards/ wholesale, except what sync.protect keeps.
+
+    A protected path that exists is left exactly as it is; one that doesn't is
+    written like any other, since there's nothing there to overwrite. In a
+    check, a file the next sync would delete counts as a change, as an edited
+    or missing one does: `up to date` has to mean the sync would do nothing."""
+    dest = target / VENDOR_DIR
+    files = vendored_files()
+    kept = [p for p in protect if (dest / p).exists()]
+
+    if dry_run:
+        changed = []
+        for rel, source in files.items():
+            if protected(rel, kept):
+                continue
+            mirror = dest / rel
+            if not mirror.is_file():
+                changed.append(str(Path(VENDOR_DIR) / rel))
+            elif isinstance(source, Path):
+                if not filecmp.cmp(source, mirror, shallow=False):
+                    changed.append(str(Path(VENDOR_DIR) / rel))
+            elif mirror.read_text(encoding="utf-8") != source:
+                changed.append(str(Path(VENDOR_DIR) / rel))
+        if dest.exists():
+            for f in sorted(dest.rglob("*")):
+                rel = str(f.relative_to(dest))
+                if f.is_file() and rel not in files and not protected(rel, kept):
+                    changed.append(f"{VENDOR_DIR}/{rel} (not vendored: the next sync deletes it)")
+        return changed
+
+    with tempfile.TemporaryDirectory() as tmp:
+        holding = Path(tmp)
+        for p in kept:
+            (holding / p).parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(dest / p), str(holding / p))
+
+        if dest.exists():
+            shutil.rmtree(dest)
+        dest.mkdir(parents=True)
+        for rel, source in files.items():
+            out = dest / rel
+            out.parent.mkdir(parents=True, exist_ok=True)
+            if isinstance(source, Path):
+                shutil.copy2(source, out)
+            else:
+                out.write_text(source, encoding="utf-8")
+
+        for p in kept:
+            out = dest / p
+            if out.is_dir():
+                shutil.rmtree(out)
+            elif out.exists():
+                out.unlink()
+            out.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(str(holding / p), str(out))
     return [str(Path(VENDOR_DIR))]
 
 
@@ -270,8 +399,14 @@ def adoption_blockers(target: Path, profile: dict) -> list[str]:
       - Any existing agent file must already carry the generated banner. A file
         without it was written by a person, and a declaration in a config file
         is not a reason to overwrite someone's prose.
+
+    And a bannered file must still match its content hash, outside the regions
+    the repo declares. The banner alone said who wrote the file first, not
+    whether anyone added to it since: a section appended after a sync was
+    deleted by the next one, with exit 0.
     """
     blockers = []
+    regions = profile["managed_regions"]
 
     if not profile.get("adopted"):
         blockers.append(
@@ -280,15 +415,57 @@ def adoption_blockers(target: Path, profile: dict) -> list[str]:
             "so it needs the repo owner to opt in explicitly."
         )
 
-    for rel in ("AGENTS.md", "CLAUDE.md", ".github/copilot-instructions.md"):
+    for rel in AGENT_FILES:
         path = target / rel
-        if path.exists() and BANNER.splitlines()[0] not in path.read_text(encoding="utf-8"):
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        if BANNER.splitlines()[0] not in text:
             blockers.append(
                 f"{rel} exists and was not generated by this tool (no banner). "
                 f"Move anything worth keeping into {TAIL_FILE} first."
             )
+            continue
+        recorded = HASH_RE.search(text)
+        if not recorded:
+            blockers.append(
+                f"{rel} carries the banner but no content hash, so an edit to it can't "
+                "be told from generated text: it was written before the sync recorded "
+                f"one. Move anything worth keeping into {TAIL_FILE}, then sync once "
+                "with --adopt."
+            )
+        elif recorded.group(1) != content_hash(text, regions):
+            blockers.append(
+                f"{rel} was edited outside the regions declared in sync.managed_regions "
+                f"since the last sync. Move the edit into {TAIL_FILE}, or declare its "
+                "region if a tool maintains it."
+            )
 
     return blockers
+
+
+def pin_version(target: Path, version: str, dry_run: bool) -> list[str]:
+    """Set standards_version in the repo's .standards.yml to what was vendored.
+
+    Only that line changes, or is appended when missing; the rest of the file is
+    the repo's and stays as written. A repo with no .standards.yml gets none."""
+    path = target / ".standards.yml"
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8")
+    line = re.compile(r"^standards_version:[ \t]*([^#\n]*?)([ \t]*#[^\n]*)?$", re.M)
+    found = line.search(text)
+    if found and found.group(1).strip().strip("\"'") == version:
+        return []
+    if found:
+        new = (text[: found.start()] + f"standards_version: {version}"
+               + (found.group(2) or "") + text[found.end():])
+    else:
+        new = text + ("\n" if text and not text.endswith("\n") else "") + \
+            f"standards_version: {version}\n"
+    if not dry_run:
+        path.write_text(new, encoding="utf-8")
+    return [".standards.yml (standards_version)"]
 
 
 def write_agent_files(target: Path, agents_md: str, dry_run: bool) -> list[str]:
@@ -327,6 +504,31 @@ def main() -> int:
 
     profile = load_profile(target)
 
+    # Both lists come from the repo's own file. A protect path names something
+    # under .standards/, and a region name goes into a pattern.
+    for p in profile["protect"]:
+        parts = Path(p).parts
+        if not parts or Path(p).is_absolute() or ".." in parts:
+            print(f"error: sync.protect entry '{p}' must be a path inside {VENDOR_DIR}/",
+                  file=sys.stderr)
+            return 2
+    for name in profile["managed_regions"]:
+        if not NAME_RE.match(name):
+            print(f"error: sync.managed_regions entry '{name}' must be lowercase letters, "
+                  "digits and hyphens", file=sys.stderr)
+            return 2
+
+    for rel in AGENT_FILES:
+        path = target / rel
+        if path.exists():
+            for line in region_report(rel, path.read_text(encoding="utf-8"),
+                                      profile["managed_regions"]):
+                print(line)
+    for p in profile["protect"]:
+        state = "kept as it is" if (target / VENDOR_DIR / p).exists() else \
+            "not present, so vendored like any other path"
+        print(f"{VENDOR_DIR}/{p}: sync.protect, {state}")
+
     blockers = adoption_blockers(target, profile)
     if blockers and not args.adopt:
         print(f"refusing to sync {target.name}:", file=sys.stderr)
@@ -343,7 +545,9 @@ def main() -> int:
 
     agents_md = build_agents_md(target, profile)
 
-    changed = vendor_docs(target, args.check) + write_agent_files(target, agents_md, args.check)
+    changed = (vendor_docs(target, profile["protect"], args.check)
+               + write_agent_files(target, agents_md, args.check)
+               + pin_version(target, standards_version(), args.check))
 
     if args.check:
         if changed:

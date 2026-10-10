@@ -54,8 +54,11 @@ repository needs consent at both ends: the repo is listed in `standards-sync.yml
 `.standards.yml` sets `sync.adopted: true`. Carrying a `.standards.yml` is not consent on its
 own — a repo can declare a profile long before anyone agrees to have three top-level files
 replaced. The sync also refuses outright when any of those files exists without the generated
-banner, because a file a person wrote is not the bot's to overwrite. `--adopt` overrides that,
-deliberately by hand.
+banner, because a file a person wrote is not the bot's to overwrite, and when a generated one
+no longer matches the content hash under its banner, because someone has edited it since. A
+region a tool maintains can be declared in `sync.managed_regions`; it's left out of the hash,
+and every run prints where it is and how much of the file it covers. The regenerated file
+doesn't carry it over (#36). `--adopt` overrides all of this, deliberately by hand.
 
 A release syncs that released tag, and `standards_version` in the consuming repo records which
 one it holds. The weekly run only reports: no repo should be handed whatever happens to be on

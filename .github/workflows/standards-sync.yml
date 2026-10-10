@@ -83,7 +83,8 @@ jobs:
       #
       #   0  up to date
       #   1  out of date — information, not a failure, so it is captured
-      #   3  refused — no consent, or an agent file this tool did not write
+      #   3  refused — no consent, an agent file this tool did not write, or
+      #      one edited since the last sync outside its declared regions
       #
       # A refusal is a hard failure when `apply` asked for a write: the run was
       # told to do something and did not. On a scheduled preview it is a
@@ -108,7 +109,7 @@ jobs:
               echo "changes=no" >> "$GITHUB_OUTPUT"
               echo "refused=yes" >> "$GITHUB_OUTPUT"
               {
-                echo "### ${{ matrix.repo }} — not adopted"
+                echo "### ${{ matrix.repo }} — refused"
                 echo
                 echo '```'
                 echo "$out"
@@ -118,7 +119,7 @@ jobs:
                 echo "::error::${{ matrix.repo }} refused the sync, and apply was requested."
                 exit 3
               fi
-              echo "::notice::${{ matrix.repo }} has not adopted the standards yet. Nothing to do."
+              echo "::notice::${{ matrix.repo }} refused the sync; the reasons are printed above. Nothing to do."
               ;;
             1)
               echo "changes=yes" >> "$GITHUB_OUTPUT"
@@ -157,12 +158,13 @@ jobs:
           commit-message: |
             chore: sync engineering standards
 
-            Vendors .standards/ and regenerates AGENTS.md, CLAUDE.md, and
-            .github/copilot-instructions.md from XeroIP/standards.
+            Vendors .standards/, regenerates AGENTS.md, CLAUDE.md, and
+            .github/copilot-instructions.md from XeroIP/standards, and sets
+            standards_version in .standards.yml to the version vendored.
 
             Everything under .standards/ is derived and is replaced wholesale on
-            each sync. Repo-specific instructions belong in .standards-tail.md,
-            which this never touches.
+            each sync, except paths listed in sync.protect. Repo-specific
+            instructions belong in .standards-tail.md, which this never touches.
           body: |
             Automated sync from [XeroIP/standards](https://github.com/XeroIP/standards).
 

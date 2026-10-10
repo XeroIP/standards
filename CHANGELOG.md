@@ -119,6 +119,22 @@ behaviour.
 - **The cross-reference example runs here.** It named three files in another repository and
   crashed with `FileNotFoundError`. `examples/cross-ref.json` checks a made-up fact across
   three files of its own.
+- **The synced AGENTS.md has one H1.** The sync kept the shared base's own H1 under the
+  file's, so every freshly synced repository failed MD025 in its docs gate, on a file it
+  can't edit. The base's H1 is now an H2.
+- **The sync refuses a generated agent file edited since the last sync.** The banner check
+  caught a file a person wrote, not a section added to a generated one, which the next sync
+  deleted with exit 0. Each generated file now carries a content hash, and a mismatch exits 3.
+  A region another tool maintains can be declared in `sync.managed_regions`: it's left out of
+  the hash, and every run prints where it is and how much of the file it covers. A file
+  written before the hash existed is refused once; `--adopt` writes the hash.
+- **The sync writes `standards_version`** in the consumer's `.standards.yml` to the version it
+  vendored, changing only that line. It was only ever read, so a sync left a stale pin.
+- **`sync.protect` is honoured.** A listed path under `.standards/` that exists is kept as it
+  is, and each run says so. Nothing read the key, so a protected edit was replaced.
+- **`--check` counts every change the next sync would make.** A file under `.standards/` that
+  the sync would delete, an edited `VERSION` or `README.md`, and a stale `standards_version`
+  all reported up to date.
 
 ### Fixed
 
@@ -146,6 +162,8 @@ behaviour.
   made-up `mkdocs.yml` and checks that entries follow its `site_url`.
 - `tests/test-diagram-tools.sh`, which runs both diagram checkers at 0, 1 and 256 findings and
   runs the shipped example, clean and with one source changed.
+- `tests/test-sync.sh`, which syncs scratch consumers and checks each of the above, ending
+  with the vendored markdownlint run on the sync's own output.
 
 ## [0.1.0] — 2026-09-16
 
