@@ -6,23 +6,27 @@
 # LLM tool might not follow. Generalises the base-plus-tail sync already working
 # in XeroIP/copilot-memory, with repos in place of hosts.
 #
-# **It reports by default and writes nothing.** Opening a pull request in
-# someone else's repository is not something to switch on and hope: the sync
-# replaces three top-level files, and a repo with a hand-written CLAUDE.md
-# loses it. Check mode runs on the schedule so the output can be reviewed for a
-# while before anything is written, and `apply` has to be asked for by hand.
-# The consent gates in sync-standards.py apply either way.
+# **A manual run reports by default and writes nothing.** Opening a pull
+# request in someone else's repository is not something to switch on and hope:
+# the sync replaces three top-level files, and a repo with a hand-written
+# CLAUDE.md loses it. `apply` has to be asked for by hand. A published release
+# applies, because cutting it is that request. Either way the job waits for the
+# sync environment's reviewer before the token is handed over, and the consent
+# gates in sync-standards.py apply.
+#
+# There's no schedule. A required reviewer suits a deliberate act: someone just
+# cut a release, or asked for a run, so someone is there to approve it. An
+# unattended weekly run queued at the same gate and waited there; three did,
+# for three weeks, and reported nothing.
 name: Sync standards
 
 on:
   release:
     types: [published]
-  schedule:
-    - cron: '0 9 * * 1'
   workflow_dispatch:
     inputs:
       repos:
-        description: Space-separated owner/repo list. Empty means all subscribers.
+        description: Space-separated owner/repo list, of repos listed below. Empty means all of them.
         type: string
         default: ''
       apply:
@@ -59,16 +63,33 @@ jobs:
         repo:
           - XeroIP/my-unraid-notes
     steps:
+      # `repos` narrows a manual run to the repos it names. Nothing read it, so
+      # a run asked to write to one repo would have written to every one listed.
+      - name: Is this repo in scope?
+        id: scope
+        env:
+          REPOS: ${{ inputs.repos }}
+          REPO: ${{ matrix.repo }}
+        run: |
+          set -f
+          if [ -z "$REPOS" ] || printf '%s\n' $REPOS | grep -qxF "$REPO"; then
+            echo "in=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "in=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::$REPO isn't in the repos input; skipped."
+          fi
+
       - name: Check out the standards
+        if: steps.scope.outputs.in == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           path: standards
-          # A release syncs that released tag. The schedule reads the default
-          # branch and only reports: a consuming repo should never be handed
-          # whatever happened to be on main at 09:00 on a Monday.
+          # A release syncs that released tag. A manual run reads the default
+          # branch, and writes only when `apply` is set.
           ref: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
 
       - name: Check out the target
+        if: steps.scope.outputs.in == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           repository: ${{ matrix.repo }}
@@ -76,6 +97,7 @@ jobs:
           token: ${{ secrets.STANDARDS_SYNC_TOKEN }}
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        if: steps.scope.outputs.in == 'true'
         with:
           python-version: '3.12'
 
@@ -87,16 +109,16 @@ jobs:
       #      one edited since the last sync outside its declared regions
       #
       # A refusal is a hard failure when `apply` asked for a write: the run was
-      # told to do something and did not. On a scheduled preview it is a
-      # status — "this repo has not adopted yet" — and failing there would mark
-      # the job red every Monday until it does. A scheduled job that is
-      # permanently red is one people stop reading, which costs more than the
-      # missing signal it was meant to provide.
+      # told to do something and did not. On a release or a preview it is a
+      # status: a repo that hasn't adopted yet, or one with an edit to settle,
+      # shouldn't turn every release red for every other repo's run. A check
+      # that is red for someone else's reasons is one people stop reading.
       #
       # The refusal is still printed either way, and surfaced in the step
       # summary so it is visible without opening the log.
       - name: What would change
         id: preview
+        if: steps.scope.outputs.in == 'true'
         run: |
           set +e
           out=$(python3 standards/tools/sync-standards.py --target target --check 2>&1)
@@ -143,12 +165,13 @@ jobs:
               ;;
           esac
 
+      # A release applies; a manual run applies only when asked.
       - name: Sync
-        if: inputs.apply && steps.preview.outputs.changes == 'yes'
+        if: (github.event_name == 'release' || inputs.apply) && steps.preview.outputs.changes == 'yes'
         run: python3 standards/tools/sync-standards.py --target target
 
       - name: Open a PR if anything changed
-        if: inputs.apply && steps.preview.outputs.changes == 'yes'
+        if: (github.event_name == 'release' || inputs.apply) && steps.preview.outputs.changes == 'yes'
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
         with:
           path: target
