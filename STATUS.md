@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-10T00:44:44+00:00
+updated: 2026-10-10T00:48:32+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -21,19 +21,20 @@ either build the missing mechanism or restate the claim as a review item.
 ## In progress / broken
 
 - PR 8, on `fix/links`: lychee in its own `links.yml`, run on a path diff and weekly;
-  `llms.txt` points at raw Markdown on main, follows `mkdocs.yml`'s `site_url` once it
-  exists, and is checked against the checkout on push and pull request runs.
-- A temporary `measure-raw` job on that branch counts 429s from CI. It decides
-  `.lychee.toml`'s 429 policy and must be removed before the PR merges.
+  `llms.txt` points at raw Markdown on main and follows `mkdocs.yml`'s `site_url` once it
+  exists; lychee skips those URLs on push and pull request runs, and `tests/test-llms-txt.sh`
+  checks each names a file; 429 is no longer accepted. The temporary 429 measurement ran
+  (no 429s in ten runs) and is removed.
 - The audit notes stay outside the repository until the last fix lands.
 
 ## Next step
 
-Read the `measure-raw` table from the branch's push run, set the 429 policy in
-`.lychee.toml` with the reason, remove the job, then open PR 8.
+Drive PR 8 to merged, then open PR 9: exit status, a self-contained example and an import
+marker for the diagram tools under `docs/diagrams/tools/`.
 
 ## Blockers / waiting on
 
+- Review of PR 8.
 - The release exercise is the owner's, and waits until PR 11 is built.
 - The handoff block's ownership (#36). Do not re-run that installer against this repo
   until it is settled.

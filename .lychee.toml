@@ -4,8 +4,12 @@
 # weekly and when a change touches a file it reads (.github/workflows/links.yml).
 scheme = ["https", "http"]
 
-# Codes meaning "the link is real but the bot is being turned away".
-accept = [200, 206, 301, 302, 403, 429]
+# 403 means the link is real and the bot is turned away, as a sign-in page
+# does. 429 is not accepted: an accepted 429 passes a link nobody checked.
+# lychee retries a 429 (max_retries below, waiting longer each time) and fails
+# the link only if every attempt is rate-limited. Measured from a runner before
+# this was set: ten runs over llms.txt's 32 URLs, none rate-limited.
+accept = [200, 206, 301, 302, 403]
 
 exclude = [
   # Placeholders used throughout the standards. They are meant not to resolve.

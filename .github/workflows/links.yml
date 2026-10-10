@@ -5,13 +5,15 @@
 # the diff. It used to be read from the commit message: a push whose message
 # said "docs" ran it on any change, and a docs change whose message didn't was
 # never checked. The weekly run catches a link that rots with nothing changing
-# here.
+# here. GitHub stops a public repository's schedule after 60 days with no
+# activity in it, and nothing here can prevent that; the next commit restarts it.
 #
 # llms.txt points at each page's Markdown on main. A page a pull request adds
 # isn't on main until it merges, and raw.githubusercontent.com serves a push
-# from cache for minutes, so on a push or a pull request those URLs are checked
-# against the checkout: the file has to exist at that path. The weekly run
-# checks them live.
+# from cache for minutes, so on a push or a pull request lychee skips those
+# URLs. That each one names a file in the tree is tests/test-llms-txt.sh's
+# job, in self-check on every push and pull request. The weekly run checks
+# them live.
 name: Links
 
 on:
@@ -45,7 +47,7 @@ jobs:
           if [ "$EVENT" = schedule ] || [ "$EVENT" = workflow_dispatch ]; then
             echo "Scheduled or dispatched: checking every link live."
             echo "run=true" >> "$GITHUB_OUTPUT"
-            echo "remap=" >> "$GITHUB_OUTPUT"
+            echo "skip=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [ -z "$BASE" ] || [ "$BASE" = 0000000000000000000000000000000000000000 ] \
@@ -64,56 +66,11 @@ jobs:
             fi
           fi
           echo "run=$run" >> "$GITHUB_OUTPUT"
-          echo "remap=--remap '$RAW file://$GITHUB_WORKSPACE/'" >> "$GITHUB_OUTPUT"
+          echo "skip=--exclude '$RAW'" >> "$GITHUB_OUTPUT"
 
       - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         if: steps.inputs.outputs.run == 'true'
         with:
-          args: --config .lychee.toml --no-progress ${{ steps.inputs.outputs.remap }} './**/*.md' llms.txt
+          args: --config .lychee.toml --no-progress ${{ steps.inputs.outputs.skip }} './**/*.md' llms.txt
           fail: true
 
-  # TEMPORARY: removed before this pull request merges. Measures how often
-  # raw.githubusercontent.com rate-limits the llms.txt set from a runner, with
-  # 429 not accepted. .lychee.toml accepts 429, so under it a rate-limited link
-  # passes without being checked, and a measurement under that tolerance would
-  # show only the tolerance.
-  measure-raw:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
-        with:
-          args: --version
-          fail: false
-          failIfEmpty: false
-          jobSummary: false
-      - name: Ten live runs over llms.txt, 429 not accepted
-        run: |
-          set -uo pipefail
-          {
-            echo "| run | retries | total | 200 | 429 | other errors | timeouts |"
-            echo "| --- | --- | --- | --- | --- | --- | --- |"
-          } > table.md
-          bad=0
-          for retries in 0 3; do
-            for i in 1 2 3 4 5; do
-              rc=0
-              lychee --config .lychee.toml --no-progress --accept 200 --max-retries "$retries" \
-                --format json --output out.json llms.txt >/dev/null 2>&1 || rc=$?
-              if [ "$rc" -ne 0 ] && [ "$rc" -ne 2 ] || [ ! -s out.json ]; then
-                echo "::error::lychee could not run (exit $rc)"; bad=1; continue
-              fi
-              python3 - "$i" "$retries" >> table.md <<'EOF'
-          import json, sys
-          d = json.load(open("out.json"))
-          codes = [e["status"].get("code") for errs in d["error_map"].values() for e in errs]
-          n429 = codes.count(429)
-          other = sorted(str(c) for c in codes if c != 429)
-          print(f"| {sys.argv[1]} | {sys.argv[2]} | {d['total']} | {d['successful']} | {n429} "
-                f"| {' '.join(other) or 0} | {d['timeouts']} |")
-          EOF
-            done
-          done
-          cat table.md
-          cat table.md >> "$GITHUB_STEP_SUMMARY"
-          exit $bad

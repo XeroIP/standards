@@ -34,7 +34,9 @@ jobs:
         run: node tools/build-llms-txt.js --check
 
       # The switch to the site can't be watched before the site exists, so this
-      # runs the generator on a copy of the tree with a made-up mkdocs.yml.
+      # runs the generator on a copy of the tree with a made-up mkdocs.yml. It
+      # also checks that every llms.txt URL names a file in the tree, which the
+      # links job skips on a push or a pull request.
       - name: llms.txt follows mkdocs.yml's site_url once it exists
         run: bash tests/test-llms-txt.sh
 

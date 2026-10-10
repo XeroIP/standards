@@ -105,8 +105,12 @@ behaviour.
 - **`llms.txt` points at each page's Markdown on main, and lychee checks it.** Every entry
   pointed at a site that isn't built, so all 32 returned 404, and lychee never read the file.
   Entries point at `raw.githubusercontent.com` until a `mkdocs.yml` exists, then at its
-  `site_url`. On a push or a pull request those URLs are checked against the checkout, since a
-  page a pull request adds isn't on main yet; the weekly run checks them live.
+  `site_url`. On a push or a pull request lychee skips those URLs, since a page a pull request
+  adds isn't on main yet, and `tests/test-llms-txt.sh` checks that each names a file in the
+  tree. The weekly run checks them live.
+- **lychee no longer accepts 429.** An accepted 429 passed a link nobody checked. lychee
+  retries a 429, waiting longer each time, and fails the link only when every attempt is
+  rate-limited. Ten runs over `llms.txt`'s 32 URLs from a runner saw none.
 
 ### Fixed
 
