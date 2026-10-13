@@ -21,7 +21,8 @@ Each generated agent file carries a content hash. A later sync refuses when the
 file no longer matches it, because the difference is someone's edit and a sync
 would delete it. A region the repo declares in `sync.managed_regions` is left
 out of the hash, so a tool that maintains it doesn't trip the check; the
-regenerated file doesn't carry the region over (#36).
+regenerated file doesn't carry the region over. A tool whose text has to
+persist keeps it in a file of its own, such as one under .claude/rules/.
 
 The sync also writes `standards_version` in the repo's .standards.yml to the
 version it vendored, so the pin records what the repo holds.

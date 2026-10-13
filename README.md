@@ -58,7 +58,8 @@ banner, because a file a person wrote is not the bot's to overwrite, and when a 
 no longer matches the content hash under its banner, because someone has edited it since. A
 region a tool maintains can be declared in `sync.managed_regions`; it's left out of the hash,
 and every run prints where it is and how much of the file it covers. The regenerated file
-doesn't carry it over (#36). `--adopt` overrides all of this, deliberately by hand.
+doesn't carry it over: a tool whose text has to persist keeps it in a file of its own, as
+shift-change does in `.claude/rules/`. `--adopt` overrides all of this, deliberately by hand.
 
 A published release syncs that released tag and opens the pull requests, and `standards_version`
 in the consuming repo records which one it holds. A manual run reads `main` and opens them only
