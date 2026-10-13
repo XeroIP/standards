@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-13T20:45:43+00:00
+updated: 2026-10-13T20:49:05+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -30,9 +30,9 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## In progress / broken
 
-- PR 13 on `feat/incident-starter`, committed locally and not pushed: the owner reviews the
-  diff first. `tools/build-incident-starter.py` writes `docs/documentation/templates/incident.md`
-  from `INCIDENT_SECTIONS`; `check-docs.py` fails any front-matter value still holding the
+- PR 13 on `feat/incident-starter` is open for the owner's review.
+  `tools/build-incident-starter.py` writes `docs/documentation/templates/incident.md` from
+  `INCIDENT_SECTIONS`; `check-docs.py` fails any front-matter value still holding the
   `<fill in>` marker; it and `build-llms-txt.js` skip the starter by its exact path.
 - For PR 14: README:73-74 says the sync token doesn't exist, but it does; a rejected run
   shows as a failure. For #32: the sync's PRs are authored by the token's owner.
