@@ -143,6 +143,16 @@ behaviour.
 - **`repos` narrows a manual sync run to the repos it names.** Nothing read the input, so a
   run asked for one repo ran for every listed one, and with `apply` would have written to all
   of them.
+- **Every action pin is checked against its tag in CI.** `tools/verify-action-pins.sh` ran in
+  no workflow, so CONTRIBUTING's "All of it runs in CI too" was false for it, and a Dependabot
+  bump's SHA was checked against its version comment only by eye. The `pins` job in
+  `self-check.yml` runs it, and `tests/test-verify-action-pins.sh` shows it failing a wrong SHA,
+  a missing comment and a repository it can't read.
+- **The pin example in `policy-pinned-actions.yml` is a placeholder.** It was a real SHA,
+  which Dependabot rewrote to v7.0.1's commit while the comment beside it still said v4.2.2.
+- **AGENTS.md no longer says CI doesn't resolve tags.** A published release's sync checks out
+  its tag. It now says what the tag ruleset blocks, and that no gate resolves a tag to decide
+  what it accepts.
 
 ### Fixed
 
@@ -153,6 +163,10 @@ behaviour.
 - **The marker count in `docs/prose/README.md` is generated.** It said 21 markers and 11
   errors while `rules.yml` held 22 and 12. `tools/build-vale.js` now writes the line, and the
   parity check covers it.
+- **`verify-action-pins.sh` says when it can't read a repository.** An unreachable or
+  missing repository made `git ls-remote` fail inside an assignment, and `set -e` ended the
+  script with git's exit code and no message. It now names the repository and exits 2, apart
+  from a wrong pin's 1.
 
 ### Added
 

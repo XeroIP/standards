@@ -21,8 +21,9 @@ updates:
       prefix: chore
     groups:
       # One pull request rather than eight. Action bumps are reviewed as a set
-      # because they are read the same way: check the SHA matches the tag in the
-      # comment, then check the gate still passes.
+      # because they are read the same way: the pins job in self-check.yml
+      # checks each SHA is the commit its comment's tag names, then the rest of
+      # the gate has to pass on the bumped actions.
       actions:
         patterns: ["*"]
 

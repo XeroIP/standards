@@ -157,3 +157,21 @@ jobs:
 
       - name: gitleaks flags the fixture, and the config excludes only its directory
         run: bash tests/test-gitleaks.sh
+
+  # Every pin resolved against the tag in its comment. Dependabot's grouped
+  # bump is reviewed by checking exactly that, which nothing ran: a SHA under
+  # the wrong release's comment passed the policy job, which reads only the
+  # SHA's shape. Here rather than in policy-pinned-actions.yml, which consuming
+  # repos call: there it would change what their gate accepts, in repos that
+  # didn't ask, and fail in any repo the sync hasn't reached. Needs github.com,
+  # which a hosted runner has.
+  pins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Every pinned SHA is the commit its version comment names
+        run: bash tools/verify-action-pins.sh
+
+      - name: The verifier fails a wrong pin, a missing comment, and a repo it can't read
+        run: bash tests/test-verify-action-pins.sh

@@ -135,8 +135,9 @@ Dependabot is configured in **this** repository only, for the third-party action
 repository uses. It does not reach consuming repos.
 
 Tags exist for humans to read, for release notes, and to give `git describe` something legible
-for `.standards/VERSION`. They are immutable once cut and are never moved. CI does not resolve
-them.
+for `.standards/VERSION`. They are immutable once cut: the repository's tag ruleset blocks
+deleting, updating or moving a `v*` tag. A published release's sync checks out its tag, so the
+tag names what that sync vendors, but no gate resolves a tag to decide what it accepts.
 
 ## When you are unsure
 
