@@ -14,6 +14,10 @@ behaviour.
 
 ### Changed
 
+- **The shift-change handoff instructions live in `.claude/rules/shift-change.md`.** They were
+  a marked block in `AGENTS.md`, copied there so `CLAUDE.md` could be generated around it, and
+  re-running the shift-change installer broke the agent-file parity check. Its v3 writes its
+  own rules file, which Claude Code loads alongside `CLAUDE.md`, and never writes `CLAUDE.md`.
 - **Vale is pinned to 3.24.0 in both Prose steps.** `docs-ci.yml` and `self-check.yml`
   installed whatever Vale release was newest, so a release could change what the gate accepts
   in every consuming repo with no commit anywhere. Both now set `VALE_VERSION`, the cap test

@@ -55,5 +55,6 @@ sync:
   # sync refuses a generated file edited since the last sync; a declared region
   # is left out of that check, and every run prints where it is and how much of
   # the file it covers. The sync doesn't carry the region into the file it
-  # writes (#36).
+  # writes: a tool whose text has to persist keeps it in a file of its own,
+  # such as one under .claude/rules/.
   managed_regions: []
