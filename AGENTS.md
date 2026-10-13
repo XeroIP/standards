@@ -44,6 +44,7 @@ Never edit these by hand. Change the source, run the generator:
 | the marker count in `docs/prose/README.md` | `docs/prose/rules.yml` | `tools/build-vale.js` |
 | `llms.txt` | the `docs/` tree | `tools/build-llms-txt.js` |
 | `docs/design/tokens.css`, `docs/design/adapters/*.css` | `docs/design/tokens.json` | `docs/design/build-adapters.js` |
+| `docs/documentation/templates/incident.md` | `INCIDENT_SECTIONS` in `tools/check-docs.py` | `tools/build-incident-starter.py` |
 | the gap counts in `tools/check-leakage.py`'s docstring | the tracked tree | `tools/build-leakage-gaps.py` |
 
 CI re-runs every generator and fails if the result differs from what is committed. That check

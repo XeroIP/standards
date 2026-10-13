@@ -18,6 +18,12 @@ const DOCS = path.join(ROOT, "docs");
 const OUT = path.join(ROOT, "llms.txt");
 const MKDOCS = path.join(ROOT, "mkdocs.yml");
 
+// The incident starter is a page to copy, not a standard to read. Its title is the
+// placeholder `<fill in>`, so indexing it would list a page by that name. Exactly this
+// file is skipped, by the path tools/check-docs.py also skips. Skipping every
+// `templates/` directory, or every incident.md, would drop a real page.
+const STARTER = path.join(DOCS, "documentation", "templates", "incident.md");
+
 // Where each entry points. The site doesn't exist yet, and every entry pointed
 // at it, so every link 404ed. Until it does, an entry is the page's Markdown on
 // main: llms.txt is read by models, and llmstxt.org asks for Markdown. The site
@@ -88,7 +94,7 @@ function walk(dir) {
   for (const name of fs.readdirSync(dir).sort()) {
     const p = path.join(dir, name);
     if (fs.statSync(p).isDirectory()) { found.push(...walk(p)); continue; }
-    if (!name.endsWith(".md")) continue;
+    if (!name.endsWith(".md") || p === STARTER) continue;
     const text = fs.readFileSync(p, "utf8");
     const fm = frontMatter(text);
     if (!fm || !fm.title) continue;

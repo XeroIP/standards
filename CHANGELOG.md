@@ -14,6 +14,14 @@ behaviour.
 
 ### Changed
 
+- **`check-docs.py` fails a front-matter value that still holds `<fill in>`.** The incident
+  starter's `updated` would fail the date check, but nothing failed an unfilled `title`,
+  `severity` or `window`, so a copy could be committed with the placeholders in them. Each
+  unfilled field is now one error naming the field, whether the marker is a scalar, in a list
+  or nested. The starter itself is the one file skipped, by its exact path from the script's
+  own location, as `docs/prose/vendor/` is; `build-llms-txt.js` skips the same file. A file
+  named `templates/incident.md` anywhere else is still checked. A consuming repo with a page
+  that carries the marker in its front matter starts failing when it bumps its pin.
 - **The shift-change handoff instructions live in `.claude/rules/shift-change.md`.** They were
   a marked block in `AGENTS.md`, copied there so `CLAUDE.md` could be generated around it, and
   re-running the shift-change installer broke the agent-file parity check. Its v3 writes its
@@ -179,6 +187,14 @@ behaviour.
 
 ### Added
 
+- **Incident reviews have a starter to copy, generated from `INCIDENT_SECTIONS`.**
+  `structure.md` said reviews were "generated from the template", and no template existed.
+  `tools/build-incident-starter.py` now writes `docs/documentation/templates/incident.md` from
+  the section list `check-docs.py` enforces: the front-matter fields an incident requires, one
+  heading per section with a hint, and `<fill in>` wherever an author supplies a value. A
+  section added to the list without a hint stops the generator. `self-check.yml` runs it with
+  `--check`, which fails when the file is missing or differs, and
+  `tests/test-incident-starter.sh` runs that check on a missing, a stale and a fresh starter.
 - `tools/build-leakage-gaps.py`, which measures the counts behind the scanner's accepted gaps
   and writes them into its docstring. `self-check.yml` fails when they drift from the tree.
 - `tools/iana-tlds.txt`, IANA's list of delegated suffixes, fetched by `tools/update-tlds.py`.

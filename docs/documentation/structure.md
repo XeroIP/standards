@@ -2,7 +2,7 @@
 title: Documentation structure
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: Diátaxis plus ADRs, incidents, an ops log, and project records, and which gates each repo profile runs.
 ---
 
@@ -41,10 +41,14 @@ docs/
   reference/        # fact-oriented, structured, scannable
   explanation/      # understanding-oriented, prose
   adr/              # decisions, MADR format, immutable once accepted
-  incidents/        # post-incident reviews, generated from the template
+  incidents/        # post-incident reviews, begun from the generated starter; see below
   ops-log/          # one file per dated operational change
   projects/         # dated records of one bounded piece of work
 ```
+
+Incident reviews are begun from the starter at
+[`docs/documentation/templates/incident.md`](templates/incident.md), which is generated from
+the same section list `check-docs.py` enforces.
 
 A repo uses the directories it needs. A tool with no operational surface has no `ops-log/`; a
 homelab has no `tutorials/`. Empty directories are not created in advance.
