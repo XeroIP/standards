@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-13T06:54:17+00:00
+updated: 2026-10-13T19:25:02+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -21,6 +21,7 @@ either build the missing mechanism or restate the claim as a review item.
   gate, Sync and PR ran without `apply`, and the PR opened with labels on contents and
   pull-requests access alone; VERSION and `standards_version` matched. Run 38358109877
   (rejected): the job never started. Trial repo, tags, releases and branch are deleted.
+- The owner limited the `sync` environment to `v*` tags and `main`, after the exercise.
 - Issues #43-#46 and #50 are filed. #50: Vale runs at `latest` in both Prose steps.
 
 ## In progress / broken
@@ -39,8 +40,6 @@ Drive PR 12 to merged, then build PR 13: the incident starter,
 
 ## Blockers / waiting on
 
-- Owner, optional: limit the `sync` environment to `v*` tags and `main`. It has no
-  branch or tag restriction, so its required reviewer is the only gate on the token.
 - The first live run of `links.yml`: Wednesday's schedule, or a manual run by the owner.
   This session's token can't start a workflow.
 - The handoff block's ownership (#36). Do not re-run that installer against this repo
