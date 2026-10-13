@@ -2,7 +2,7 @@
 title: Bash
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: Strict mode, shellcheck, and where a shell script stops being the right tool.
 ---
 
@@ -15,8 +15,10 @@ summary: Strict mode, shellcheck, and where a shell script stops being the right
 | Lint | shellcheck |
 | Format | shfmt, two-space indent |
 
-Both run pre-commit. shellcheck findings are fixed, not suppressed; a `# shellcheck disable`
-carries a comment saying why on the same line.
+Run both before committing. This repository ships no hook for either, so whether they run on
+commit or in CI is each repo's decision; selecting gates by stack is planned in
+[#44](https://github.com/XeroIP/standards/issues/44). shellcheck findings are fixed, not
+suppressed; a `# shellcheck disable` carries a comment saying why on the same line.
 
 ## Every script starts with
 

@@ -2,7 +2,7 @@
 title: Dart and Flutter
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: Formatting, analysis, SDK pinning, and the release-agreement rule from rolling-text.
 ---
 
@@ -16,7 +16,7 @@ summary: Formatting, analysis, SDK pinning, and the release-agreement rule from 
 | Analyse | `flutter analyze`, configured in `analysis_options.yaml` |
 | Test | `flutter test` |
 
-## The SDK version is pinned in CI
+## Pin the SDK version in CI
 
 Pin the exact Flutter version in every workflow. A different local version resolves
 `pubspec.lock` differently and rewrites it on `flutter pub get`, which arrives in review as
@@ -25,7 +25,7 @@ unexplained lockfile churn that hides the real change.
 ## Releases must agree in three places
 
 The git tag `vX.Y.Z`, the `version:` in `pubspec.yaml`, and a `## [X.Y.Z]` section in
-`CHANGELOG.md`. CI fails the release when they disagree.
+`CHANGELOG.md`. Make the release job fail when they disagree.
 
 The build number after the `+` also increments. Android refuses to install an APK whose build
 number is not higher than the installed one, and that failure surfaces on a user's device
