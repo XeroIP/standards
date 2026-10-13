@@ -2,7 +2,7 @@
 title: Prose standard
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: House writing style, derived from multi-vendor research and enforced by generated Vale rules.
 ---
 
@@ -76,6 +76,12 @@ node tools/build-vale.js  # regenerate after editing rules.yml
 CI runs `vale` at `MinAlertLevel = warning`, so errors and warnings both surface while
 suggestions stay quiet. It also re-runs the generator and fails if the committed styles differ
 from what `rules.yml` produces.
+
+CI runs Vale 3.24.0, pinned as `VALE_VERSION` in `docs-ci.yml` and in the standards repository's own
+`self-check.yml`. A new Vale release can change what a rule extension or scope matches, so it
+reaches the gate only through a commit that bumps both. `self-check.yml` runs the cap test on
+the bumped binary and fails if the two pins differ. Nothing bumps them automatically:
+Dependabot doesn't track a version set inside a workflow step.
 
 `docs/prose/` is excluded from linting. The research files quote every banned marker as an
 example, so linting them would report the standard against itself.

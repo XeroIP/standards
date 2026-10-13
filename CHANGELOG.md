@@ -14,6 +14,11 @@ behaviour.
 
 ### Changed
 
+- **Vale is pinned to 3.24.0 in both Prose steps.** `docs-ci.yml` and `self-check.yml`
+  installed whatever Vale release was newest, so a release could change what the gate accepts
+  in every consuming repo with no commit anywhere. Both now set `VALE_VERSION`, the cap test
+  checks the installed binary reports it, and `self-check.yml` fails if the two pins differ.
+  Consuming repos get the pin when they bump their `docs-ci.yml` pin.
 - **The leakage scan reads the repository it runs in.** The vendored copy at
   `.standards/tools/check-leakage.py` found the repository from its own location, so in a
   consuming repository it listed only `.standards/` and passed every file beside it. Outside

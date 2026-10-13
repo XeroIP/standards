@@ -81,6 +81,9 @@ jobs:
 
   docs:
     runs-on: ubuntu-latest
+    # The Vale release both Prose steps run; docs-ci.yml carries the same pin.
+    env:
+      VALE_VERSION: '3.24.0'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -106,19 +109,37 @@ jobs:
       - name: Prose
         uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
         with:
+          version: ${{ env.VALE_VERSION }}
           vale_flags: --minAlertLevel=warning
           fail_on_error: true
           filter_mode: nofilter
 
       # On the Vale binary the step above installed into the tool cache, so a
-      # Vale release that changes how a scope counts fails here. If the cache
-      # moves, find comes back empty, the test looks for vale on PATH, which a
-      # hosted runner doesn't have, and exits 2.
+      # bump that changes how a scope counts fails here, before the bumped
+      # docs-ci.yml reaches a consuming repo. The binary has to report the
+      # pinned version. If the cache moves, find comes back empty, the test
+      # looks for vale on PATH, which a hosted runner doesn't have, and exits 2.
       - name: Frequency caps count across the whole page
         run: |
-          VALE="$(find "$RUNNER_TOOL_CACHE/vale" -type f -name vale 2>/dev/null | head -n 1)"
+          VALE="$(find "$RUNNER_TOOL_CACHE/vale/$VALE_VERSION" -type f -name vale 2>/dev/null | head -n 1)"
           export VALE
+          if [ -n "$VALE" ] && ! "$VALE" --version | grep -qxF "vale version $VALE_VERSION"; then
+            echo "::error::$VALE reports '$("$VALE" --version)', not $VALE_VERSION"
+            exit 1
+          fi
           bash tests/test-vale.sh
+
+      # The cap test above runs on this job's pin, and consuming repos get
+      # docs-ci.yml's. A bump to one and not the other would ship an untested
+      # Vale, or test one nobody runs.
+      - name: docs-ci.yml pins the Vale tested here
+        run: |
+          theirs="$(sed -n "s/^ *VALE_VERSION: *//p" .github/workflows/docs-ci.yml | tr -d "'\"")"
+          if [ "$theirs" != "$VALE_VERSION" ]; then
+            echo "::error::docs-ci.yml pins Vale '$theirs'; self-check.yml tests $VALE_VERSION"
+            exit 1
+          fi
+          echo "both Prose steps run Vale $VALE_VERSION"
 
       - name: Markdown lint
         uses: DavidAnson/markdownlint-cli2-action@21c1be1b93ad9ed58fa840aacc3f279cde2a72ff # v24.2.0

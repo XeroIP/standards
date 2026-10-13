@@ -35,6 +35,13 @@ permissions:
 jobs:
   docs:
     runs-on: ubuntu-latest
+    # The Vale release the Prose step installs. The action's default is
+    # `latest`, which let a Vale release change what this gate accepts in every
+    # calling repo with no commit anywhere. Bumped by hand, in the same commit
+    # as self-check.yml's, which tests the caps on it and fails if the two
+    # differ. Dependabot doesn't track a version inside a step.
+    env:
+      VALE_VERSION: '3.24.0'
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -82,6 +89,7 @@ jobs:
       - name: Prose
         uses: errata-ai/vale-action@518a9136acc6e6668ce7c00d367051e0941e87ff # v3.0.0
         with:
+          version: ${{ env.VALE_VERSION }}
           files: ${{ inputs.docs-path }}
           vale_flags: --config=.standards/.vale.ini --minAlertLevel=warning
           fail_on_error: true
