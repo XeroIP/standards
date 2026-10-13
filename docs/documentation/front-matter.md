@@ -2,7 +2,7 @@
 title: Front matter
 type: reference
 status: active
-updated: 2026-10-09
+updated: 2026-10-13
 summary: The required YAML schema on every page, and the opt-in that scopes severity colour.
 ---
 
@@ -101,3 +101,7 @@ a page that has been quietly excluded from an index is worse than one that fails
 
 It also fails `severity_ui` set to anything but `true` or `false`, set on a page whose type and
 tags don't allow it, or a `data-severity-ui` attribute in a page that doesn't set it.
+
+The same gate fails any front-matter value that contains `<fill in>`, one error per field. That
+marker is the placeholder in the [incident starter](templates/incident.md), so a copy that
+still holds it isn't finished.

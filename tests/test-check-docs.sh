@@ -55,6 +55,30 @@ expect() {
   status=1
 }
 
+# expect_errors NAME MESSAGE...: the checker exits 1 on $tree and every MESSAGE appears.
+# For a page that fails for several reasons at once, where expect wants exactly one.
+expect_errors() {
+  local name="$1" msg rc=0
+  shift
+  python3 "${checker_override:-$checker}" "$tree" >"$work/out" 2>&1 || rc=$?
+  if [[ $rc -ne 1 ]]; then
+    echo "  FAIL: $name: expected exit 1, got $rc"
+  else
+    for msg in "$@"; do
+      if ! grep -qF -- "$msg" "$work/out"; then
+        echo "  FAIL: $name: no \"$msg\" in the output"
+        sed 's/^/    /' "$work/out"
+        status=1
+        return 0
+      fi
+    done
+    echo "  ok: $name"
+    return 0
+  fi
+  sed 's/^/    /' "$work/out"
+  status=1
+}
+
 adr() { # adr FILE ID [FRONT-MATTER LINE...]: a complete ADR, body optional on stdin
   local file="$1" id="$2"
   shift 2
@@ -139,5 +163,58 @@ tree; printf '<div data-severity-ui>Degraded</div>\n' | page "$tree/probe.md" re
 expect "data-severity-ui in the body without the flag" 1 "data-severity-ui in the page needs severity_ui: true"
 tree; printf 'The attribute is `data-severity-ui`.\n' | page "$tree/probe.md" reference
 expect "data-severity-ui in a code span" 0
+
+echo "the incident starter: skipped at its exact path, and a page to fill in everywhere else"
+starter="$root/docs/documentation/templates/incident.md"
+marker='<fill in>'
+placeholder() { printf "front matter '%s' is still the starter's placeholder %s" "$1" "$marker"; }
+fields=(title status updated services severity window data_loss)
+errors=()
+for f in "${fields[@]}"; do errors+=("$(placeholder "$f")"); done
+
+if [[ -f "$starter" ]]; then echo "  ok: the starter exists, so skipping it means something"
+else echo "  FAIL: $starter is missing"; status=1; fi
+tree="$root/docs"
+expect "the starter at its exact path is skipped" 0
+
+tree; mkdir -p "$tree/incidents"; cp "$starter" "$tree/incidents/2026-01-01-example.md"
+expect_errors "an unfilled copy of the starter names every placeholder field" "${errors[@]}"
+if grep -qF "front matter 'type'" "$work/out"; then
+  echo "  FAIL: type is the starter's one fixed value, and was reported"; status=1
+else echo "  ok: type, the one fixed value, isn't reported"; fi
+tree; mkdir -p "$tree/other/templates"; cp "$starter" "$tree/other/templates/incident.md"
+expect_errors "the same file at other/templates/incident.md is checked" "${errors[@]}"
+tree; mkdir -p "$tree/documentation/templates"; cp "$starter" "$tree/documentation/templates/incident.md"
+expect_errors "and at documentation/templates/incident.md in another tree" "${errors[@]}"
+
+tree; mkdir -p "$tree/incidents"
+sed -e 's/^title: .*/title: Probe/' -e 's/^status: .*/status: active/' \
+    -e 's/^updated: .*/updated: 2026-01-01/' -e 's/^services: .*/services: [service-a]/' \
+    -e 's/^severity: .*/severity: SEV-3/' -e 's/^  start: .*/  start: 2026-01-01T00:00:00+00:00/' \
+    -e 's/^  end: .*/  end: 2026-01-01T01:00:00+00:00/' -e 's/^data_loss: .*/data_loss: false/' \
+    -e 's/^# `<fill in>`$/# Probe/' -e 's/^`<fill in>`$/Nothing here./' \
+    "$starter" >"$tree/incidents/2026-01-01-example.md"
+if grep -qF "$marker" "$tree/incidents/2026-01-01-example.md"; then
+  echo "  FAIL: the filled copy still holds a marker, so the next case proves nothing"; status=1
+fi
+expect "a copy with every marker replaced passes: the starter has every required field and section" 0
+
+echo "a marker fails wherever it sits in the front matter, and only there"
+tree; page "$tree/probe.md" reference "summary: $marker" </dev/null
+expect "a scalar" 1 "$(placeholder summary)"
+tree; page "$tree/probe.md" reference "tags: [backup, $marker]" </dev/null
+expect "an item in a flow list" 1 "$(placeholder tags)"
+tree; page "$tree/probe.md" reference "tags:" "  - backup" "  - $marker" </dev/null
+expect "an item in a block list" 1 "$(placeholder tags)"
+tree; incident_body | page "$tree/probe.md" incident "services: [service-a]" "severity: low" \
+  "window:" "  start: 2026-01-01T00:00:00+00:00" "  end: $marker" "data_loss: false"
+expect "a value nested under a key" 1 "$(placeholder window)"
+tree; incident_body | page "$tree/probe.md" incident "services: [service-a]" "severity: low" \
+  "window:" "  start: $marker" "  end: $marker" "data_loss: false"
+expect "two nested values are one error, for their field" 1 "$(placeholder window)"
+tree; page "$tree/probe.md" reference "summary: x" "# summary: $marker" </dev/null
+expect "a marker in a front-matter comment is ignored" 0
+tree; printf 'Replace `%s` with the cause.\n' "$marker" | page "$tree/probe.md" reference
+expect "a marker in the body isn't checked" 0
 
 exit $status

@@ -93,10 +93,18 @@ jobs:
       - name: Structure, naming, front matter, and internal links
         run: python3 tools/check-docs.py docs/
 
+      # The starter people copy for an incident review is written from INCIDENT_SECTIONS.
+      - name: The incident starter matches INCIDENT_SECTIONS
+        run: python3 tools/build-incident-starter.py --check
+
       # Each check check-docs.py claims, on a page that breaks it and on one
       # that doesn't. The tree above is valid, so it shows only the passing half.
       - name: check-docs fails what it claims to
         run: bash tests/test-check-docs.sh
+
+      # --check on a missing file, a stale one and a fresh one, in a scratch tree.
+      - name: The starter generator fails a missing or stale file
+        run: bash tests/test-incident-starter.sh
 
       # The imported diagram checkers exited with their finding count, which
       # wraps at 256. This holds them to 0 or 1, and runs the shipped example.
