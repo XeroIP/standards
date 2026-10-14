@@ -3,7 +3,7 @@ title: Documentation structure
 type: reference
 status: active
 updated: 2026-10-13
-summary: Diátaxis plus ADRs, incidents, an ops log, and project records, and which gates each repo profile runs.
+summary: Diátaxis plus ADRs, incidents, an ops log, and project records, and the gates each repo profile is meant to run.
 ---
 
 # Documentation structure
@@ -129,11 +129,14 @@ dangerous rather than merely untidy.
 
 ## Profiles
 
-`.standards.yml` declares which gates a repo runs.
+`.standards.yml` declares a repo's profile. The table is the intended selection of gates, not
+current behaviour. Today every profile runs the same documentation gates, and `docs-ci.yml`
+prints the profile without acting on it. Selecting gates from `profile` and `stacks` is planned in
+[#44](https://github.com/XeroIP/standards/issues/44).
 
-| Profile | Runs | For |
+| Profile | Intended to run | For |
 | --- | --- | --- |
-| `docs-only` | Markdown lint, prose lint, link check, build | Documentation repos with no application code |
+| `docs-only` | `check-docs` (structure, front matter, internal links), Vale, markdownlint. No external link check and no build, so these are also the gates that run today, under any profile | Documentation repos with no application code |
 | `mixed` | The above plus language gates for `stacks` | Docs plus scripts or config |
 | `code` | All gates; docs gates scoped to `docs/` | Applications |
 

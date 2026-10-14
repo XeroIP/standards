@@ -110,9 +110,10 @@ vale --config=.standards/.vale.ini docs
 npx markdownlint-cli2 --config .standards/.markdownlint-cli2.jsonc
 ```
 
-Profiles let repos differ on purpose. `docs-only` skips the language gates entirely, and
-`workflow.require_issue` / `workflow.allow_direct_to_main` are per-repo facts rather than a
-house rule with exceptions.
+Profiles are meant to let repos differ on purpose. A repo declares its profile today, but
+every profile runs the same documentation gates until gate selection lands
+([#44](https://github.com/XeroIP/standards/issues/44)). `workflow.require_issue` and
+`workflow.allow_direct_to_main` record a repo's own practice, and nothing reads them yet.
 
 ## For agents
 
