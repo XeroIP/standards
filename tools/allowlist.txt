@@ -177,8 +177,11 @@ zip
 #
 # Two kinds: placeholders reserved for documentation, and public third parties
 # this repository legitimately links to. Neither reveals anything about the
-# private estate. A domain absent from this list is a finding — including a new
-# domain of your own, which is the case a denylist would have missed entirely.
+# private estate. In prose, a domain absent from this list is a finding — including
+# a new domain of your own, which is the case a denylist would have missed
+# entirely. In code and config only the short [tld] list counts as a domain, so
+# the same host in a .py file passes; that gap is documented in the docstring of
+# tools/check-leakage.py (XeroIP/standards#41).
 # ---------------------------------------------------------------------------
 [domain]
 # Reserved for documentation and examples — RFC 2606 and RFC 6761

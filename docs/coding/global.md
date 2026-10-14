@@ -2,7 +2,7 @@
 title: Global engineering rules
 type: reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 summary: Priorities, change discipline, git conventions, and safety rules that apply in every repo regardless of language.
 ---
 
@@ -85,7 +85,8 @@ Run the formatters and linters for the declared stacks before committing. The st
 stack tooling and no hooks for stacks, so whether a repo runs them, and as a hook or in CI, is
 that repo's decision. Selecting gates by stack is planned in
 [#44](https://github.com/XeroIP/standards/issues/44). `docs-ci.yml` runs the documentation and
-prose gates. `secret-scan.yml` runs gitleaks plus an allowlist-based leakage scan. The rules on
-this page that concern judgement — priorities, change scope, disagreement — are review items,
-because no tool checks them and pretending otherwise would make the enforceable rules look
-optional by association.
+prose gates. `secret-scan.yml` runs gitleaks plus an allowlist-based leakage scan; the leakage
+scan runs only in public repositories, or in a private one whose `.standards.yml` declares
+`visibility: public`. The rules on this page that concern judgement — priorities, change scope,
+disagreement — are review items, because no tool checks them and pretending otherwise would
+make the enforceable rules look optional by association.

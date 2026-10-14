@@ -14,6 +14,12 @@ behaviour.
 
 ### Changed
 
+- **The leakage claims say what the scanner reports.** `AGENTS.md`, `CONTRIBUTING.md`, the
+  README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes said it reports
+  anything infrastructure-shaped. It reports addresses, CIDRs and hostnames on the suffixes in
+  its lists; a host on an unusual suffix in code is a documented gap, and container names and
+  live file paths are review items. `docs/coding/global.md` now says the leakage scan runs only
+  in public repositories. The rule itself is unchanged.
 - **`check-docs.py` fails a front-matter value that still holds `<fill in>`.** The incident
   starter's `updated` would fail the date check, but nothing failed an unfilled `title`,
   `severity` or `window`, so a copy could be committed with the placeholders in them. Each
@@ -288,13 +294,13 @@ stability the repository has not earned.
   rename exposed 308 previously suppressed findings.
 - **The leak guard published what it protected.** A denylist in a public repository has to name
   the values it excludes. Replaced with an allowlist, which leaks nothing and fails unfamiliar
-  values by default.
+  addresses and hostnames by default (a host on an unusual suffix in code is a documented gap).
 
 ### Security
 
-- `tools/check-leakage.py` reports anything infrastructure-shaped not on `tools/allowlist.txt`,
-  and runs as a pre-commit hook as well as in CI. It cannot see text inside images; that limit
-  is stated in `SECURITY.md` rather than left implied.
+- `tools/check-leakage.py` reports any address, CIDR or hostname on its suffix lists that isn't
+  on `tools/allowlist.txt`, and runs as a pre-commit hook as well as in CI. It cannot see text
+  inside images; that limit is stated in `SECURITY.md` rather than left implied.
 
 [Unreleased]: https://github.com/XeroIP/standards/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/XeroIP/standards/releases/tag/v0.1.0

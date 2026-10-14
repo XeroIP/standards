@@ -25,11 +25,14 @@ Never write a real domain, hostname, IP, CIDR, container name, file path from a 
 anything resembling a credential. Use `example.internal`, `192.0.2.10` (RFC 5737 TEST-NET-1),
 `10.0.0.0/8` when a range is meant, `service-a`, `/srv/appdata/<service>`.
 
-`tools/check-leakage.py` enforces this from an **allowlist**: anything with the shape of
-infrastructure that is not explicitly permitted in `tools/allowlist.txt` is a finding. That
-catches values nobody thought to enumerate — a domain registered next year, a host stood up
-next month — and it means the guard itself contains nothing sensitive. A denylist would have
-to name the values it protects, which in a public repository publishes them.
+`tools/check-leakage.py` enforces this from an **allowlist**: any address, CIDR or hostname on
+the suffixes in its lists that is not explicitly permitted in `tools/allowlist.txt` is a
+finding. That catches values nobody thought to enumerate — a domain registered next year, a
+host stood up next month — and it means the guard itself contains nothing sensitive. A
+denylist would have to name the values it protects, which in a public repository publishes
+them. A host on an unusual suffix written in code is a documented gap (see the docstring of
+`tools/check-leakage.py`), and container names and live file paths are review items, because
+the scanner doesn't look for them.
 
 It runs as a pre-commit hook as well as in CI. The hook is the one that counts: a public git
 history cannot be un-pushed, so by the time CI reports a leak the value has been cloneable for

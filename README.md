@@ -128,11 +128,14 @@ and re-run the generator; never edit a generated file.
 
 Standards use placeholders — `example.internal`, `192.0.2.10`, `service-a`. This repo is
 public and the nearest source of examples is a private homelab, so `tools/check-leakage.py`
-reports anything infrastructure-shaped that is not on `tools/allowlist.txt`.
+reports any address, CIDR or hostname on its suffix lists that is not on
+`tools/allowlist.txt`. A host on an unusual suffix written in code is a documented gap (see the
+docstring of the script), and container names and live file paths are review items, because
+it doesn't look for them.
 
 The allowlist, not a denylist: a denylist would have to name the values it protects, and
 publishing it would defeat it. It also only catches what someone thought to add, where an
-allowlist catches unfamiliar values by default. The check runs pre-commit as well as in CI,
+allowlist catches unfamiliar addresses and hostnames by default. The check runs pre-commit as well as in CI,
 because a public git history cannot be un-pushed.
 
 ## Verifying
