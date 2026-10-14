@@ -2,7 +2,7 @@
 title: File naming and links
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: Filenames, why ordinal prefixes are banned, and how links and redirects are kept honest.
 ---
 
@@ -12,13 +12,13 @@ summary: Filenames, why ordinal prefixes are banned, and how links and redirects
 
 1. **Lowercase, hyphenated, `.md`.** `disaster-recovery.md`, not `Disaster_Recovery.md`.
 2. **No ordinal prefixes.** Never `00-overview.md`.
-3. **The slug describes the content, not its position.** `cloudflare-boundary.md` survives a
+3. **The slug describes the content, not its position.** `network-boundary.md` survives a
    reorganisation; `03-networking.md` does not.
 4. **Type lives in the directory, not the filename.** `how-to/verify-stack.md`, never
    `howto-verify-stack.md`.
 5. **Dated pages lead with the date.** `ops-log/2026-08-30-disk-space-check.md`,
-   `incidents/2026-08-13-overseerr.md`. ISO order sorts correctly and reads unambiguously.
-6. **ADRs keep their number.** `adr/0007-no-forward-auth-on-jellyfin.md`. The number is an
+   `incidents/2026-03-02-service-a-outage.md`. ISO order sorts correctly and reads unambiguously.
+6. **ADRs keep their number.** `adr/0007-no-forward-auth-on-service-a.md`. The number is an
    identifier, not a sort position, and it never changes.
 
 ## Why ordinal prefixes are banned

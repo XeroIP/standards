@@ -33,15 +33,15 @@ until then a review is the Markdown file itself.
 
 ```yaml
 ---
-title: Overseerr unavailable for 144 hours
+title: Service-a unavailable for 144 hours
 type: incident
 status: active
-updated: 2026-08-21
+updated: 2026-03-10
 severity: SEV-3
 services: [service-a]
 window:
-  start: 2026-08-13T23:00:57-06:00
-  end: 2026-08-19T23:06:39-06:00
+  start: 2026-03-02T09:00:00Z
+  end: 2026-03-08T09:06:00Z
 data_loss: false
 revision: 3
 severity_ui: true

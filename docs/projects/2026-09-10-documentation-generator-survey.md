@@ -2,12 +2,16 @@
 title: Documentation generator survey
 type: project
 status: active
-updated: 2026-09-10
+updated: 2026-10-13
 summary: The twenty-generator screen that should have preceded the bake-off, and the thirteen rejections.
 services: [documentation-generators]
 ---
 
 # Documentation generator survey
+
+> Illustrative estate detail was generalised on 2026-10-13 under the correction rule in
+> [documentation structure](../documentation/structure.md). What was screened, measured and
+> decided is unchanged.
 
 The five-candidate bake-off in [the bake-off](2026-09-06-documentation-toolchain-bake-off.md) tested a list that came from the plan, not from a
 survey. This document is the survey that should have preceded it: what exists, what was
@@ -45,7 +49,7 @@ of its other merits.
 | | Criterion | Why it is disqualifying |
 | --- | --- | --- |
 | C1 | Markdown is the source, unmodified | The source is read by agents, rendered by GitHub, and edited without a preview. A format only a build can read breaks all three. |
-| C2 | Static HTML output, rendered at build time | Two deploy targets, one behind a forward-auth proxy. Client-side rendering also hides content from a printer and from anything that does not run JavaScript. |
+| C2 | Static HTML output, rendered at build time | Two deploy targets, one behind access control. Client-side rendering also hides content from a printer and from anything that does not run JavaScript. |
 | C3 | A current stable release line | Thirty repositories and a multi-year commitment. A stable line that has not shipped in over a year, or a next line stuck in prolonged alpha, is a maintenance risk being taken on deliberately. |
 | C4 | Open source and self-hostable | The private site runs on hardware under our control. A hosted product cannot go there at any price. |
 | C5 | Theming reachable from a token file without forking | The design system is generated from `design/tokens.json`. A generator requiring a fork will drift from it. |
@@ -120,7 +124,7 @@ customisation beyond a theme's variables means writing it.
 | **Quarto** | discriminator | 1.10.18, 2026-07-24. The only candidate besides Sphinx with a first-class path to typeset PDF, via Pandoc and LaTeX. Aimed at scientific and computational publishing, and heavier than this estate needs — unless PDF becomes a requirement, in which case it re-enters against Sphinx. |
 | **Zola** | C5 | Single Rust binary and fast, but no documentation theme in the same class, so the design system would be built from scratch — which is Eleventy's position without Eleventy's flexibility. |
 | **Docsify** | **C2** | Renders in the browser at request time. No static HTML, so nothing survives without JavaScript, print output is unreliable, and a crawler or an offline reader sees an empty shell. |
-| **GitBook, Mintlify, ReadMe, Archbee, Retype** | **C4** | Hosted products. The private site runs on our own hardware behind forward auth, which a SaaS product cannot do. |
+| **GitBook, Mintlify, ReadMe, Archbee, Retype** | **C4** | Hosted products. The private site runs on our own hardware behind access control, which a SaaS product cannot do. |
 | **Wiki.js, BookStack, Outline** | **C1** | Database-backed wikis. Content does not live in git as Markdown files, so it cannot be reviewed in a pull request, vendored, or read by an agent from the working tree. |
 | **Read the Docs** | not a generator | A hosting platform that runs Sphinx or MkDocs. Relevant to deployment, not to this choice. |
 | **Quartz, Docus, Vocs, Slate, Redoc** | scope or scale | Obsidian-flavoured, Nuxt-flavoured, Vite-flavoured, and two API-reference-only tools. Named so the omission is deliberate. |
