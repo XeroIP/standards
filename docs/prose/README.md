@@ -2,7 +2,7 @@
 title: Prose standard
 type: reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 summary: House writing style, derived from multi-vendor research and enforced by generated Vale rules.
 ---
 
@@ -24,7 +24,11 @@ version from different vendors agree. The current pack is the v2.4 synthesis fro
 across three vendors.
 
 That repo stays the upstream. Rules change there and are re-imported here; editing the
-imported files directly loses the provenance that makes the pack worth trusting.
+imported files directly loses the provenance that makes the pack worth trusting. The diagram
+tools and the two imported prose pages carry import markers; the files under
+`docs/prose/vendor/` carry none, and nothing detects an edit to any imported file, so keeping
+them unedited is a review item
+([#65](https://github.com/XeroIP/standards/issues/65)).
 
 **Licensing.** `XeroIP/english-ai-rule` and this repository have the same owner, so the
 imported files are relicensed here under CC BY 4.0 along with the rest of `docs/`. Stated

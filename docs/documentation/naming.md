@@ -2,7 +2,7 @@
 title: File naming and links
 type: reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 summary: Filenames, why ordinal prefixes are banned, and how links and redirects are kept honest.
 ---
 
@@ -59,6 +59,8 @@ tidying is not worth it.
 
 ## Enforcement
 
-`docs-ci.yml` fails on a filename that violates rules 1–5, on an ordinal prefix outside
-`adr/`, and on any unresolved internal link. Internal link resolution runs at build time in
+`docs-ci.yml` fails on a filename that breaks rules 1, 2 or 5 (case, underscores, an ordinal
+prefix outside `adr/`, a missing date on a dated page) and on any unresolved internal link.
+Rules 3 and 4 are review items: no tool checks that a slug describes content or that the type
+stays out of the filename. Internal link resolution runs at build time in
 under a second and needs no network, which is why it gates every push while lychee does not.

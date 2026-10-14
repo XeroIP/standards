@@ -14,6 +14,12 @@ behaviour.
 
 ### Changed
 
+- **Three enforcement sentences say what is checked.** `docs/documentation/naming.md` listed
+  rules 1–5 as failing in `docs-ci.yml`; rules 3 and 4 (the slug names content, type stays out
+  of the filename) are review items. The README said the sync workflow writes only when
+  `apply` is asked for, where a published release writes too. `docs/prose/README.md` said
+  editing an imported file loses its provenance without saying that nothing detects the edit
+  ([#65](https://github.com/XeroIP/standards/issues/65)).
 - **The leakage claims say what the scanner reports.** `AGENTS.md`, `CONTRIBUTING.md`, the
   README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes said it reports
   anything infrastructure-shaped. It reports addresses, CIDRs and hostnames on the suffixes in

@@ -87,8 +87,9 @@ organization secret. The tiers are not interchangeable:
 | **Environment** | **The `sync` job only** | **Chosen.** Adding a required reviewer means the token is released only when a person approves the run. |
 
 That last point is the reason it is worth the extra setup. The workflow already reports by
-default and writes only when `apply` is asked for; the environment gate enforces the same
-decision in a second place, where one says write and the other hands over the means to.
+default and writes only for a published release or when `apply` is asked for; the environment
+gate enforces the same decision in a second place, where one says write and the other hands
+over the means to.
 
 Put a required reviewer on the `sync` environment. Without one the gate stores the secret
 correctly but approves every run, which is the configuration that looks protected and is not.
