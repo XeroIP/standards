@@ -14,10 +14,13 @@ Diátaxis does not model — decisions, incidents, a running operations log, and
 
 The four Diátaxis types describe a system as it currently stands, and are rewritten whenever it
 changes. The four additions are the engineering record: dated accounts of decisions taken,
-events survived, changes applied, and work carried out, which are not rewritten because the
-past does not change. Diátaxis scopes itself to the documentation of a product rather than the
-history of the effort that produced it, so adding record types fills a gap it declines to
-cover rather than contradicting it.
+events survived, changes applied, and work carried out, which are not rewritten because the past
+does not change. A record may still be corrected afterwards, in proportion: for a typo, a broken
+link, or illustrative detail that should never have been specific. What was decided, measured,
+tried or done is never changed; a later record supersedes it, and a correction says so on the
+page. Diátaxis scopes itself to the documentation of a product rather than the history of the
+effort that produced it, so adding record types fills a gap it declines to cover rather than
+contradicting it.
 
 ## The four types
 
