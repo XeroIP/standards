@@ -170,6 +170,34 @@ behaviour.
 - **AGENTS.md no longer says CI doesn't resolve tags.** A published release's sync checks out
   its tag. It now says what the tag ruleset blocks, and that no gate resolves a tag to decide
   what it accepts.
+- **The coding pages state each tooling practice as an instruction and say this repository ships
+  no stack tooling or hooks**, with gate selection by stack planned in
+  [#44](https://github.com/XeroIP/standards/issues/44); `global.md`, which the sync copies into
+  every consumer's agent files, says the same in its Enforcement section.
+- **`.standards.yml`, `structure.md` and the README say that `visibility` is the only key that
+  changes a gate today**, that the sync prints `profile` and `stacks` without selecting gates
+  from them ([#44](https://github.com/XeroIP/standards/issues/44)), that nothing reads the
+  `workflow` keys, and that a sync from a version other than `standards_version` warns and still
+  vendors it ([#45](https://github.com/XeroIP/standards/issues/45)).
+- **The incident review standard describes the rendered site as planned**
+  ([#46](https://github.com/XeroIP/standards/issues/46)) and the timeline and corrective-action
+  table rules as review items until their checks exist
+  ([#43](https://github.com/XeroIP/standards/issues/43)), and the observability page says the
+  same.
+- **The documentation standard scopes front matter to `docs/`**, names MD045 as the alt-text
+  check, marks diagram sources as a review item, and lets a record take a proportionate, marked
+  correction.
+- **Examples and two project records use placeholders**, in place of specific services, a dated
+  outage and deployment detail, under the correction rule in `structure.md`.
+- **`docs/prose/README.md` records that L14, contraction avoidance, is not enforced here**,
+  though the imported master rule calls it strictly enforced.
+- **AGENTS.md, the README and the Dependabot comment count two npm dependencies**, the allowlist
+  points at the written rationale and says no ADR records it yet
+  ([#4](https://github.com/XeroIP/standards/issues/4)), and `check-rendered-design.js` lists its
+  tokens path once.
+- **The README says the sync token exists**, that a release run has used it, that a rejected run
+  shows as failed in the Actions UI, and that the sync's pull requests are authored by the
+  token's owner ([#32](https://github.com/XeroIP/standards/issues/32)).
 
 ### Fixed
 
@@ -184,6 +212,8 @@ behaviour.
   missing repository made `git ls-remote` fail inside an assignment, and `set -e` ended the
   script with git's exit code and no message. It now names the repository and exits 2, apart
   from a wrong pin's 1.
+- **`self-check.yml` reads the Node major version from a new `.nvmrc`**, as
+  `javascript-typescript.md` already said CI does.
 
 ### Added
 
