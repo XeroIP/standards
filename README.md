@@ -64,15 +64,18 @@ shift-change does in `.claude/rules/`. `--adopt` overrides all of this, delibera
 A published release syncs that released tag and opens the pull requests, and `standards_version`
 in the consuming repo records which one it holds. A manual run reads `main` and opens them only
 with `apply`. Both wait for a person to approve the run in the `sync` environment before the
-token is handed over. There's no scheduled run: an unattended one waits at that gate and reports
-nothing.
+token is handed over. A reviewer who rejects the run stops it before any step starts, and the
+Actions UI shows it as a failed run. There's no scheduled run: an unattended one waits at that
+gate and reports nothing.
 
 ### The sync token
 
 The bot needs a `STANDARDS_SYNC_TOKEN` with `contents: write` and `pull-requests: write` on
-each listed repository, and nothing else. A fine-grained PAT scoped to exactly those
-repositories is the least-privilege option to start with. **It does not exist yet, so the
-write path has never run.**
+each listed repository, and nothing else. The token exists. It's a fine-grained token scoped to
+the listed repositories, and a release run has used it to open a pull request. The sync's pull
+requests are authored by the token's owner, so where a repository requires an approving review,
+that person can't be the one who approves
+([#32](https://github.com/XeroIP/standards/issues/32)).
 
 It is stored as an **environment secret on the `sync` environment**, not as a repository or
 organization secret. The tiers are not interchangeable:
