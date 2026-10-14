@@ -14,6 +14,11 @@ behaviour.
 
 ### Changed
 
+- **The changelog says what each new test covers.** `tests/test-check-docs.sh` covers six
+  groups of checks, not every check `check-docs.py` makes. `tests/test-diagram-tools.sh` has
+  no single-mismatch case for the cross-reference checker. `tests/test-sync.sh` covers the
+  sync tool, not the workflow file. The shift-change installer's v3 writes `CLAUDE.md` once,
+  to remove its old block.
 - **Three enforcement sentences say what is checked.** `docs/documentation/naming.md` listed
   rules 1–5 as failing in `docs-ci.yml`; rules 3 and 4 (the slug names content, type stays out
   of the filename) are review items. The README said the sync workflow writes only when
@@ -37,7 +42,9 @@ behaviour.
 - **The shift-change handoff instructions live in `.claude/rules/shift-change.md`.** They were
   a marked block in `AGENTS.md`, copied there so `CLAUDE.md` could be generated around it, and
   re-running the shift-change installer broke the agent-file parity check. Its v3 writes its
-  own rules file, which Claude Code loads alongside `CLAUDE.md`, and never writes `CLAUDE.md`.
+  own rules file, which Claude Code loads alongside `CLAUDE.md`. It writes `CLAUDE.md` only to
+  remove its own pre-v3 block from a hand-written one, and deletes the file if nothing else is
+  left in it.
 - **Vale is pinned to 3.24.0 in both Prose steps.** `docs-ci.yml` and `self-check.yml`
   installed whatever Vale release was newest, so a release could change what the gate accepts
   in every consuming repo with no commit anywhere. Both now set `VALE_VERSION`, the cap test
@@ -245,14 +252,18 @@ behaviour.
 - `tests/test-vale.sh`, which runs the committed Vale config on pages built at the cap and one
   paragraph over it, for every cap rule. CI runs it on the Vale binary the Prose step
   installed.
-- `tests/test-check-docs.sh`, which builds a page that breaks each check `check-docs.py`
-  claims and one that doesn't, and asserts the exit status and the message.
+- `tests/test-check-docs.sh`, which builds pages for six groups of `check-docs.py`'s checks
+  (the vendor exclusion, an empty tree, ADR sections and `supersedes`, `severity_ui`, the
+  incident starter and the placeholder markers) and asserts the exit status and the message.
+  The other checks, such as required keys, dates, naming and links, have no test yet.
 - `tests/test-llms-txt.sh`, which runs the `llms.txt` generator on a copy of the tree with a
   made-up `mkdocs.yml` and checks that entries follow its `site_url`.
-- `tests/test-diagram-tools.sh`, which runs both diagram checkers at 0, 1 and 256 findings and
-  runs the shipped example, clean and with one source changed.
-- `tests/test-sync.sh`, which syncs scratch consumers and checks each of the above, ending
-  with the vendored markdownlint run on the sync's own output.
+- `tests/test-diagram-tools.sh`, which runs `check_overlaps.py` at 0, 1 and 256 findings and
+  `check_cross_reference.py` at 0 and 256 mismatches (there's no single-mismatch case), then
+  runs the shipped example, clean and with one port changed.
+- `tests/test-sync.sh`, which syncs scratch consumers and checks the sync tool's behaviour,
+  starting with the vendored markdownlint run on the sync's own output. It doesn't cover the
+  workflow file: that a release applies, that nothing is scheduled, and the `repos` input.
 
 ## [0.1.0] — 2026-09-16
 
