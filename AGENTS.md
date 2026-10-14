@@ -52,8 +52,8 @@ is the only thing keeping a derived file honest.
 
 Dependencies are pinned to exact versions and installed with `npm ci`, never `npm install` —
 `npm ci` installs exactly the lockfile and fails when it disagrees with `package.json`, which
-is what makes a generator's output reproducible. There is currently one: `js-yaml`, which
-loads `docs/prose/rules.yml`.
+is what makes a generator's output reproducible. There are currently two: `js-yaml`, which
+loads `docs/prose/rules.yml`, and `markdownlint-cli2`, which `npm run lint:md` runs.
 
 ## Writing standards
 

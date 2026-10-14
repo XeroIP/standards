@@ -10,8 +10,10 @@
 # leaks nothing, because everything here is reserved for documentation or
 # already public, and it catches unfamiliar values by default.
 #
-# See docs/adr/ for the decision record, and Marcus Ranum, "The Six Dumbest
-# Ideas in Computer Security" (2005), where enumerating badness is idea #2.
+# The written rationale is the section "The rule that shapes everything else"
+# in XeroIP/standards' AGENTS.md. No ADR records it yet (XeroIP/standards#4).
+# See also Marcus Ranum, "The Six Dumbest Ideas in Computer Security" (2005),
+# where enumerating badness is idea #2.
 #
 # Format: [section] headers, one value per line, # comments ignored.
 # tools/check-leakage.py reads this file.

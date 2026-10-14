@@ -35,9 +35,10 @@ const fs = require("fs");
 const path = require("path");
 const { serve, launchBrowser } = require("./lib/serve-static");
 
+// `tools/` sits beside `docs/` both in this repo and in a vendored `.standards/`,
+// so one relative path covers both layouts.
 const DEFAULT_TOKENS = [
-  path.join(__dirname, "..", "docs", "design", "tokens.json"), // running inside the standards repo
-  path.join(__dirname, "..", "docs", "design", "tokens.json"), // running from a vendored .standards/
+  path.join(__dirname, "..", "docs", "design", "tokens.json"),
 ];
 
 function parseArgs(argv) {

@@ -135,7 +135,7 @@ because a public git history cannot be un-pushed.
 ## Verifying
 
 ```bash
-npm ci                            # one pinned dependency: js-yaml, for the rule loader
+npm ci                            # two pinned dependencies: js-yaml, for the rule loader, and markdownlint-cli2
 node tools/build-vale.js          # regenerate .vale.ini and styles from docs/prose/rules.yml
 node tools/build-agent-files.js   # regenerate CLAUDE.md and copilot-instructions.md
 node tools/build-llms-txt.js      # regenerate llms.txt
