@@ -2,7 +2,7 @@
 title: Observability standard
 type: reference
 status: draft
-updated: 2026-09-07
+updated: 2026-10-13
 summary: Not yet written. This page states the scope and the questions it has to answer.
 ---
 
@@ -43,7 +43,9 @@ The standard has to address why:
 
 ## Until it exists
 
-[Incident reviews](../documentation/incident-reviews.md) requires a monitoring and
-observability lessons section on every review, with each finding becoming a corrective action
-that has an owner and a date. That requirement is in force now, and the findings it produces
-are the raw material this standard will be written from.
+[Incident reviews](../documentation/incident-reviews.md) require a lessons-learned section on
+every review, with each finding becoming a corrective action that has an owner and a date.
+`check-docs` fails a review without that section. Its content, and the owner and date on each
+action, are review items until the table checks are built
+([#43](https://github.com/XeroIP/standards/issues/43)). The findings those reviews produce are
+the raw material this standard will be written from.
