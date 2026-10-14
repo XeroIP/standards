@@ -31,6 +31,22 @@ imported files are relicensed here under CC BY 4.0 along with the rest of `docs/
 rather than assumed: an HTML comment naming a source is provenance, not a grant, and a reader
 has no way to tell that one owner stands behind both without being told.
 
+### Upstream claims that don't hold here
+
+The imported files stay as they came, so a claim in one can describe the upstream's setup
+rather than this repository's. Where one doesn't hold here, it's recorded in this section
+and the imported file stays unedited.
+
+**L14, contraction avoidance.** `master-language-rule.md` says L14 "is strictly enforced".
+Nothing enforces it here:
+
+- `rules.yml` lists it among the markers a regex can't check, so it generates no Vale rule.
+- `validation-checklist.md` has it in the optional tier, as a human check.
+- The master rule itself marks L14 single-run and provisional.
+
+Treat L14 as a habit rather than a gate. The house style still asks for contractions where a
+person writing to a peer would use them.
+
 ## Tiers
 
 | Tier | Meaning | Vale severity |
