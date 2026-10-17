@@ -26,8 +26,8 @@ behaviour.
   editing an imported file loses its provenance without saying that nothing detects the edit
   ([#65](https://github.com/XeroIP/standards/issues/65)).
 - **The leakage claims say what the scanner reports.** `AGENTS.md`, `CONTRIBUTING.md`, the
-  README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes said it reports
-  anything infrastructure-shaped. It reports addresses, CIDRs and hostnames on the suffixes in
+  README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes claimed more than it
+  reports: anything infrastructure-shaped, or every unlisted domain. It reports addresses, CIDRs and hostnames on the suffixes in
   its lists; a host on an unusual suffix in code is a documented gap, and container names and
   live file paths are review items. `docs/coding/global.md` now says the leakage scan runs only
   in public repositories. The rule itself is unchanged.
@@ -240,7 +240,8 @@ behaviour.
   replaced the shared list, or the whole allowlist, left it green; its lookalike directory
   didn't contain the skipped path's name, so a substring match did too. It now scans
   `clean.md` with the supplement, and checks that a nested copy of the skipped directory and
-  a sibling that only starts with its name are still scanned. `check-leakage.py` is unchanged.
+  a sibling that only starts with its name are still scanned. `check-leakage.py`'s scanning is
+  unchanged.
 - **Generator parity catches a generated file that was never committed.** The Vale-styles and
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.

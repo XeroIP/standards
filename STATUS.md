@@ -1,7 +1,7 @@
 ---
 state: active        # active | paused | blocked | done
 priority: high       # high | med | low
-updated: 2026-10-17T22:19:25+00:00
+updated: 2026-10-17T23:28:05+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -25,16 +25,17 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## In progress / broken
 
-- PR 15 is on `fix/resweep-defects` and about to open. It holds the four code fixes (the
+- PR 15 is open as #68 on `fix/resweep-defects`. It holds the four code fixes (the
   refresh-tld-list check step, the Vale cache path, `load_profile` on an unreadable
   `.standards.yml`, and `test-leakage.sh` on a replaced allowlist) and the project record
   `docs/projects/2026-10-07-enforcement-honesty-audit.md`.
-- The confirmation sweep runs on PR 15's head before it merges, then is compared after merge.
+- The confirmation sweep passed at PR 15's head (205800e): zero unexplained hits; only A9
+  (#67) and I202 (#64) left false. Compare the merged tree against that head after merge.
 - The audit notes stay outside the repository.
 
 ## Next step
 
-Drive PR 15 to merged, then run the confirmation sweep and compare it with the record.
+Merge PR 15 on the owner's word, then check the merged tree matches the swept head.
 
 ## Blockers / waiting on
 

@@ -111,15 +111,15 @@ justified every tracked extension left out of both passes.
 
 Of the 35 configuration rows that were false in any form at stage 2, 25 are now true, 5 were
 removed with their subject, and 2 are labelled review items. Of the prose rows, 16 of 25
-`false` and 20 of 26 `false (partly)` are now true. Three rows stage 2 had graded true turned
-out false in part: A3 and C7 were stage 2 misses, and H8 was a regression from #56.
+`false` and 20 of 26 `false (partly)` are now true. Four rows stage 2 had graded true turned
+out false in part: A3, C7 and A21 were stage 2 misses, and H8 was a regression from #56.
 
 ## What was tried and abandoned
 
 - **A dated snapshot of the delegated-suffix list (PR 2).** The alternative to a scheduled
   refresh job. The owner ruled for the job, and #41's body says why the snapshot wasn't taken.
   The same ruling rejected two other shapes for the domain check: the full list applied
-  everywhere (78 findings, all false) and an issue in place of the PR.
+  everywhere (78 findings at the time of the ruling, all false) and an issue in place of the PR.
 - **Dependabot in each consuming repository, to keep the workflow pin current.** The pin
   lives in the consumer, so this is a config and a standing PR stream in thirty repos to keep
   one line fresh. The work scales with repository count while the risk stays rare. The
@@ -239,17 +239,21 @@ except for two rows: A9, a public consumer with no `.standards/`
 ([#67](https://github.com/XeroIP/standards/issues/67)), and I202, Python restated in five
 workflows ([#64](https://github.com/XeroIP/standards/issues/64)).
 
-Three things have never run:
+Two things have never run:
 
 - the pull-request step of the TLD refresh workflow (A112 and A214), which needs a change in
   the suffix set;
 - the `sync` environment's settings (H118), which the environments API won't show a session
-  behind the proxy;
-- the first scheduled run of `links.yml`.
+  behind the proxy.
+
+The first scheduled run of `links.yml` succeeded on 2026-10-14 (run 38518445881).
 
 The owner has three items. The shift-change installer needs running across the repos. Two
 upstream issue drafts are unfiled: the diagram checkers' exit status, and the `/wrapup`
 timestamp offset. Dependabot [#59](https://github.com/XeroIP/standards/pull/59) is open.
 
-The final confirmation sweep runs on PR 15's head before it merges, and is compared against
-the merged tree afterward. This record is not final until that comparison matches.
+The confirmation sweep ran on PR 15's head before it merged. 342 hit lines, every one covered
+by a claim or a recorded reason. The reworded and fixed rows were re-graded, and none got worse.
+45 of 45 deliberate breaks of the mechanisms were caught, against 41 at the first re-sweep. The
+only rows left false and unlabelled are A9 and I202. The merged tree is compared against that
+head afterward.
