@@ -1,8 +1,8 @@
 # Dependabot for THIS repository only.
 #
 # It updates the third-party actions this repository's own workflows run, and
-# the one npm dependency the rule loader needs. It does not reach consuming
-# repositories, deliberately.
+# both npm devDependencies: js-yaml, which loads the prose rules, and
+# markdownlint-cli2. It does not reach consuming repositories, deliberately.
 #
 # Consuming repos pin the reusable workflow to a commit SHA. Bumping that pin
 # with Dependabot would mean a config and a standing pull request stream in each

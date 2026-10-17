@@ -10,8 +10,9 @@ private. Never write a real domain, hostname, IP address, CIDR, container name, 
 a live host, or anything resembling a credential. Use `example.internal`, `192.0.2.10`
 (RFC 5737), `10.0.0.0/8` when a range is meant, `service-a`, `/srv/appdata/<service>`.
 
-`tools/check-leakage.py` enforces this from an allowlist and runs as a pre-commit hook as well
-as in CI. The hook is the one that counts: a public git history cannot be un-pushed, so by the
+`tools/check-leakage.py` checks addresses, CIDRs and hostnames against an allowlist and runs as
+a pre-commit hook as well as in CI. It doesn't look for container names or live file paths;
+those are review items. The hook is the one that counts: a public git history cannot be un-pushed, so by the
 time CI reports a leak the value has been cloneable for as long as the push took.
 
 ## Setting up

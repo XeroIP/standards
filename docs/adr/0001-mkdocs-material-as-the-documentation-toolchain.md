@@ -5,13 +5,17 @@ id: ADR-0001
 status: accepted
 date: 2026-09-11
 deciders: [peter]
-updated: 2026-09-11
+updated: 2026-10-13
 supersedes: null
 superseded_by: null
 tags: [documentation, tooling, build]
 ---
 
 # MkDocs + Material as the documentation toolchain
+
+> **Correction, 2026-10-13.** Illustrative estate detail was generalised under the correction
+> rule in [documentation structure](../documentation/structure.md). The decision, the options
+> and the consequences are unchanged.
 
 ## Context and problem statement
 
@@ -51,7 +55,7 @@ restructure lands. Choosing it after the restructure means restructuring twice.
   will drift from it.
 - **Build fast enough to run on every commit.** A gate people wait on is a gate people skip.
 - **Two deployment targets.** Static output published to GitHub Pages for the public site, and
-  the same output served by a container behind a forward-auth proxy for private repositories.
+  the same output served as plain static files behind access control for private repositories.
   Anything requiring a runtime on the serving host fails the second case.
 - **Versioned documentation is explicitly _not_ a driver.** Stated because the candidate with
   native versioning, Docusaurus, is rejected below on build weight, and the omission would
@@ -143,7 +147,7 @@ already buys the same durability for any generator.
 Two further constraints narrow it. Cross-project linking requires every project on both ends
 to be Sphinx, and most repositories here are not documentation-shaped. It also requires the
 target's inventory to be fetchable at build time, and most of this estate is private and
-behind forward auth.
+behind access control.
 
 What survives is real but small: Sphinx fails its own build on a dead cross-project
 reference, where a link checker reports the same dead link out of band. Sphinx also has a

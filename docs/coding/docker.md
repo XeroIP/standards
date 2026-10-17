@@ -2,7 +2,7 @@
 title: Docker and Compose
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: hadolint, image pinning, and keeping secrets out of images and compose files.
 ---
 
@@ -15,7 +15,7 @@ summary: hadolint, image pinning, and keeping secrets out of images and compose 
 | Dockerfile lint | hadolint |
 | Compose validation | `docker compose config` |
 
-`docker compose config` runs before any deploy. It resolves interpolation and catches a
+Run `docker compose config` before any deploy. It resolves interpolation and catches a
 malformed file that would otherwise fail halfway through bringing a stack up.
 
 ## Images

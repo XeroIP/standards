@@ -3,14 +3,14 @@ title: Front matter
 type: reference
 status: active
 updated: 2026-10-13
-summary: The required YAML schema on every page, and the opt-in that scopes severity colour.
+summary: The required YAML schema on every page under docs/, and the opt-in that scopes severity colour.
 ---
 
 # Front matter
 
-Every Markdown page carries YAML front matter. It is what lets navigation, indexes, and the
-`llms.txt` manifest be generated rather than hand-maintained — and a hand-maintained index is
-the thing that always drifts.
+Every Markdown page under `docs/` carries YAML front matter. It is what lets navigation,
+indexes, and the `llms.txt` manifest be generated rather than hand-maintained — and a
+hand-maintained index is the thing that always drifts.
 
 ## Required on every page
 
@@ -94,10 +94,11 @@ severity_ui: true
 
 ## Enforcement
 
-`docs-ci.yml` validates every page against this schema and fails on a missing required key, an
-unknown key, a `type` outside the enum, a malformed date, or `status: superseded` without
-`superseded_by`. Unknown keys fail deliberately: a typo in a key name is silent otherwise, and
-a page that has been quietly excluded from an index is worse than one that fails the build.
+`docs-ci.yml` validates every page under `docs/` against this schema and fails on a missing
+required key, an unknown key, a `type` outside the enum, a malformed date, or
+`status: superseded` without `superseded_by`. Unknown keys fail deliberately: a typo in a key
+name is silent otherwise, and a page that has been quietly excluded from an index is worse than
+one that fails the build.
 
 It also fails `severity_ui` set to anything but `true` or `false`, set on a page whose type and
 tags don't allow it, or a `data-severity-ui` attribute in a page that doesn't set it.

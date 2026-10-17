@@ -64,15 +64,18 @@ shift-change does in `.claude/rules/`. `--adopt` overrides all of this, delibera
 A published release syncs that released tag and opens the pull requests, and `standards_version`
 in the consuming repo records which one it holds. A manual run reads `main` and opens them only
 with `apply`. Both wait for a person to approve the run in the `sync` environment before the
-token is handed over. There's no scheduled run: an unattended one waits at that gate and reports
-nothing.
+token is handed over. A reviewer who rejects the run stops it before any step starts, and the
+Actions UI shows it as a failed run. There's no scheduled run: an unattended one waits at that
+gate and reports nothing.
 
 ### The sync token
 
 The bot needs a `STANDARDS_SYNC_TOKEN` with `contents: write` and `pull-requests: write` on
-each listed repository, and nothing else. A fine-grained PAT scoped to exactly those
-repositories is the least-privilege option to start with. **It does not exist yet, so the
-write path has never run.**
+each listed repository, and nothing else. The token exists. It's a fine-grained token scoped to
+the listed repositories, and a release run has used it to open a pull request. The sync's pull
+requests are authored by the token's owner, so where a repository requires an approving review,
+that person can't be the one who approves
+([#32](https://github.com/XeroIP/standards/issues/32)).
 
 It is stored as an **environment secret on the `sync` environment**, not as a repository or
 organization secret. The tiers are not interchangeable:
@@ -84,8 +87,9 @@ organization secret. The tiers are not interchangeable:
 | **Environment** | **The `sync` job only** | **Chosen.** Adding a required reviewer means the token is released only when a person approves the run. |
 
 That last point is the reason it is worth the extra setup. The workflow already reports by
-default and writes only when `apply` is asked for; the environment gate enforces the same
-decision in a second place, where one says write and the other hands over the means to.
+default and writes only for a published release or when `apply` is asked for; the environment
+gate enforces the same decision in a second place, where one says write and the other hands
+over the means to.
 
 Put a required reviewer on the `sync` environment. Without one the gate stores the secret
 correctly but approves every run, which is the configuration that looks protected and is not.
@@ -110,9 +114,10 @@ vale --config=.standards/.vale.ini docs
 npx markdownlint-cli2 --config .standards/.markdownlint-cli2.jsonc
 ```
 
-Profiles let repos differ on purpose. `docs-only` skips the language gates entirely, and
-`workflow.require_issue` / `workflow.allow_direct_to_main` are per-repo facts rather than a
-house rule with exceptions.
+Profiles are meant to let repos differ on purpose. A repo declares its profile today, but
+every profile runs the same documentation gates until gate selection lands
+([#44](https://github.com/XeroIP/standards/issues/44)). `workflow.require_issue` and
+`workflow.allow_direct_to_main` record a repo's own practice, and nothing reads them yet.
 
 ## For agents
 
@@ -124,17 +129,20 @@ and re-run the generator; never edit a generated file.
 
 Standards use placeholders — `example.internal`, `192.0.2.10`, `service-a`. This repo is
 public and the nearest source of examples is a private homelab, so `tools/check-leakage.py`
-reports anything infrastructure-shaped that is not on `tools/allowlist.txt`.
+reports any address, CIDR or hostname on its suffix lists that is not on
+`tools/allowlist.txt`. A host on an unusual suffix written in code is a documented gap (see the
+docstring of the script), and container names and live file paths are review items, because
+it doesn't look for them.
 
 The allowlist, not a denylist: a denylist would have to name the values it protects, and
 publishing it would defeat it. It also only catches what someone thought to add, where an
-allowlist catches unfamiliar values by default. The check runs pre-commit as well as in CI,
+allowlist catches unfamiliar addresses and hostnames by default. The check runs pre-commit as well as in CI,
 because a public git history cannot be un-pushed.
 
 ## Verifying
 
 ```bash
-npm ci                            # one pinned dependency: js-yaml, for the rule loader
+npm ci                            # two pinned dependencies: js-yaml, for the rule loader, and markdownlint-cli2
 node tools/build-vale.js          # regenerate .vale.ini and styles from docs/prose/rules.yml
 node tools/build-agent-files.js   # regenerate CLAUDE.md and copilot-instructions.md
 node tools/build-llms-txt.js      # regenerate llms.txt

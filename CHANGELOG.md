@@ -14,6 +14,23 @@ behaviour.
 
 ### Changed
 
+- **The changelog says what each new test covers.** `tests/test-check-docs.sh` covers six
+  groups of checks, not every check `check-docs.py` makes. `tests/test-diagram-tools.sh` has
+  no single-mismatch case for the cross-reference checker. `tests/test-sync.sh` covers the
+  sync tool, not the workflow file. The shift-change installer's v3 writes `CLAUDE.md` once,
+  to remove its old block.
+- **Three enforcement sentences say what is checked.** `docs/documentation/naming.md` listed
+  rules 1–5 as failing in `docs-ci.yml`; rules 3 and 4 (the slug names content, type stays out
+  of the filename) are review items. The README said the sync workflow writes only when
+  `apply` is asked for, where a published release writes too. `docs/prose/README.md` said
+  editing an imported file loses its provenance without saying that nothing detects the edit
+  ([#65](https://github.com/XeroIP/standards/issues/65)).
+- **The leakage claims say what the scanner reports.** `AGENTS.md`, `CONTRIBUTING.md`, the
+  README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes said it reports
+  anything infrastructure-shaped. It reports addresses, CIDRs and hostnames on the suffixes in
+  its lists; a host on an unusual suffix in code is a documented gap, and container names and
+  live file paths are review items. `docs/coding/global.md` now says the leakage scan runs only
+  in public repositories. The rule itself is unchanged.
 - **`check-docs.py` fails a front-matter value that still holds `<fill in>`.** The incident
   starter's `updated` would fail the date check, but nothing failed an unfilled `title`,
   `severity` or `window`, so a copy could be committed with the placeholders in them. Each
@@ -25,7 +42,9 @@ behaviour.
 - **The shift-change handoff instructions live in `.claude/rules/shift-change.md`.** They were
   a marked block in `AGENTS.md`, copied there so `CLAUDE.md` could be generated around it, and
   re-running the shift-change installer broke the agent-file parity check. Its v3 writes its
-  own rules file, which Claude Code loads alongside `CLAUDE.md`, and never writes `CLAUDE.md`.
+  own rules file, which Claude Code loads alongside `CLAUDE.md`. It writes `CLAUDE.md` only to
+  remove its own pre-v3 block from a hand-written one, and deletes the file if nothing else is
+  left in it.
 - **Vale is pinned to 3.24.0 in both Prose steps.** `docs-ci.yml` and `self-check.yml`
   installed whatever Vale release was newest, so a release could change what the gate accepts
   in every consuming repo with no commit anywhere. Both now set `VALE_VERSION`, the cap test
@@ -170,6 +189,34 @@ behaviour.
 - **AGENTS.md no longer says CI doesn't resolve tags.** A published release's sync checks out
   its tag. It now says what the tag ruleset blocks, and that no gate resolves a tag to decide
   what it accepts.
+- **The coding pages state each tooling practice as an instruction and say this repository ships
+  no stack tooling or hooks**, with gate selection by stack planned in
+  [#44](https://github.com/XeroIP/standards/issues/44); `global.md`, which the sync copies into
+  every consumer's agent files, says the same in its Enforcement section.
+- **`.standards.yml`, `structure.md` and the README say that `visibility` is the only key that
+  changes a gate today**, that the sync prints `profile` and `stacks` without selecting gates
+  from them ([#44](https://github.com/XeroIP/standards/issues/44)), that nothing reads the
+  `workflow` keys, and that a sync from a version other than `standards_version` warns and still
+  vendors it ([#45](https://github.com/XeroIP/standards/issues/45)).
+- **The incident review standard describes the rendered site as planned**
+  ([#46](https://github.com/XeroIP/standards/issues/46)) and the timeline and corrective-action
+  table rules as review items until their checks exist
+  ([#43](https://github.com/XeroIP/standards/issues/43)), and the observability page says the
+  same.
+- **The documentation standard scopes front matter to `docs/`**, names MD045 as the alt-text
+  check, marks diagram sources as a review item, and lets a record take a proportionate, marked
+  correction.
+- **Examples and two project records use placeholders**, in place of specific services, a dated
+  outage and deployment detail, under the correction rule in `structure.md`.
+- **`docs/prose/README.md` records that L14, contraction avoidance, is not enforced here**,
+  though the imported master rule calls it strictly enforced.
+- **AGENTS.md, the README and the Dependabot comment count two npm dependencies**, the allowlist
+  points at the written rationale and says no ADR records it yet
+  ([#4](https://github.com/XeroIP/standards/issues/4)), and `check-rendered-design.js` lists its
+  tokens path once.
+- **The README says the sync token exists**, that a release run has used it, that a rejected run
+  shows as failed in the Actions UI, and that the sync's pull requests are authored by the
+  token's owner ([#32](https://github.com/XeroIP/standards/issues/32)).
 
 ### Fixed
 
@@ -184,6 +231,8 @@ behaviour.
   missing repository made `git ls-remote` fail inside an assignment, and `set -e` ended the
   script with git's exit code and no message. It now names the repository and exits 2, apart
   from a wrong pin's 1.
+- **`self-check.yml` reads the Node major version from a new `.nvmrc`**, as
+  `javascript-typescript.md` already said CI does.
 
 ### Added
 
@@ -203,14 +252,18 @@ behaviour.
 - `tests/test-vale.sh`, which runs the committed Vale config on pages built at the cap and one
   paragraph over it, for every cap rule. CI runs it on the Vale binary the Prose step
   installed.
-- `tests/test-check-docs.sh`, which builds a page that breaks each check `check-docs.py`
-  claims and one that doesn't, and asserts the exit status and the message.
+- `tests/test-check-docs.sh`, which builds pages for six groups of `check-docs.py`'s checks
+  (the vendor exclusion, an empty tree, ADR sections and `supersedes`, `severity_ui`, the
+  incident starter and the placeholder markers) and asserts the exit status and the message.
+  The other checks, such as required keys, dates, naming and links, have no test yet.
 - `tests/test-llms-txt.sh`, which runs the `llms.txt` generator on a copy of the tree with a
   made-up `mkdocs.yml` and checks that entries follow its `site_url`.
-- `tests/test-diagram-tools.sh`, which runs both diagram checkers at 0, 1 and 256 findings and
-  runs the shipped example, clean and with one source changed.
-- `tests/test-sync.sh`, which syncs scratch consumers and checks each of the above, ending
-  with the vendored markdownlint run on the sync's own output.
+- `tests/test-diagram-tools.sh`, which runs `check_overlaps.py` at 0, 1 and 256 findings and
+  `check_cross_reference.py` at 0 and 256 mismatches (there's no single-mismatch case), then
+  runs the shipped example, clean and with one port changed.
+- `tests/test-sync.sh`, which syncs scratch consumers and checks the sync tool's behaviour,
+  starting with the vendored markdownlint run on the sync's own output. It doesn't cover the
+  workflow file: that a release applies, that nothing is scheduled, and the `repos` input.
 
 ## [0.1.0] — 2026-09-16
 
@@ -258,13 +311,13 @@ stability the repository has not earned.
   rename exposed 308 previously suppressed findings.
 - **The leak guard published what it protected.** A denylist in a public repository has to name
   the values it excludes. Replaced with an allowlist, which leaks nothing and fails unfamiliar
-  values by default.
+  addresses and hostnames by default (a host on an unusual suffix in code is a documented gap).
 
 ### Security
 
-- `tools/check-leakage.py` reports anything infrastructure-shaped not on `tools/allowlist.txt`,
-  and runs as a pre-commit hook as well as in CI. It cannot see text inside images; that limit
-  is stated in `SECURITY.md` rather than left implied.
+- `tools/check-leakage.py` reports any address, CIDR or hostname on its suffix lists that isn't
+  on `tools/allowlist.txt`, and runs as a pre-commit hook as well as in CI. It cannot see text
+  inside images; that limit is stated in `SECURITY.md` rather than left implied.
 
 [Unreleased]: https://github.com/XeroIP/standards/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/XeroIP/standards/releases/tag/v0.1.0

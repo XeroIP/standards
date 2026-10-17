@@ -2,7 +2,7 @@
 title: Documentation toolchain bake-off
 type: project
 status: active
-updated: 2026-09-10
+updated: 2026-10-13
 summary: Seven documentation generators built the same three pages; the measured result behind ADR-0001.
 services: [mkdocs-material, hugo, eleventy, sphinx-myst, antora, starlight, docusaurus]
 ---
@@ -13,8 +13,10 @@ services: [mkdocs-material, hugo, eleventy, sphinx-myst, antora, starlight, docu
 > [ADR-0001](../adr/0001-mkdocs-material-as-the-documentation-toolchain.md). It was
 > written while the decision was still open, and its opening recommendation is
 > superseded by that ADR, which selected MkDocs + Material with Hugo recorded as the
-> tie and Eleventy as the fallback. The body is left as it was written; a record of
-> what was believed mid-evaluation is the thing worth keeping.
+> tie and Eleventy as the fallback. The body is left as it was written, except that
+> illustrative estate detail was generalised on 2026-10-13 under the correction rule in
+> [documentation structure](../documentation/structure.md); a record of what was believed
+> mid-evaluation is the thing worth keeping.
 >
 > The build harness it describes (`poc/`, its Makefile, and the 42 screenshots) was not
 > retained. The screenshots were never committed — `poc/.gitignore` excluded them — and
@@ -80,7 +82,7 @@ config and 9 lines of custom CSS. Five of the six page behaviors required by
 sticky header, section search, dark-mode toggle, responsive layout. Print rules were the only
 custom CSS.
 
-The 1,292-line hand-written `incident-2026-08-13-overseerr.html` reproduces from 410 lines of
+The 1,292-line hand-written `incident-<date>-service-a.html` reproduces from 410 lines of
 Markdown with no per-incident HTML. `mkdocs build --strict` fails on broken internal links in
 half a second, which is the guardrail the Diátaxis restructure needs. And `nav:` sets ordering
 independently of filename, so the ordinal `00-`…`19-` prefixes become cleanup rather than a

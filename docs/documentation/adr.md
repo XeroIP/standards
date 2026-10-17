@@ -2,7 +2,7 @@
 title: Architecture decision records
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: MADR-format decision records, superseding the ad-hoc decision documents already in use.
 ---
 
@@ -23,9 +23,10 @@ The reliable signal: the decision keeps getting re-explained. If the same questi
 in three different conversations, in a comment, and in a paragraph buried in a runbook, it
 needed an ADR and does not have one.
 
-Real examples currently living as prose in one repo, each of which is an ADR: no forward-auth
-on Jellyfin, Cloudflare stays DNS-only for media hosts, Overseerr is a deliberate exception
-routed through a tunnel, quarantine rather than delete on transcode failure.
+Examples that tend to live as prose until someone writes the ADR, each of which needs one: no
+forward-auth on service-a, the DNS provider stays DNS-only for service-a's hostnames, service-b
+is a deliberate exception routed through a tunnel, quarantine rather than delete when a job
+fails.
 
 Not an ADR: choosing a variable name, adopting a tool with no alternative, anything reversible
 in an afternoon.
@@ -40,7 +41,7 @@ exception to the [no ordinal prefixes](naming.md) rule.
 
 ```yaml
 ---
-title: No forward-auth on Jellyfin
+title: No forward-auth on service-a
 type: adr
 id: ADR-0007
 status: accepted

@@ -2,7 +2,7 @@
 title: Post-incident reviews
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: One required structure for incident reviews, replacing three divergent templates and the hand-written HTML they were rendered in.
 ---
 
@@ -20,10 +20,12 @@ incident. One review came to 1,292 lines of HTML. That approach was abandoned fo
 it always is: consistency depended on a person copying a stylesheet correctly under the worst
 conditions the job offers, which is the day after an outage.
 
-The same page now comes from Markdown with front matter, rendered by a template. Every
+The same page now comes from Markdown with front matter. Once the documentation site is built
+([#46](https://github.com/XeroIP/standards/issues/46)), a template will render it, and every
 behaviour the old standard demanded — sidebar navigation, sticky header with breadcrumbs, a
-section filter, a dark-mode toggle, print output, responsive layout — is a property of the
-template and the [design tokens](../design/), not of the document.
+section filter, a dark-mode toggle, print output, responsive layout — will be a property of the
+template and the [design tokens](../design/), not of the document. No site exists yet, so
+until then a review is the Markdown file itself.
 
 **The document's job is the content. The template's job is everything else.**
 
@@ -31,24 +33,26 @@ template and the [design tokens](../design/), not of the document.
 
 ```yaml
 ---
-title: Overseerr unavailable for 144 hours
+title: Service-a unavailable for 144 hours
 type: incident
 status: active
-updated: 2026-08-21
+updated: 2026-03-10
 severity: SEV-3
 services: [service-a]
 window:
-  start: 2026-08-13T23:00:57-06:00
-  end: 2026-08-19T23:06:39-06:00
+  start: 2026-03-02T09:00:00Z
+  end: 2026-03-08T09:06:00Z
 data_loss: false
 revision: 3
 severity_ui: true
 ---
 ```
 
-`window` is used to compute and display duration, so it is never written out by hand and can
-never disagree with the timeline. `severity_ui: true` unlocks the severity palette on this
-page.
+`window` is where the duration comes from. Once the site is built
+([#46](https://github.com/XeroIP/standards/issues/46)), it will compute and display the
+duration from `window`, so nobody writes it out by hand and it can't drift from the window.
+`severity_ui: true` unlocks the severity palette on this page: `check-docs` validates the flag
+today, and the design adapters honour it.
 
 ## Required sections, in this order
 
@@ -100,8 +104,9 @@ established" and leave it open.
 ## Timeline
 
 A table: timestamp, event, and a state of `ok`, `warn`, or `crit`. Timestamps carry a timezone
-and are ordered. The state drives a stripe and a chip in the rendered page — colour is never
-the only carrier, so the timeline survives print and colour-blind readers.
+and are ordered. Once the site is built ([#46](https://github.com/XeroIP/standards/issues/46)),
+the state will drive a stripe and a chip in the rendered page — colour is never the only
+carrier, so the timeline survives print and colour-blind readers.
 
 Timeline entries are observations, not narration. "First `EACCES`; crash loop begins" is an
 entry. "The team began investigating" is not, unless the time it happened is a finding.
@@ -150,7 +155,9 @@ removed.
 
 ## Enforcement
 
-`docs-ci.yml` fails on a missing required section, a missing required front-matter key, a
-timeline row without a timezone or a state, and a corrective action without an owner or a due
-date. Whether evidence and inference are honestly separated is a review item — no linter can
-check it, and pretending otherwise would be the same mistake this standard exists to fix.
+`docs-ci.yml` fails on a required section that is missing or out of order, and on a missing
+required front-matter key. It doesn't check the tables: a timeline row without a timezone or a
+state, and a corrective action without an owner or a due date, are review items until those
+checks are built ([#43](https://github.com/XeroIP/standards/issues/43)). Whether evidence and
+inference are honestly separated is a review item too — no linter can check it, and pretending
+otherwise would be the same mistake this standard exists to fix.

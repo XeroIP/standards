@@ -2,7 +2,7 @@
 title: Page anatomy
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: Headings, tables, code blocks, the four admonitions, and accessibility requirements.
 ---
 
@@ -98,6 +98,9 @@ they describe changes. A hand-placed SVG cannot be, and goes stale silently.
 Both the source and the rendered output are committed, so a reader without the toolchain still
 sees the diagram.
 
+Nothing checks either rule. No tool confirms that a diagram has a committed source, or that the
+rendered output matches that source, so both are review items.
+
 ## Accessibility
 
 Not optional, and mostly free if done while writing:
@@ -110,7 +113,9 @@ Not optional, and mostly free if done while writing:
 
 ## Enforcement
 
-markdownlint covers heading nesting, fenced-block languages, table headers, and link text.
-Vale covers prose, per [the prose standard](../prose/README.md). Alt text and colour-only
-meaning are review items; no linter catches them reliably, so they are on the checklist
-instead of pretending to be automated.
+markdownlint covers heading nesting, fenced-block languages, table headers, and link text. It
+also catches an image with no alt text at all: MD045 (`no-alt-text`) is on through
+`"default": true` in `.markdownlint-cli2.jsonc`. Vale covers prose, per
+[the prose standard](../prose/README.md). Whether alt text describes what an image shows, and
+colour-only meaning, are review items; no linter catches them reliably, so they are on the
+checklist instead of pretending to be automated.

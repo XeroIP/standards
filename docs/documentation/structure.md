@@ -3,7 +3,7 @@ title: Documentation structure
 type: reference
 status: active
 updated: 2026-10-13
-summary: Diátaxis plus ADRs, incidents, an ops log, and project records, and which gates each repo profile runs.
+summary: Diátaxis plus ADRs, incidents, an ops log, and project records, and the gates each repo profile is meant to run.
 ---
 
 # Documentation structure
@@ -14,10 +14,13 @@ Diátaxis does not model — decisions, incidents, a running operations log, and
 
 The four Diátaxis types describe a system as it currently stands, and are rewritten whenever it
 changes. The four additions are the engineering record: dated accounts of decisions taken,
-events survived, changes applied, and work carried out, which are not rewritten because the
-past does not change. Diátaxis scopes itself to the documentation of a product rather than the
-history of the effort that produced it, so adding record types fills a gap it declines to
-cover rather than contradicting it.
+events survived, changes applied, and work carried out, which are not rewritten because the past
+does not change. A record may still be corrected afterwards, in proportion: for a typo, a broken
+link, or illustrative detail that should never have been specific. What was decided, measured,
+tried or done is never changed; a later record supersedes it, and a correction says so on the
+page. Diátaxis scopes itself to the documentation of a product rather than the history of the
+effort that produced it, so adding record types fills a gap it declines to cover rather than
+contradicting it.
 
 ## The four types
 
@@ -129,11 +132,14 @@ dangerous rather than merely untidy.
 
 ## Profiles
 
-`.standards.yml` declares which gates a repo runs.
+`.standards.yml` declares a repo's profile. The table is the intended selection of gates, not
+current behaviour. Today every profile runs the same documentation gates, and `docs-ci.yml`
+prints the profile without acting on it. Selecting gates from `profile` and `stacks` is planned in
+[#44](https://github.com/XeroIP/standards/issues/44).
 
-| Profile | Runs | For |
+| Profile | Intended to run | For |
 | --- | --- | --- |
-| `docs-only` | Markdown lint, prose lint, link check, build | Documentation repos with no application code |
+| `docs-only` | `check-docs` (structure, front matter, internal links), Vale, markdownlint. No external link check and no build, so these are also the gates that run today, under any profile | Documentation repos with no application code |
 | `mixed` | The above plus language gates for `stacks` | Docs plus scripts or config |
 | `code` | All gates; docs gates scoped to `docs/` | Applications |
 

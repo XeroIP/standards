@@ -2,7 +2,7 @@
 title: Prose standard
 type: reference
 status: active
-updated: 2026-10-13
+updated: 2026-10-14
 summary: House writing style, derived from multi-vendor research and enforced by generated Vale rules.
 ---
 
@@ -24,12 +24,32 @@ version from different vendors agree. The current pack is the v2.4 synthesis fro
 across three vendors.
 
 That repo stays the upstream. Rules change there and are re-imported here; editing the
-imported files directly loses the provenance that makes the pack worth trusting.
+imported files directly loses the provenance that makes the pack worth trusting. The diagram
+tools and the two imported prose pages carry import markers; the files under
+`docs/prose/vendor/` carry none, and nothing detects an edit to any imported file, so keeping
+them unedited is a review item
+([#65](https://github.com/XeroIP/standards/issues/65)).
 
 **Licensing.** `XeroIP/english-ai-rule` and this repository have the same owner, so the
 imported files are relicensed here under CC BY 4.0 along with the rest of `docs/`. Stated
 rather than assumed: an HTML comment naming a source is provenance, not a grant, and a reader
 has no way to tell that one owner stands behind both without being told.
+
+### Upstream claims that don't hold here
+
+The imported files stay as they came, so a claim in one can describe the upstream's setup
+rather than this repository's. Where one doesn't hold here, it's recorded in this section
+and the imported file stays unedited.
+
+**L14, contraction avoidance.** `master-language-rule.md` says L14 "is strictly enforced".
+Nothing enforces it here:
+
+- `rules.yml` lists it among the markers a regex can't check, so it generates no Vale rule.
+- `validation-checklist.md` has it in the optional tier, as a human check.
+- The master rule itself marks L14 single-run and provisional.
+
+Treat L14 as a habit rather than a gate. The house style still asks for contractions where a
+person writing to a peer would use them.
 
 ## Tiers
 

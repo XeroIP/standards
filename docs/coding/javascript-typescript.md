@@ -2,7 +2,7 @@
 title: JavaScript and TypeScript
 type: reference
 status: active
-updated: 2026-09-07
+updated: 2026-10-13
 summary: ESLint and Prettier, the tsconfig baseline, and dependency discipline.
 ---
 
@@ -46,7 +46,8 @@ not be.
 - No default exports. Named exports survive renaming and are greppable.
 - `const` by default, `let` when reassignment is real, never `var`.
 - Handle promise rejection. A floating promise is an unhandled rejection waiting for
-  production; ESLint's `no-floating-promises` catches it.
+  production. `@typescript-eslint/no-floating-promises` catches it, but only with type-aware
+  linting turned on, and this repository ships no ESLint config, so enable both in yours.
 - Node's version is pinned in `.nvmrc` and read from that file in CI, never restated.
 
 ## Dependencies
