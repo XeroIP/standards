@@ -151,4 +151,31 @@ expect "no hash line" 3 "carries the banner but no content hash" sync "$c"
 expect "--adopt writes it" 0 "synced legacy" sync "$c" --adopt
 check "and the file has one now" grep -q '^<!-- sync-hash: ' "$c/CLAUDE.md"
 
+# load_profile's docstring says an unreadable .standards.yml is not fatal: the
+# repo is treated as having declared nothing, as when the file is missing. A
+# directory or invalid UTF-8 there was a traceback. --adopt stands in for the
+# consent the unreadable file can't give.
+echo "an unreadable .standards.yml warns and is treated as missing"
+c="$work/unreadable-dir"
+mkdir -p "$c/.standards.yml"
+git -C "$c" init -q
+expect "a directory at that path" 0 "warning: .standards.yml is unreadable" sync "$c" --adopt
+check "no traceback" bash -c "! grep -q Traceback '$work/out'"
+check "it still wrote the files" test -f "$c/AGENTS.md"
+check "and left the directory alone" test -d "$c/.standards.yml"
+c="$work/unreadable-bytes"
+mkdir -p "$c"
+git -C "$c" init -q
+printf '\377\376\000bad' >"$c/.standards.yml"
+expect "invalid UTF-8" 0 "warning: .standards.yml is unreadable" sync "$c" --adopt
+check "no traceback" bash -c "! grep -q Traceback '$work/out'"
+check "it still wrote the files" test -f "$c/AGENTS.md"
+check "and left the file as it was" bash -c "printf '\377\376\000bad' | cmp -s - '$c/.standards.yml'"
+c="$work/missing-file"
+mkdir -p "$c"
+git -C "$c" init -q
+expect "a missing file stays silent" 0 "synced missing-file" sync "$c" --adopt
+check "no warning" bash -c "! grep -q warning '$work/out'"
+check "and none is created" test ! -e "$c/.standards.yml"
+
 exit $status

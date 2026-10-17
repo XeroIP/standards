@@ -231,6 +231,10 @@ behaviour.
   a shell that sets `pipefail`, a missing directory made `find` fail and the step exited 1 with
   no output. It now ends with an `::error::` line naming the directory and exits 2 in either
   shell.
+- **An unreadable `.standards.yml` is a warning in the sync, not a traceback.**
+  `load_profile` said an unreadable file was not fatal, but a directory or invalid UTF-8 at
+  that path raised and exited 1. The sync now warns, treats the file as missing, and leaves
+  it as it found it. `tests/test-sync.sh` covers both cases and the missing file.
 - **Generator parity catches a generated file that was never committed.** The Vale-styles and
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.
