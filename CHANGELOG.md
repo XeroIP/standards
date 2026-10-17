@@ -226,6 +226,11 @@ behaviour.
   was skipped, against the step's own comment. The script is now `tools/check-tld-refresh.sh`,
   which captures each exit status with `|| rc=$?`. `tests/test-refresh-checks.sh`, run from
   `self-check.yml`, holds it to that.
+- **The Vale cap step says when the tool cache has moved.** `self-check.yml`'s "Frequency caps
+  count across the whole page" step commented that a missing cache exits 2 with a message. Under
+  a shell that sets `pipefail`, a missing directory made `find` fail and the step exited 1 with
+  no output. It now ends with an `::error::` line naming the directory and exits 2 in either
+  shell.
 - **Generator parity catches a generated file that was never committed.** The Vale-styles and
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.
