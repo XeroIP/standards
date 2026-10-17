@@ -165,6 +165,11 @@ jobs:
       - name: IANA suffix list is well-formed
         run: python3 tools/update-tlds.py --check
 
+      # The refresh workflow's check step, with a check that fails: the row and
+      # failed=1 must still be written, or the pull request is never opened.
+      - name: A failing refresh check still gets its row
+        run: bash tests/test-refresh-checks.sh
+
   # The gitleaks configuration's own test; secret-scan.yml runs the scan
   # itself. The release is the one secret-scan.yml and the pre-commit hook pin,
   # installed from its release tarball and checked against a recorded checksum

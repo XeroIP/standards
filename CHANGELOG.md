@@ -220,6 +220,12 @@ behaviour.
 
 ### Fixed
 
+- **A failing check no longer stops the IANA refresh from opening its pull request.** The
+  `Check the new list` step in `refresh-tld-list.yml` ran under the runner's `bash -e`, so the
+  first failing check ended it with no failure row and no `failed=1`, and the pull-request step
+  was skipped, against the step's own comment. The script is now `tools/check-tld-refresh.sh`,
+  which captures each exit status with `|| rc=$?`. `tests/test-refresh-checks.sh`, run from
+  `self-check.yml`, holds it to that.
 - **Generator parity catches a generated file that was never committed.** The Vale-styles and
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.
