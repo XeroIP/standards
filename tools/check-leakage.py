@@ -44,7 +44,7 @@ measured over the standards repository's tracked files and rewritten by
   `.py`, `.sh` and the rest of `[tld-prose-url-only]`) counts in prose only
   inside a URL or after an `@`, and for `.md` only after a user part, so an
   agent-file import such as `@STATUS.md` is not a host. Counted bare, these
-  suffixes reported 77 filenames in prose, and a gate that reports every
+  suffixes reported 75 filenames in prose, and a gate that reports every
   filename stops being read. The list was checked against the maintainer's own
   domains: no overlap.
 - A host on an unusual suffix written in code, or in a code span or fence, is

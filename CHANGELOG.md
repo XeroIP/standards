@@ -257,6 +257,10 @@ behaviour.
 
 ### Added
 
+- **The enforcement-honesty audit has a project record.**
+  `docs/projects/2026-10-07-enforcement-honesty-audit.md` gives the question, the method, the
+  182 graded claims, the re-sweep at e00f32a, what was abandoned and found, and a table of
+  every PR and issue in the series.
 - **Incident reviews have a starter to copy, generated from `INCIDENT_SECTIONS`.**
   `structure.md` said reviews were "generated from the template", and no template existed.
   `tools/build-incident-starter.py` now writes `docs/documentation/templates/incident.md` from
