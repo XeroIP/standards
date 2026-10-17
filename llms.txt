@@ -59,6 +59,7 @@ This file is generated from front matter by tools/build-llms-txt.js.
 
 - [Documentation toolchain bake-off](https://raw.githubusercontent.com/XeroIP/standards/main/docs/projects/2026-09-06-documentation-toolchain-bake-off.md): Seven documentation generators built the same three pages; the measured result behind ADR-0001.
 - [Documentation generator survey](https://raw.githubusercontent.com/XeroIP/standards/main/docs/projects/2026-09-10-documentation-generator-survey.md): The twenty-generator screen that should have preceded the bake-off, and the thirteen rejections.
+- [Enforcement-honesty audit](https://raw.githubusercontent.com/XeroIP/standards/main/docs/projects/2026-10-07-enforcement-honesty-audit.md): Every enforcement claim in this repository checked against the mechanism it names, and what that turned up.
 
 ## Optional
 

@@ -77,6 +77,16 @@ elif python3 "$checker" --paths "$extra/other.md" \
        --allowlist-extra "$extra/allow.txt" >/dev/null 2>&1; then
   echo "  FAIL: the supplement suppressed an unrelated value"
   status=1
+elif ! python3 "$checker" --paths "$fixtures/clean.md" >/dev/null 2>&1; then
+  echo "  FAIL: clean.md is reported without the supplement, so it can't show the shared list surviving"
+  status=1
+elif ! python3 "$checker" --paths "$fixtures/clean.md" \
+       --allowlist-extra "$extra/allow.txt" >"$work/shared.out" 2>&1; then
+  # clean.md holds only values the shared allowlist permits and the supplement
+  # does not. A supplement that replaced the list (or a section of it) reports them.
+  echo "  FAIL: the supplement dropped values the shared allowlist permits:"
+  sed 's/^/    /' "$work/shared.out"
+  status=1
 else
   echo "  ok"
 fi
@@ -137,10 +147,16 @@ fi
 # contained it.
 echo "in its own repository the scanner skips the fixture prefix and nothing else"
 own="$work/own"
-mkdir -p "$own/tools" "$own/tests/fixtures/leakage" "$own/notes/tests/fixtures-old"
+# The lookalikes carry the skipped directory's real name: one nested under
+# another path, and one that only starts with it. A substring test skips both.
+lookalikes="notes/tests/fixtures/leakage tests/fixtures/leakage-old notes/tests/fixtures-old"
+mkdir -p "$own/tools" "$own/tests/fixtures/leakage"
 cp "$checker" "$root/tools/allowlist.txt" "$root/tools/iana-tlds.txt" "$own/tools/"
 cp "$fixtures/leaks.md" "$own/tests/fixtures/leakage/probe.md"
-cp "$fixtures/leaks.md" "$own/notes/tests/fixtures-old/probe.md"
+for dir in $lookalikes; do
+  mkdir -p "$own/$dir"
+  cp "$fixtures/leaks.md" "$own/$dir/probe.md"
+done
 git -C "$own" init -q
 git -C "$own" add -A
 rc=0
@@ -149,8 +165,9 @@ if [[ $rc -ne 1 ]]; then
   echo "  FAIL: expected exit 1, got $rc"
   sed 's/^/    /' "$work/own.out"
   status=1
-elif ! reported "$work/own.out" "notes/tests/fixtures-old/probe.md"; then
-  echo "  FAIL: a path containing the fixture directory was skipped"
+elif missed=$(for dir in $lookalikes; do reported "$work/own.out" "$dir/probe.md" || echo "$dir"; done) \
+     && [[ -n "$missed" ]]; then
+  echo "  FAIL: a path that only resembles the fixture directory was skipped: $(tr '\n' ' ' <<<"$missed")"
   status=1
 elif reported "$work/own.out" "tests/fixtures/leakage/probe.md"; then
   echo "  FAIL: the fixture directory was scanned"
