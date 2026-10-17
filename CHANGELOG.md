@@ -235,6 +235,12 @@ behaviour.
   `load_profile` said an unreadable file was not fatal, but a directory or invalid UTF-8 at
   that path raised and exited 1. The sync now warns, treats the file as missing, and leaves
   it as it found it. `tests/test-sync.sh` covers both cases and the missing file.
+- **`tests/test-leakage.sh` notices a replaced allowlist and a substring `SKIP_DIRS` match.**
+  Its fixtures held no value that only the shared allowlist permits, so a supplement that
+  replaced the shared list, or the whole allowlist, left it green; its lookalike directory
+  didn't contain the skipped path's name, so a substring match did too. It now scans
+  `clean.md` with the supplement, and checks that a nested copy of the skipped directory and
+  a sibling that only starts with its name are still scanned. `check-leakage.py` is unchanged.
 - **Generator parity catches a generated file that was never committed.** The Vale-styles and
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.
