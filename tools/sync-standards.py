@@ -118,23 +118,37 @@ def standards_version() -> str:
         return "unknown"
 
 
+def read_profile_text(path: Path) -> str | None:
+    """The text of .standards.yml, or None when there is none to read: the file
+    is missing, a directory, or not UTF-8."""
+    try:
+        return path.read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return None
+    except (OSError, UnicodeDecodeError) as err:
+        print(f"warning: {path.name} is unreadable ({type(err).__name__}); "
+              "treating it as missing", file=sys.stderr)
+        return None
+
+
 def load_profile(target: Path) -> dict:
     """Read the target's .standards.yml.
 
     Deliberately shallow: only the keys that change what gets written are read,
     with a scalar parser rather than a YAML dependency. An unreadable or missing
     file is not fatal — it means the repo has not declared a profile yet, and the
-    sync should still deliver the text.
+    sync should still deliver the text. Unreadable (a directory, or not UTF-8)
+    prints a warning and is then treated as missing.
     """
     profile = {"profile": "mixed", "stacks": [], "visibility": "public",
                "adopted": False, "standards_version": "",
                "protect": [], "managed_regions": []}
-    path = target / ".standards.yml"
-    if not path.exists():
+    text = read_profile_text(target / ".standards.yml")
+    if text is None:
         return profile
     in_sync = False
     list_key = None
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in text.splitlines():
         line = line.split("#", 1)[0].rstrip()
         if not line.strip():
             continue
@@ -451,9 +465,10 @@ def pin_version(target: Path, version: str, dry_run: bool) -> list[str]:
     Only that line changes, or is appended when missing; the rest of the file is
     the repo's and stays as written. A repo with no .standards.yml gets none."""
     path = target / ".standards.yml"
-    if not path.exists():
-        return []
-    text = path.read_text(encoding="utf-8")
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError):
+        return []  # missing, or already warned about by load_profile
     line = re.compile(r"^standards_version:[ \t]*([^#\n]*?)([ \t]*#[^\n]*)?$", re.M)
     found = line.search(text)
     if found and found.group(1).strip().strip("\"'") == version:

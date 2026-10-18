@@ -26,8 +26,8 @@ behaviour.
   editing an imported file loses its provenance without saying that nothing detects the edit
   ([#65](https://github.com/XeroIP/standards/issues/65)).
 - **The leakage claims say what the scanner reports.** `AGENTS.md`, `CONTRIBUTING.md`, the
-  README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes said it reports
-  anything infrastructure-shaped. It reports addresses, CIDRs and hostnames on the suffixes in
+  README, the `[domain]` header in `tools/allowlist.txt` and the 0.1.0 notes claimed more than it
+  reports: anything infrastructure-shaped, or every unlisted domain. It reports addresses, CIDRs and hostnames on the suffixes in
   its lists; a host on an unusual suffix in code is a documented gap, and container names and
   live file paths are review items. `docs/coding/global.md` now says the leakage scan runs only
   in public repositories. The rule itself is unchanged.
@@ -220,6 +220,28 @@ behaviour.
 
 ### Fixed
 
+- **A failing check no longer stops the IANA refresh from opening its pull request.** The
+  `Check the new list` step in `refresh-tld-list.yml` ran under the runner's `bash -e`, so the
+  first failing check ended it with no failure row and no `failed=1`, and the pull-request step
+  was skipped, against the step's own comment. The script is now `tools/check-tld-refresh.sh`,
+  which captures each exit status with `|| rc=$?`. `tests/test-refresh-checks.sh`, run from
+  `self-check.yml`, holds it to that.
+- **The Vale cap step says when the tool cache has moved.** `self-check.yml`'s "Frequency caps
+  count across the whole page" step commented that a missing cache exits 2 with a message. Under
+  a shell that sets `pipefail`, a missing directory made `find` fail and the step exited 1 with
+  no output. It now ends with an `::error::` line naming the directory and exits 2 in either
+  shell.
+- **An unreadable `.standards.yml` is a warning in the sync, not a traceback.**
+  `load_profile` said an unreadable file was not fatal, but a directory or invalid UTF-8 at
+  that path raised and exited 1. The sync now warns, treats the file as missing, and leaves
+  it as it found it. `tests/test-sync.sh` covers both cases and the missing file.
+- **`tests/test-leakage.sh` notices a replaced allowlist and a substring `SKIP_DIRS` match.**
+  Its fixtures held no value that only the shared allowlist permits, so a supplement that
+  replaced the shared list, or the whole allowlist, left it green; its lookalike directory
+  didn't contain the skipped path's name, so a substring match did too. It now scans
+  `clean.md` with the supplement, and checks that a nested copy of the skipped directory and
+  a sibling that only starts with its name are still scanned. `check-leakage.py`'s scanning is
+  unchanged.
 - **Generator parity catches a generated file that was never committed.** The Vale-styles and
   design-adapter checks in `self-check.yml` used `git diff`, which ignores untracked files, so
   a new rule's style or a new adapter that the generator produced but nobody committed passed.
@@ -236,6 +258,10 @@ behaviour.
 
 ### Added
 
+- **The enforcement-honesty audit has a project record.**
+  `docs/projects/2026-10-07-enforcement-honesty-audit.md` gives the question, the method, the
+  182 graded claims, the re-sweep at e00f32a, what was abandoned and found, and a table of
+  every PR and issue in the series.
 - **Incident reviews have a starter to copy, generated from `INCIDENT_SECTIONS`.**
   `structure.md` said reviews were "generated from the template", and no template existed.
   `tools/build-incident-starter.py` now writes `docs/documentation/templates/incident.md` from
