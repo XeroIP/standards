@@ -1,7 +1,7 @@
 ---
-state: active        # active | paused | blocked | done
-priority: high       # high | med | low
-updated: 2026-10-17T23:28:05+00:00
+state: done          # active | paused | blocked | done
+priority: med        # high | med | low
+updated: 2026-10-18T22:30:47+00:00
 source: manual       # manual (/wrapup or pre-push) | auto (sweeper)
 ---
 # standards status
@@ -13,32 +13,28 @@ either build the missing mechanism or restate the claim as a review item.
 
 ## Done recently
 
-- PRs 1-14 are merged: #40, #41, #42, #47, #48, #49, #51-#57, #60, #61, #62 and #66. #66
-  is the wording pass (016bd9b). The owner also merged Dependabot #58.
-- The release exercise passed after #56 merged: run 38357604144 (approved) opened a PR in a
-  trial consumer, run 38358109877 (rejected) never started. The trial is cleaned up, and the
-  `sync` environment now admits only `v*` tags and `main`.
-- H17 is now gradable, with the sweeper's repository in scope: true.
-- Issues #63, #64 and #65 came from the re-sweep. #67 was filed for a public consumer with
-  no `.standards/`, which fails the leakage step without saying why.
-- The claim re-sweep ran at e00f32a with zero unexplained hits.
+- The audit is complete. All 15 PRs are merged: #40, #41, #42, #47, #48, #49, #51-#57, #60,
+  #61, #62, #66 and #68 (ac82536). The record is
+  `docs/projects/2026-10-07-enforcement-honesty-audit.md`.
+- The confirmation sweep passed at 205800e. The merged tree is identical to #68's final
+  head, and a sweep of it gives the same 342 hit lines per file. Only A9 (#67) and I202
+  (#64) are left false, both tracked.
+- The owner merged Dependabot #58.
 
 ## In progress / broken
 
-- PR 15 is open as #68 on `fix/resweep-defects`. It holds the four code fixes (the
-  refresh-tld-list check step, the Vale cache path, `load_profile` on an unreadable
-  `.standards.yml`, and `test-leakage.sh` on a replaced allowlist) and the project record
-  `docs/projects/2026-10-07-enforcement-honesty-audit.md`.
-- The confirmation sweep passed at PR 15's head (205800e): zero unexplained hits; only A9
-  (#67) and I202 (#64) left false. Compare the merged tree against that head after merge.
-- The audit notes stay outside the repository.
+- Nothing in progress. The audit notes stay outside the repository.
 
 ## Next step
 
-Merge PR 15 on the owner's word, then check the merged tree matches the swept head.
+None for the audit. Open follow-ups are the filed issues, starting with #67 and #64, which
+are the last two false claims; then #63, #65, #43-#46 and #38.
 
 ## Blockers / waiting on
 
-- The owner reviews PR 15.
-- Open Dependabot PR #59 waits on the owner.
-- The owner runs the shift-change installer across the repos.
+- Owner: Dependabot PR #59.
+- Owner: run the shift-change installer across the repos.
+- Owner: file the two upstream issue drafts (diagram checkers' exit status; the handoff
+  timestamp offset).
+- Never exercised: the TLD refresh workflow's pull-request step, and the `sync`
+  environment's settings, which this session can't read.
